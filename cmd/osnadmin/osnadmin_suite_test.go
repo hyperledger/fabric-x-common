@@ -10,9 +10,9 @@ import (
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/orderer/common/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
 )
 
 //go:generate counterfeiter -o mocks/channel_management.go -fake-name ChannelManagement . channelManagement

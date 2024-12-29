@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric/common/chaincode"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/chaincode"
 )
 
 // Logger is the logging instance for this package.

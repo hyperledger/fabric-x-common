@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/handlers/auth"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/auth"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 // NewTimeWindowCheckFilter creates a new Filter that checks timewindow expiration

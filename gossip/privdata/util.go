@@ -14,9 +14,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/rwsetutil"
-	privdatacommon "github.com/hyperledger/fabric/gossip/privdata/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/rwsetutil"
+	privdatacommon "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/privdata/common"
 	"google.golang.org/protobuf/proto"
 )
 

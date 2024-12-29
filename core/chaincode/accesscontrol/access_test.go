@@ -17,8 +17,8 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging/floggingtest"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/crypto/tlsgen"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

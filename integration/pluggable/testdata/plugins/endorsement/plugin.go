@@ -7,9 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api"
-	"github.com/hyperledger/fabric/core/handlers/endorsement/builtin"
-	"github.com/hyperledger/fabric/integration/pluggable"
+	endorsement "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/builtin"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/pluggable"
 )
 
 // go build -buildmode=plugin -o plugin.so

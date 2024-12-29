@@ -13,12 +13,12 @@ import (
 
 	discprotos "github.com/hyperledger/fabric-protos-go-apiv2/discovery"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/cmd/common"
-	discovery "github.com/hyperledger/fabric/discovery/cmd"
-	"github.com/hyperledger/fabric/discovery/cmd/mocks"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common"
+	discovery "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/cmd"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/cmd/mocks"
 )
 
 func TestConfigCmd(t *testing.T) {

@@ -12,7 +12,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/pkg/statedata"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/pkg/statedata"
 )
 
 // ProcessorCreator creates a new instance of a processor of a particular transaction type.

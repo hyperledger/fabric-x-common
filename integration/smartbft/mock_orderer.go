@@ -15,10 +15,10 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/util"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 

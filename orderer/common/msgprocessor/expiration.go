@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/channelconfig"
-	"github.com/hyperledger/fabric/common/crypto"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 type resources interface {

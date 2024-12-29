@@ -18,9 +18,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/gateway"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -28,6 +25,9 @@ import (
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
 	"github.com/tedsuo/ifrit/grouper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
@@ -84,7 +84,7 @@ var _ = Describe("GatewayService with BFT ordering service", func() {
 		chaincode := nwo.Chaincode{
 			Name:            "gatewaycc",
 			Version:         "0.0",
-			Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/simple/cmd"),
+			Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd"),
 			Lang:            "binary",
 			PackageFile:     filepath.Join(testDir, "gatewaycc.tar.gz"),
 			Ctor:            `{"Args":["init","a","100","b","200"]}`,

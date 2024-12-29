@@ -3,10 +3,10 @@
 package mocks
 
 import (
-	common "github.com/hyperledger/fabric/cmd/common"
-	cmd "github.com/hyperledger/fabric/discovery/cmd"
+	common "github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common"
+	cmd "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/cmd"
 
-	discovery "github.com/hyperledger/fabric/discovery/client"
+	discovery "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/client"
 
 	mock "github.com/stretchr/testify/mock"
 )

@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/gossip"
-	"github.com/hyperledger/fabric/gossip/protoext"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
 	"google.golang.org/protobuf/proto"
 )
 

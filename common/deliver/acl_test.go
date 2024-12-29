@@ -10,13 +10,13 @@ import (
 	"time"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/deliver"
-	"github.com/hyperledger/fabric/common/deliver/mock"
-	. "github.com/hyperledger/fabric/internal/test"
-	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver/mock"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var _ = Describe("SessionAccessControl", func() {

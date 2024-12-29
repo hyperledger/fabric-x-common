@@ -12,12 +12,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hyperledger/fabric/cmd/common"
-	"github.com/hyperledger/fabric/cmd/common/comm"
-	"github.com/hyperledger/fabric/cmd/common/signer"
-	discovery "github.com/hyperledger/fabric/discovery/client"
-	corecomm "github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/signer"
+	discovery "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/client"
+	corecomm "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 )
 
 func TestClientStub(t *testing.T) {

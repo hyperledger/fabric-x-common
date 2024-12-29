@@ -13,18 +13,18 @@ import (
 
 	proto "github.com/hyperledger/fabric-protos-go-apiv2/gossip"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/channelconfig"
-	"github.com/hyperledger/fabric/gossip/api"
-	"github.com/hyperledger/fabric/gossip/comm"
-	"github.com/hyperledger/fabric/gossip/common"
-	"github.com/hyperledger/fabric/gossip/discovery"
-	"github.com/hyperledger/fabric/gossip/filter"
-	"github.com/hyperledger/fabric/gossip/gossip"
-	"github.com/hyperledger/fabric/gossip/protoext"
-	"github.com/hyperledger/fabric/gossip/util"
-	"github.com/hyperledger/fabric/msp"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/api"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/discovery"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/filter"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/gossip"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 )
 
 type secAdvMock struct{}

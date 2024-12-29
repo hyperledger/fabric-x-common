@@ -16,11 +16,6 @@ import (
 	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/hyperledger/fabric-config/protolator/protoext/peerext"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/integration/nwo/fabricconfig"
-	"github.com/hyperledger/fabric/integration/nwo/runner"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -28,6 +23,11 @@ import (
 	. "github.com/onsi/gomega/gstruct"
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/fabricconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/runner"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -124,7 +124,7 @@ var _ = Describe("Lifecycle", func() {
 		testPeers := network.PeersWithChannel("testchannel")
 		org1peer0 := network.Peer("Org1", "peer0")
 
-		chaincodePath := components.Build("github.com/hyperledger/fabric/integration/chaincode/simple/cmd")
+		chaincodePath := components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd")
 		chaincode := nwo.Chaincode{
 			Name:                "My_1st-Chaincode",
 			Version:             "Version-0.0",

@@ -3,8 +3,8 @@
 package mocks
 
 import (
-	ledger "github.com/hyperledger/fabric/common/ledger"
-	coreledger "github.com/hyperledger/fabric/core/ledger"
+	ledger "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	coreledger "github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 
 	mock "github.com/stretchr/testify/mock"
 )

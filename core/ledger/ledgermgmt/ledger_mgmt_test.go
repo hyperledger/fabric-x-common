@@ -16,14 +16,14 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/configtx/test"
-	"github.com/hyperledger/fabric/common/ledger/testutil"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/cceventmgmt"
-	"github.com/hyperledger/fabric/core/ledger/kvledger"
-	"github.com/hyperledger/fabric/core/ledger/mock"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/cceventmgmt"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func TestLedgerMgmt(t *testing.T) {

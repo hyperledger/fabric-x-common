@@ -6,7 +6,7 @@ import (
 	fabric_protos_gomsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	mock "github.com/stretchr/testify/mock"
 
-	msp "github.com/hyperledger/fabric/msp"
+	msp "github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 
 	time "time"
 )

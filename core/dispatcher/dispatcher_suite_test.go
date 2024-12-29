@@ -9,9 +9,9 @@ package dispatcher_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/core/dispatcher"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/dispatcher"
 )
 
 //go:generate counterfeiter -o mock/protobuf.go --fake-name Protobuf . protobuf

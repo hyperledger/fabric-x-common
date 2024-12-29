@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
-	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 func TestMissingCollConfig(t *testing.T) {

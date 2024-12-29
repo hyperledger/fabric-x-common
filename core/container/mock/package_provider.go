@@ -5,8 +5,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/hyperledger/fabric/core/chaincode/persistence"
-	"github.com/hyperledger/fabric/core/container"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/persistence"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container"
 )
 
 type PackageProvider struct {

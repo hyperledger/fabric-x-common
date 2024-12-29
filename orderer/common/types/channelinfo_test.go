@@ -10,8 +10,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hyperledger/fabric/orderer/common/types"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
 )
 
 func TestErrorResponse(t *testing.T) {

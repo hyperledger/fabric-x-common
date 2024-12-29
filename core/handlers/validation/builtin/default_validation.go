@@ -12,17 +12,17 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	commonerrors "github.com/hyperledger/fabric/common/errors"
-	"github.com/hyperledger/fabric/core/committer/txvalidator/v20/plugindispatcher"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api"
-	vc "github.com/hyperledger/fabric/core/handlers/validation/api/capabilities"
-	vi "github.com/hyperledger/fabric/core/handlers/validation/api/identities"
-	vp "github.com/hyperledger/fabric/core/handlers/validation/api/policies"
-	vs "github.com/hyperledger/fabric/core/handlers/validation/api/state"
-	v12 "github.com/hyperledger/fabric/core/handlers/validation/builtin/v12"
-	v13 "github.com/hyperledger/fabric/core/handlers/validation/builtin/v13"
-	v20 "github.com/hyperledger/fabric/core/handlers/validation/builtin/v20"
 	"github.com/pkg/errors"
+	commonerrors "github.ibm.com/decentralized-trust-research/fabricx-config/common/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/committer/txvalidator/v20/plugindispatcher"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api"
+	vc "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/capabilities"
+	vi "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/identities"
+	vp "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/policies"
+	vs "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/state"
+	v12 "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/builtin/v12"
+	v13 "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/builtin/v13"
+	v20 "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/builtin/v20"
 )
 
 var logger = flogging.MustGetLogger("vscc")

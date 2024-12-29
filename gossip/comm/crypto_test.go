@@ -21,8 +21,8 @@ import (
 	"time"
 
 	proto "github.com/hyperledger/fabric-protos-go-apiv2/gossip"
-	"github.com/hyperledger/fabric/gossip/util"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/util"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

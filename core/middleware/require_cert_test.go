@@ -11,10 +11,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/hyperledger/fabric/core/middleware"
-	"github.com/hyperledger/fabric/core/middleware/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/middleware"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/middleware/fakes"
 )
 
 var _ = Describe("RequireCert", func() {

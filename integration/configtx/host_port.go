@@ -10,8 +10,8 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/hyperledger/fabric/integration/nwo"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
 )
 
 // PeerHostPort returns the host name and port number for the specified peer.

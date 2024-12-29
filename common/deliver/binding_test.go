@@ -17,10 +17,10 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
-	"github.com/hyperledger/fabric/internal/pkg/comm/testpb"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm/testpb"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/proto"

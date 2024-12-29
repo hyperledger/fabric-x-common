@@ -12,9 +12,9 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/msp"
-	mspmgmt "github.com/hyperledger/fabric/msp/mgmt"
-	"github.com/hyperledger/fabric/orderer/common/localconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	mspmgmt "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/localconfig"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

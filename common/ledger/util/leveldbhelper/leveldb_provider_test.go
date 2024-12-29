@@ -11,8 +11,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric/common/ledger/dataformat"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/dataformat"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/stretchr/testify/require"

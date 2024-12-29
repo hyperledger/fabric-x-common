@@ -17,13 +17,13 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
-	"github.com/hyperledger/fabric/common/ledger/dataformat"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/internal/version"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb/commontests"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/dataformat"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/internal/version"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/statedb"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/statedb/commontests"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/statedb/mock"
 )
 
 // testVDBEnv provides a couch db backed versioned db for testing

@@ -7,9 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package chaincode
 
 import (
-	"github.com/hyperledger/fabric/core/container"
-	"github.com/hyperledger/fabric/core/container/ccintf"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/ccintf"
 )
 
 // ContainerRouter is a poor abstraction used for building, and running chaincode processes.

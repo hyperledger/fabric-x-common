@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func (vi *ValidatorImpl) verifyReadSet(readSet map[string]comparable) error {

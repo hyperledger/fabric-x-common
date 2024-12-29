@@ -13,8 +13,8 @@ import (
 	protos "github.com/hyperledger-labs/SmartBFT/smartbftprotos"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/orderer/common/cluster"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/cluster"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 

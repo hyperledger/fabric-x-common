@@ -8,7 +8,7 @@ package configtx
 
 import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 

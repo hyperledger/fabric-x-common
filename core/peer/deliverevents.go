@@ -13,15 +13,15 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/deliver"
-	"github.com/hyperledger/fabric/core/aclmgmt/resources"
-	"github.com/hyperledger/fabric/core/common/privdata"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/internal/pkg/txflags"
-	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/msp/mgmt"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/aclmgmt/resources"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/privdata"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/txflags"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var logger = flogging.MustGetLogger("common.deliverevents")

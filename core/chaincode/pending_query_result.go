@@ -8,8 +8,8 @@ package chaincode
 
 import (
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	commonledger "github.com/hyperledger/fabric/common/ledger"
 	"github.com/pkg/errors"
+	commonledger "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -7,11 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package lifecycle_test
 
 import (
-	"github.com/hyperledger/fabric/common/chaincode"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle/mock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle/mock"
 )
 
 var _ = Describe("MetadataManager", func() {

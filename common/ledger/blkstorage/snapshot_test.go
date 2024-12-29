@@ -15,11 +15,11 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/ledger/snapshot"
-	"github.com/hyperledger/fabric/common/ledger/testutil"
-	"github.com/hyperledger/fabric/internal/pkg/txflags"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/snapshot"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/txflags"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 type testBlockDetails struct {

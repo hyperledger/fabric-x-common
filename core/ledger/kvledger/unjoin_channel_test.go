@@ -9,9 +9,9 @@ package kvledger
 import (
 	"testing"
 
-	configtxtest "github.com/hyperledger/fabric/common/configtx/test"
-	"github.com/hyperledger/fabric/core/ledger/mock"
 	"github.com/stretchr/testify/require"
+	configtxtest "github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/mock"
 )
 
 func TestUnjoinChannel(t *testing.T) {

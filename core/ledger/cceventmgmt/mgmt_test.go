@@ -12,9 +12,9 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/mock"
 )
 
 func TestMain(m *testing.M) {

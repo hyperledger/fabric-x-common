@@ -14,11 +14,11 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/discovery"
-	"github.com/hyperledger/fabric/common/util"
-	"github.com/hyperledger/fabric/discovery/protoext"
-	common2 "github.com/hyperledger/fabric/gossip/common"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/protoext"
+	common2 "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var logger = flogging.MustGetLogger("discovery")

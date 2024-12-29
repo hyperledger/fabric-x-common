@@ -28,12 +28,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/hyperledger/fabric/common/viperutil"
-	"github.com/hyperledger/fabric/core/config"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
-	gatewayconfig "github.com/hyperledger/fabric/internal/pkg/gateway/config"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/viperutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
+	gatewayconfig "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/gateway/config"
 )
 
 // ExternalBuilder represents the configuration structure of

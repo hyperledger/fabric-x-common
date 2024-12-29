@@ -12,11 +12,11 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/config/configtest"
-	"github.com/hyperledger/fabric/internal/configtxgen/encoder"
-	"github.com/hyperledger/fabric/internal/configtxgen/genesisconfig"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/encoder"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/genesisconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func TestValidateConfigTx(t *testing.T) {

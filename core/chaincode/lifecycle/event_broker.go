@@ -9,9 +9,9 @@ package lifecycle
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/core/container/externalbuilder"
-	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/externalbuilder"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 // EventBroker receives events from lifecycle cache and in turn invokes the registered listeners

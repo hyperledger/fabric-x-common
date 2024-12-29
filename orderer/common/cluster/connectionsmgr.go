@@ -9,8 +9,8 @@ package cluster
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 	"google.golang.org/grpc"
 )
 

@@ -13,8 +13,8 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/common/crypto/tlsgen"
 	"github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 )
 
 var (

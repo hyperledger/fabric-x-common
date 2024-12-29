@@ -4,8 +4,8 @@ package fake
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/common/deliverclient/orderers"
-	"github.com/hyperledger/fabric/common/deliverclient/blocksprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
 )
 
 type OrdererConnectionSource struct {

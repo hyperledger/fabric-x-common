@@ -11,9 +11,9 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api/state"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/rwsetutil"
 	"github.com/pkg/errors"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/state"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/rwsetutil"
 )
 
 var logger = flogging.MustGetLogger("vscc")

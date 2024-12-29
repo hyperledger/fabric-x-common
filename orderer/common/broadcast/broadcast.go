@@ -13,9 +13,9 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/util"
-	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/msgprocessor"
 )
 
 var logger = flogging.MustGetLogger("orderer.common.broadcast")

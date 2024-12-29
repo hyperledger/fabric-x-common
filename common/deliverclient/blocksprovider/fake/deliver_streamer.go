@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/deliverclient/blocksprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
 	"google.golang.org/grpc"
 )
 

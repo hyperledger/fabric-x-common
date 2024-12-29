@@ -9,9 +9,9 @@ package pvtdatastorage
 import (
 	"github.com/bits-and-blooms/bitset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
-	"github.com/hyperledger/fabric/common/ledger/util/leveldbhelper"
-	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 // CommitPvtDataOfOldBlocks commits the pvtData (i.e., previously missing data) of old blockp.

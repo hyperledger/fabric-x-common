@@ -4,8 +4,8 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 type InconvertiblePolicy struct {

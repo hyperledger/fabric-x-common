@@ -10,8 +10,8 @@ import (
 	"bytes"
 	"sync"
 
-	"github.com/hyperledger/fabric/common/chaincode"
-	"github.com/hyperledger/fabric/core/ledger/cceventmgmt"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/cceventmgmt"
 )
 
 // Subscription channels information flow

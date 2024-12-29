@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/common/privdata"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/privdata"
 )
 
 var defaultBTL uint64 = math.MaxUint64

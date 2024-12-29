@@ -24,7 +24,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/common/ccpackage"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccpackage"
 	"google.golang.org/protobuf/proto"
 )
 

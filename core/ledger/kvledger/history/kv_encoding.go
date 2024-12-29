@@ -9,8 +9,8 @@ package history
 import (
 	"bytes"
 
-	"github.com/hyperledger/fabric/common/ledger/util"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util"
 )
 
 type (

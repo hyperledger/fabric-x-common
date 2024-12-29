@@ -12,15 +12,15 @@ import (
 	"io"
 
 	lb "github.com/hyperledger/fabric-protos-go-apiv2/peer/lifecycle"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle/mock"
-	"github.com/hyperledger/fabric/core/chaincode/persistence"
-	"github.com/hyperledger/fabric/core/container/externalbuilder"
-	"github.com/hyperledger/fabric/core/ledger"
-	ledgermock "github.com/hyperledger/fabric/core/ledger/mock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/persistence"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/externalbuilder"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	ledgermock "github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/mock"
 )
 
 var _ = Describe("EventBroker", func() {

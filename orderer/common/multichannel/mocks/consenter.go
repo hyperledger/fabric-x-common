@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/orderer/consensus"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus"
 )
 
 type Consenter struct {

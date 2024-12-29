@@ -13,11 +13,11 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/channelconfig"
-	"github.com/hyperledger/fabric/internal/pkg/identity"
-	"github.com/hyperledger/fabric/orderer/common/msgprocessor/mocks"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/msgprocessor/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 const testChannelID = "foo"

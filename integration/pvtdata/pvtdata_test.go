@@ -25,20 +25,20 @@ import (
 	mspp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/crypto"
-	"github.com/hyperledger/fabric/core/ledger/util"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/integration/pvtdata/marblechaincodeutil"
-	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pkg/errors"
 	"github.com/tedsuo/ifrit"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/pvtdata/marblechaincodeutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -85,7 +85,7 @@ var _ = Describe("PrivateData", func() {
 			testChaincode := nwo.Chaincode{
 				Name:         "marblesp",
 				Version:      "1.0",
-				Path:         components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+				Path:         components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 				Ctor:         `{"Args":["init"]}`,
 				InitRequired: true,
 				Lang:         "binary",
@@ -110,7 +110,7 @@ var _ = Describe("PrivateData", func() {
 			testChaincodeHighRequiredPeerCount := nwo.Chaincode{
 				Name:              "marblespHighRequiredPeerCount",
 				Version:           "1.0",
-				Path:              components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+				Path:              components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 				Lang:              "binary",
 				PackageFile:       filepath.Join(network.RootDir, "marbles-pvtdata.tar.gz"),
 				Label:             "marblesp",
@@ -150,7 +150,7 @@ var _ = Describe("PrivateData", func() {
 				testChaincode := nwo.Chaincode{
 					Name:              "marblesp",
 					Version:           "1.0",
-					Path:              components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+					Path:              components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 					Ctor:              `{"Args":["init"]}`,
 					InitRequired:      true,
 					Lang:              "binary",
@@ -212,7 +212,7 @@ var _ = Describe("PrivateData", func() {
 			testChaincode := nwo.Chaincode{
 				Name:         "marblesp",
 				Version:      "1.0",
-				Path:         components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+				Path:         components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 				Ctor:         `{"Args":["init"]}`,
 				InitRequired: true,
 				Lang:         "binary",
@@ -303,7 +303,7 @@ var _ = Describe("PrivateData", func() {
 			chaincode := nwo.Chaincode{
 				Name:              "marblesp",
 				Version:           "1.0",
-				Path:              components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+				Path:              components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 				Ctor:              `{"Args":["init"]}`,
 				InitRequired:      true,
 				Lang:              "binary",
@@ -405,7 +405,7 @@ var _ = Describe("PrivateData", func() {
 			newLifecycleChaincode = nwo.Chaincode{
 				Name:              "marblesp",
 				Version:           "1.0",
-				Path:              components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+				Path:              components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 				Lang:              "binary",
 				PackageFile:       filepath.Join(network.RootDir, "marbles-pvtdata.tar.gz"),
 				Label:             "marbles-private-20",
@@ -694,7 +694,7 @@ var _ = Describe("PrivateData", func() {
 			newLifecycleChaincode = nwo.Chaincode{
 				Name:              "marblesp",
 				Version:           "1.0",
-				Path:              components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+				Path:              components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 				Lang:              "binary",
 				PackageFile:       filepath.Join(network.RootDir, "marbles-pvtdata.tar.gz"),
 				Label:             "marbles-private-20",

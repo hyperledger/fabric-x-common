@@ -11,9 +11,9 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/benchmark/mocks"
-	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/benchmark/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 const (

@@ -10,12 +10,12 @@ import (
 	"math"
 	"sync"
 
-	"github.com/hyperledger/fabric/core/ledger/internal/version"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/bookkeeping"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/privacyenabledstate"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb"
-	"github.com/hyperledger/fabric/core/ledger/pvtdatapolicy"
-	"github.com/hyperledger/fabric/core/ledger/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/internal/version"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/bookkeeping"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/privacyenabledstate"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/statedb"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/pvtdatapolicy"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/util"
 )
 
 // PurgeMgr keeps track of the expiry of private data and the private data hashes based on block-to-live

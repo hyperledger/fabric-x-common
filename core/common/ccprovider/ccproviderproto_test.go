@@ -8,8 +8,8 @@ package ccprovider_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/core/common/ccprovider"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/protoadapt"

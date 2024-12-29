@@ -14,11 +14,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/hyperledger/fabric/integration"
-	"github.com/hyperledger/fabric/integration/nwo"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
 )
 
 func TestEndToEnd(t *testing.T) {

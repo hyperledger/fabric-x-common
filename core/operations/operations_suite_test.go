@@ -15,9 +15,9 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/healthz"
-	"github.com/hyperledger/fabric/common/crypto/tlsgen"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 )
 
 func TestOperations(t *testing.T) {

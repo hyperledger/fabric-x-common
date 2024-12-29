@@ -23,13 +23,13 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics/prometheus"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/statsd"
 	"github.com/hyperledger/fabric-lib-go/healthz"
-	"github.com/hyperledger/fabric/common/fabhttp"
-	"github.com/hyperledger/fabric/core/operations"
-	"github.com/hyperledger/fabric/core/operations/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/tedsuo/ifrit"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/fabhttp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/operations"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/operations/fakes"
 )
 
 var _ = Describe("System", func() {

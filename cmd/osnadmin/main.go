@@ -17,8 +17,8 @@ import (
 	"os"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/internal/osnadmin"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/osnadmin"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 	"gopkg.in/alecthomas/kingpin.v2"
 )

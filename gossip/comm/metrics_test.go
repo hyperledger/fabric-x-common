@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric/gossip/metrics"
-	"github.com/hyperledger/fabric/gossip/metrics/mocks"
-	"github.com/hyperledger/fabric/gossip/util"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/util"
 )
 
 func newCommInstanceWithMetrics(t *testing.T, sec *naiveSecProvider, metrics *metrics.CommMetrics) (c Comm, port int) {

@@ -8,9 +8,9 @@ package builtin
 
 import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api"
-	identities "github.com/hyperledger/fabric/core/handlers/endorsement/api/identities"
 	"github.com/pkg/errors"
+	endorsement "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api"
+	identities "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api/identities"
 )
 
 // DefaultEndorsementFactory returns an endorsement plugin factory which returns plugins

@@ -10,9 +10,9 @@ import (
 	"encoding/json"
 	"path/filepath"
 
-	"github.com/hyperledger/fabric/integration/nwo/commands"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
 )
 
 // DiscoveredPeer defines a struct for discovering peers using discovery service.

@@ -9,8 +9,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/core/ledger/kvledger"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger"
 )
 
 func TestResetRollbackRebuildFailsIfAnyLedgerBootstrappedFromSnapshot(t *testing.T) {

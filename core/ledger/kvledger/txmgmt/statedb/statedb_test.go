@@ -10,8 +10,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/hyperledger/fabric/core/ledger/internal/version"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/internal/version"
 )
 
 func TestPanic(t *testing.T) {

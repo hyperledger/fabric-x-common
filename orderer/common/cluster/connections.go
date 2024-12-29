@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
-	"github.com/hyperledger/fabric/common/crypto"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto"
 	"google.golang.org/grpc"
 )
 

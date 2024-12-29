@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 // TestValidConfigID checks that the constraints on channel IDs are enforced properly

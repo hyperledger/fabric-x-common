@@ -11,10 +11,10 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
-	"github.com/hyperledger/fabric/orderer/common/cluster"
-	"github.com/hyperledger/fabric/orderer/common/cluster/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/cluster"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/cluster/mocks"
 	"google.golang.org/grpc"
 )
 

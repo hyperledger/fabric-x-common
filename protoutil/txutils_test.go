@@ -17,9 +17,9 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric/protoutil"
-	"github.com/hyperledger/fabric/protoutil/fakes"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil/fakes"
 )
 
 func TestGetPayloads(t *testing.T) {

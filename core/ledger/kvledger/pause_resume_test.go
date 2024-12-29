@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	configtxtest "github.com/hyperledger/fabric/common/configtx/test"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/msgs"
-	"github.com/hyperledger/fabric/core/ledger/mock"
 	"github.com/stretchr/testify/require"
+	configtxtest "github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/msgs"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/mock"
 )
 
 func TestPauseAndResume(t *testing.T) {

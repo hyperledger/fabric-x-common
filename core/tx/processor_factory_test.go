@@ -11,9 +11,9 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/tx"
-	pkgtx "github.com/hyperledger/fabric/pkg/tx"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/tx"
+	pkgtx "github.ibm.com/decentralized-trust-research/fabricx-config/pkg/tx"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"

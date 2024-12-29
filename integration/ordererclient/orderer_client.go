@@ -11,8 +11,8 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/integration/nwo"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
 )
 
 // Broadcast sends given env to Broadcast API of specified orderer.

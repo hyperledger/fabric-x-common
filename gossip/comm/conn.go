@@ -11,11 +11,11 @@ import (
 	"sync"
 
 	proto "github.com/hyperledger/fabric-protos-go-apiv2/gossip"
-	"github.com/hyperledger/fabric/gossip/common"
-	"github.com/hyperledger/fabric/gossip/metrics"
-	"github.com/hyperledger/fabric/gossip/protoext"
-	"github.com/hyperledger/fabric/gossip/util"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/util"
 	"google.golang.org/grpc"
 )
 

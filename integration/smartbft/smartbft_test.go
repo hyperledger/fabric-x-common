@@ -29,14 +29,6 @@ import (
 	"github.com/hyperledger/fabric-config/configtx/orderer"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ordererProtos "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	conftx "github.com/hyperledger/fabric/integration/configtx"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/integration/ordererclient"
-	"github.com/hyperledger/fabric/orderer/common/cluster"
-	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
-	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -45,6 +37,14 @@ import (
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
 	"github.com/tedsuo/ifrit/grouper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	conftx "github.ibm.com/decentralized-trust-research/fabricx-config/integration/configtx"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/ordererclient"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/cluster"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/smartbft"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -237,7 +237,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			nwo.DeployChaincode(network, channel, network.Orderers[0], nwo.Chaincode{
 				Name:            "mycc",
 				Version:         "0.0",
-				Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/simple/cmd"),
+				Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd"),
 				Ctor:            `{"Args":["init","a","100","b","200"]}`,
 				SignaturePolicy: `AND ('Org1MSP.member','Org2MSP.member')`,
 				Sequence:        "1",
@@ -1812,7 +1812,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			chaincode := nwo.Chaincode{
 				Name:            "mycc",
 				Version:         "0.0",
-				Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/simple/cmd"),
+				Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd"),
 				Lang:            "binary",
 				PackageFile:     filepath.Join(testDir, "simplecc.tar.gz"),
 				Ctor:            `{"Args":["init","a","100","b","200"]}`,
@@ -2551,7 +2551,7 @@ func deployChaincode(network *nwo.Network, channel string, testDir string) {
 	nwo.DeployChaincode(network, channel, network.Orderers[0], nwo.Chaincode{
 		Name:            "mycc",
 		Version:         "0.0",
-		Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/simple/cmd"),
+		Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd"),
 		Lang:            "binary",
 		PackageFile:     filepath.Join(testDir, "simplecc.tar.gz"),
 		Ctor:            `{"Args":["init","a","100","b","200"]}`,

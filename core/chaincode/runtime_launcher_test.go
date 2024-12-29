@@ -10,16 +10,16 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
-	"github.com/hyperledger/fabric/core/chaincode"
-	"github.com/hyperledger/fabric/core/chaincode/accesscontrol"
-	"github.com/hyperledger/fabric/core/chaincode/extcc"
-	extccmock "github.com/hyperledger/fabric/core/chaincode/extcc/mock"
-	"github.com/hyperledger/fabric/core/chaincode/fake"
-	"github.com/hyperledger/fabric/core/chaincode/mock"
-	"github.com/hyperledger/fabric/core/container/ccintf"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/accesscontrol"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/extcc"
+	extccmock "github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/extcc/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/fake"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/ccintf"
 )
 
 var _ = Describe("RuntimeLauncher", func() {

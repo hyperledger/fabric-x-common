@@ -11,11 +11,11 @@ import (
 	"math"
 	"testing"
 
-	"github.com/hyperledger/fabric/core/ledger/internal/version"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/bookkeeping"
-	"github.com/hyperledger/fabric/core/ledger/pvtdatapolicy"
-	btltestutil "github.com/hyperledger/fabric/core/ledger/pvtdatapolicy/testutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/internal/version"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/bookkeeping"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/pvtdatapolicy"
+	btltestutil "github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/pvtdatapolicy/testutil"
 	"google.golang.org/protobuf/proto"
 )
 

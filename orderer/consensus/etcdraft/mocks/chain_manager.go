@@ -4,9 +4,9 @@ package mocks
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/orderer/common/types"
-	"github.com/hyperledger/fabric/orderer/consensus"
-	"github.com/hyperledger/fabric/orderer/consensus/etcdraft"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/etcdraft"
 )
 
 type ChainManager struct {

@@ -7,9 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package kvledger
 
 import (
-	"github.com/hyperledger/fabric/common/ledger/util/leveldbhelper"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/msgs"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/msgs"
 )
 
 // PauseChannel updates the channel status to inactive in ledgerProviders.

@@ -1,4 +1,4 @@
-module github.com/hyperledger/fabric
+module github.ibm.com/decentralized-trust-research/fabricx-config
 
 go 1.23.4
 

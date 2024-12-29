@@ -11,9 +11,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/hyperledger/fabric/integration/nwo/runner"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/runner"
 )
 
 type Components struct {
@@ -21,15 +21,15 @@ type Components struct {
 }
 
 func (c *Components) ConfigTxGen() string {
-	return c.Build("github.com/hyperledger/fabric/cmd/configtxgen")
+	return c.Build("github.ibm.com/decentralized-trust-research/fabricx-config/cmd/configtxgen")
 }
 
 func (c *Components) Cryptogen() string {
-	return c.Build("github.com/hyperledger/fabric/cmd/cryptogen")
+	return c.Build("github.ibm.com/decentralized-trust-research/fabricx-config/cmd/cryptogen")
 }
 
 func (c *Components) Discover() string {
-	return c.Build("github.com/hyperledger/fabric/cmd/discover")
+	return c.Build("github.ibm.com/decentralized-trust-research/fabricx-config/cmd/discover")
 }
 
 func (c *Components) Idemixgen() string {
@@ -39,15 +39,15 @@ func (c *Components) Idemixgen() string {
 }
 
 func (c *Components) Orderer() string {
-	return c.Build("github.com/hyperledger/fabric/cmd/orderer")
+	return c.Build("github.ibm.com/decentralized-trust-research/fabricx-config/cmd/orderer")
 }
 
 func (c *Components) Osnadmin() string {
-	return c.Build("github.com/hyperledger/fabric/cmd/osnadmin")
+	return c.Build("github.ibm.com/decentralized-trust-research/fabricx-config/cmd/osnadmin")
 }
 
 func (c *Components) Peer() string {
-	return c.Build("github.com/hyperledger/fabric/cmd/peer")
+	return c.Build("github.ibm.com/decentralized-trust-research/fabricx-config/cmd/peer")
 }
 
 func (c *Components) Cleanup() {}

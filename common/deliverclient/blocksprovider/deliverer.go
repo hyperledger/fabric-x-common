@@ -17,8 +17,8 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/gossip"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/deliverclient/orderers"
-	"github.com/hyperledger/fabric/internal/pkg/identity"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
 	"google.golang.org/grpc"
 )
 

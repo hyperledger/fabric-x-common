@@ -12,9 +12,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/hyperledger/fabric/common/ledger/util"
-	"github.com/hyperledger/fabric/common/ledger/util/leveldbhelper"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
 )
 
 type eventType string

@@ -15,14 +15,14 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	gossip2 "github.com/hyperledger/fabric-protos-go-apiv2/gossip"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	util2 "github.com/hyperledger/fabric/common/util"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/gossip/metrics"
-	gmetricsmocks "github.com/hyperledger/fabric/gossip/metrics/mocks"
-	privdatacommon "github.com/hyperledger/fabric/gossip/privdata/common"
-	"github.com/hyperledger/fabric/gossip/privdata/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	util2 "github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics"
+	gmetricsmocks "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics/mocks"
+	privdatacommon "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/privdata/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/privdata/mocks"
 )
 
 func TestNoItemsToReconcile(t *testing.T) {

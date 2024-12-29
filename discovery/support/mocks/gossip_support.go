@@ -3,10 +3,10 @@
 package mocks
 
 import (
-	api "github.com/hyperledger/fabric/gossip/api"
-	common "github.com/hyperledger/fabric/gossip/common"
+	api "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/api"
+	common "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
 
-	discovery "github.com/hyperledger/fabric/gossip/discovery"
+	discovery "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/discovery"
 
 	mock "github.com/stretchr/testify/mock"
 )

@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/chaincode"
-	"github.com/hyperledger/fabric/core/chaincode/mock"
-	"github.com/hyperledger/fabric/core/container"
-	"github.com/hyperledger/fabric/core/container/ccintf"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/ccintf"
 )
 
 func TestContainerRuntimeBuild(t *testing.T) {

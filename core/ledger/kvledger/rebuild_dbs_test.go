@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	configtxtest "github.com/hyperledger/fabric/common/configtx/test"
-	"github.com/hyperledger/fabric/core/ledger/mock"
-	"github.com/hyperledger/fabric/internal/fileutil"
 	"github.com/stretchr/testify/require"
+	configtxtest "github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
 )
 
 func TestRebuildDBs(t *testing.T) {

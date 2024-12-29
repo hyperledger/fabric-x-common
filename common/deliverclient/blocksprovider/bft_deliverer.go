@@ -15,10 +15,10 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/deliverclient"
-	"github.com/hyperledger/fabric/common/deliverclient/orderers"
-	"github.com/hyperledger/fabric/internal/pkg/identity"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
 )
 
 //go:generate counterfeiter -o fake/censorship_detector.go --fake-name CensorshipDetector . CensorshipDetector

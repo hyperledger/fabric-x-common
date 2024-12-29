@@ -4,8 +4,8 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/common/chaincode"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
 )
 
 type SCCFunctions struct {

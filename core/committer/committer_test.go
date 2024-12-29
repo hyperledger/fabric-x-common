@@ -11,12 +11,12 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/configtx/test"
-	"github.com/hyperledger/fabric/common/ledger"
-	"github.com/hyperledger/fabric/common/ledger/testutil"
-	ledger2 "github.com/hyperledger/fabric/core/ledger"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	ledger2 "github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 type mockLedger struct {

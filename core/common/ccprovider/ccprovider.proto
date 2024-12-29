@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
 
-option go_package = "github.com/hyperledger/fabric/core/common/ccprovider";
+option go_package = "github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider";
 
 package ccprovider;
 

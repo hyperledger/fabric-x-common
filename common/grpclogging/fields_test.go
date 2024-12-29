@@ -9,11 +9,11 @@ package grpclogging_test
 import (
 	"encoding/json"
 
-	"github.com/hyperledger/fabric/common/grpclogging"
-	"github.com/hyperledger/fabric/common/grpclogging/testpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/testpb"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/encoding/protojson"

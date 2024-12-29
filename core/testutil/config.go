@@ -13,9 +13,9 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
-	"github.com/hyperledger/fabric/core/config/configtest"
-	"github.com/hyperledger/fabric/msp"
 	"github.com/spf13/viper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 )
 
 // SetupTestConfig setup the config during test execution

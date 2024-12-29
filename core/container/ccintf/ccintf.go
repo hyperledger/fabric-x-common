@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package ccintf
 
 import (
-	"github.com/hyperledger/fabric/internal/pkg/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 )

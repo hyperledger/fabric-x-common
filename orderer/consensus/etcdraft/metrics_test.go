@@ -8,9 +8,9 @@ package etcdraft_test
 
 import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
-	"github.com/hyperledger/fabric/orderer/consensus/etcdraft"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/etcdraft"
 )
 
 var _ = Describe("Metrics", func() {

@@ -13,9 +13,9 @@ import (
 	"time"
 
 	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 type MockChannelPolicyManagerGetter struct {

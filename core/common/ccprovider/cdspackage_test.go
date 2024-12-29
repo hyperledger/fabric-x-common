@@ -13,8 +13,8 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func setupccdir(t *testing.T) string {

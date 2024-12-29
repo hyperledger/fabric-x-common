@@ -8,7 +8,7 @@ package multichannel
 
 import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
-	"github.com/hyperledger/fabric/orderer/common/types"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
 )
 
 var (

@@ -10,14 +10,14 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api"
-	. "github.com/hyperledger/fabric/core/handlers/validation/api/capabilities"
-	. "github.com/hyperledger/fabric/core/handlers/validation/api/identities"
-	. "github.com/hyperledger/fabric/core/handlers/validation/api/policies"
-	. "github.com/hyperledger/fabric/core/handlers/validation/api/state"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/capabilities"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/identities"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/policies"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/state"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 

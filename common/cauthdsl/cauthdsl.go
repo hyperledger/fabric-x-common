@@ -13,7 +13,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/msp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"go.uber.org/zap/zapcore"
 )
 

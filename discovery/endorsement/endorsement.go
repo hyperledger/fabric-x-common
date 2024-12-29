@@ -13,14 +13,14 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/discovery"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/chaincode"
-	"github.com/hyperledger/fabric/common/graph"
-	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/common/policies/inquire"
-	"github.com/hyperledger/fabric/gossip/api"
-	"github.com/hyperledger/fabric/gossip/common"
-	gossipdiscovery "github.com/hyperledger/fabric/gossip/discovery"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/graph"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies/inquire"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/api"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
+	gossipdiscovery "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/discovery"
 )
 
 var logger = flogging.MustGetLogger("discovery.endorsement")

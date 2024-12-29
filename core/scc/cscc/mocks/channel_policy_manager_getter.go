@@ -4,7 +4,7 @@ package mocks
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 )
 
 type ChannelPolicyManagerGetter struct {

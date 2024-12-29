@@ -11,17 +11,17 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
-	"github.com/hyperledger/fabric/common/channelconfig"
-	commonledger "github.com/hyperledger/fabric/common/ledger"
-	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/common/util"
-	"github.com/hyperledger/fabric/core/aclmgmt"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api/state"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/msp"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
+	commonledger "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/aclmgmt"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/state"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 )
 
 //go:generate counterfeiter -o mock/channel_policy_reference_provider.go --fake-name ChannelPolicyReferenceProvider . ChannelPolicyReferenceProvider

@@ -11,10 +11,10 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/orderer/consensus/etcdraft"
-	"github.com/hyperledger/fabric/orderer/consensus/etcdraft/mocks"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/etcdraft"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/etcdraft/mocks"
 )
 
 func TestDispatchConsensus(t *testing.T) {

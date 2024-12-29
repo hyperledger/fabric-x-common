@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
-	"github.com/hyperledger/fabric/integration/chaincode/kvexecutor"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/kvexecutor"
 )
 
 func main() {

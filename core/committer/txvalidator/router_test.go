@@ -10,10 +10,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/hyperledger/fabric/core/committer/txvalidator"
-	"github.com/hyperledger/fabric/core/committer/txvalidator/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/committer/txvalidator"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/committer/txvalidator/mocks"
 )
 
 func TestRouter(t *testing.T) {

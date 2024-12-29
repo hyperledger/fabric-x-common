@@ -19,7 +19,7 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/util"
 )
 
 var logger = flogging.MustGetLogger("chaincode.platform.java")

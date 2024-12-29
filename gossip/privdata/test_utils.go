@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 
 package privdata
 
-import "github.com/hyperledger/fabric/common/channelconfig"
+import "github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
 
 // AppCapabilities local interface used to generate mock for foreign interface.
 //

@@ -13,12 +13,12 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	. "github.com/hyperledger/fabric/internal/test"
-	"github.com/hyperledger/fabric/orderer/common/broadcast"
-	"github.com/hyperledger/fabric/orderer/common/broadcast/mock"
-	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/broadcast"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/broadcast/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/msgprocessor"
 )
 
 var _ = Describe("Broadcast", func() {

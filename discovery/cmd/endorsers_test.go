@@ -12,14 +12,14 @@ import (
 
 	discprotos "github.com/hyperledger/fabric-protos-go-apiv2/discovery"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/cmd/common"
-	. "github.com/hyperledger/fabric/discovery/client"
-	discovery "github.com/hyperledger/fabric/discovery/cmd"
-	"github.com/hyperledger/fabric/discovery/cmd/mocks"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/client"
+	discovery "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/cmd"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/cmd/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func TestEndorserCmd(t *testing.T) {

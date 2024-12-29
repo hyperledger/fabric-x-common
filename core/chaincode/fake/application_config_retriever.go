@@ -4,7 +4,7 @@ package fake
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/common/channelconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
 )
 
 type ApplicationConfigRetriever struct {

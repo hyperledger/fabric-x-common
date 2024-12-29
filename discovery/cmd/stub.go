@@ -10,12 +10,12 @@ import (
 	"context"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/discovery"
-	"github.com/hyperledger/fabric/cmd/common"
-	"github.com/hyperledger/fabric/cmd/common/comm"
-	"github.com/hyperledger/fabric/cmd/common/signer"
-	discoveryclient "github.com/hyperledger/fabric/discovery/client"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/signer"
+	discoveryclient "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/client"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 //go:generate mockery -dir . -name LocalResponse -case underscore -output mocks/

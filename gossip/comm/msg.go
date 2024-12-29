@@ -8,8 +8,8 @@ package comm
 
 import (
 	proto "github.com/hyperledger/fabric-protos-go-apiv2/gossip"
-	"github.com/hyperledger/fabric/gossip/protoext"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
 )
 
 // ReceivedMessageImpl is an implementation of ReceivedMessage

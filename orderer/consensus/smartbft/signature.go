@@ -12,8 +12,8 @@ import (
 
 	"github.com/hyperledger-labs/SmartBFT/pkg/types"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/util"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -15,12 +15,12 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/deliverclient/blocksprovider"
-	"github.com/hyperledger/fabric/common/deliverclient/blocksprovider/fake"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider/fake"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func TestBftHeaderReceiver_NoBlocks_RecvError(t *testing.T) {

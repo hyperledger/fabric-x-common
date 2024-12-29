@@ -16,7 +16,7 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/gossip/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )

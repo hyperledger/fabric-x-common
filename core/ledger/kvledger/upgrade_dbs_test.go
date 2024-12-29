@@ -10,11 +10,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hyperledger/fabric/common/ledger/dataformat"
-	"github.com/hyperledger/fabric/core/ledger/mock"
-	"github.com/hyperledger/fabric/internal/fileutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/dataformat"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
 )
 
 func TestUpgradeWrongFormat(t *testing.T) {

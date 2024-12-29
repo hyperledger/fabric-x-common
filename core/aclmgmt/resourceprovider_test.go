@@ -13,12 +13,12 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/aclmgmt/mocks"
-	"github.com/hyperledger/fabric/core/policy"
-	"github.com/hyperledger/fabric/internal/pkg/identity"
-	msptesttools "github.com/hyperledger/fabric/msp/mgmt/testtools"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/aclmgmt/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/policy"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
+	msptesttools "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt/testtools"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 

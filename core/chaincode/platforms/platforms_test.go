@@ -14,12 +14,12 @@ import (
 	"io"
 
 	docker "github.com/fsouza/go-dockerclient"
-	"github.com/hyperledger/fabric/common/metadata"
-	"github.com/hyperledger/fabric/core/chaincode/platforms"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/mock"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/util"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/metadata"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/util"
 )
 
 var _ = Describe("Platforms", func() {

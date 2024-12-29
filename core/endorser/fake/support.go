@@ -5,9 +5,9 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
-	"github.com/hyperledger/fabric/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 type Support struct {

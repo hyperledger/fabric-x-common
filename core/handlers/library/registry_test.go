@@ -9,9 +9,9 @@ package library
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/core/handlers/auth"
-	"github.com/hyperledger/fabric/core/handlers/decoration"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/auth"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/decoration"
 )
 
 func TestInitRegistry(t *testing.T) {

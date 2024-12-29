@@ -11,8 +11,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"

@@ -11,13 +11,13 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/channelconfig"
-	"github.com/hyperledger/fabric/common/genesis"
-	"github.com/hyperledger/fabric/core/config/configtest"
-	"github.com/hyperledger/fabric/internal/configtxgen/encoder"
-	"github.com/hyperledger/fabric/internal/configtxgen/genesisconfig"
-	"github.com/hyperledger/fabric/internal/pkg/txflags"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/genesis"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/encoder"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/genesisconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/txflags"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var logger = flogging.MustGetLogger("common.configtx.test")

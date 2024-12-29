@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/orderer/common/broadcast"
-	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/broadcast"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/msgprocessor"
 )
 
 type ChannelSupport struct {

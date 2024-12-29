@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric/gossip/election"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/election"
 
-	"github.com/hyperledger/fabric/gossip/service"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/service"
 )
 
 func TestGlobalConfig(t *testing.T) {

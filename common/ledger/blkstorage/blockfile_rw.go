@@ -9,8 +9,8 @@ package blkstorage
 import (
 	"os"
 
-	"github.com/hyperledger/fabric/internal/fileutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
 )
 
 // //  WRITER ////

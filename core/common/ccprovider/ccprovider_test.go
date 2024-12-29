@@ -16,10 +16,10 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/chaincode"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
 	"google.golang.org/protobuf/proto"
 )
 

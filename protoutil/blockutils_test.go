@@ -14,10 +14,10 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	configtxtest "github.com/hyperledger/fabric/common/configtx/test"
-	"github.com/hyperledger/fabric/protoutil"
-	"github.com/hyperledger/fabric/protoutil/mocks"
 	"github.com/stretchr/testify/require"
+	configtxtest "github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil/mocks"
 	"google.golang.org/protobuf/proto"
 )
 

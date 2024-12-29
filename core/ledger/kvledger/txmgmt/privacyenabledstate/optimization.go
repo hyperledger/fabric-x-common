@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package privacyenabledstate
 
 import (
-	"github.com/hyperledger/fabric/common/ledger/util/leveldbhelper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
 )
 
 type metadataHint struct {

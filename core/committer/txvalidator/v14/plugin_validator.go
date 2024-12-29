@@ -11,17 +11,17 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/cauthdsl"
-	ledger2 "github.com/hyperledger/fabric/common/ledger"
-	vp "github.com/hyperledger/fabric/core/committer/txvalidator/plugin"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api"
-	vc "github.com/hyperledger/fabric/core/handlers/validation/api/capabilities"
-	vi "github.com/hyperledger/fabric/core/handlers/validation/api/identities"
-	vs "github.com/hyperledger/fabric/core/handlers/validation/api/state"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/cauthdsl"
+	ledger2 "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	vp "github.ibm.com/decentralized-trust-research/fabricx-config/core/committer/txvalidator/plugin"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api"
+	vc "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/capabilities"
+	vi "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/identities"
+	vs "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/state"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 //go:generate mockery -dir . -name Mapper -case underscore -output mocks/

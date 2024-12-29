@@ -11,12 +11,12 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/configtx"
-	endorsertx "github.com/hyperledger/fabric/core/tx/endorser"
-	"github.com/hyperledger/fabric/pkg/tx"
-	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx"
+	endorsertx "github.ibm.com/decentralized-trust-research/fabricx-config/core/tx/endorser"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/pkg/tx"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var _ = Describe("Parser", func() {

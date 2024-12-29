@@ -8,8 +8,8 @@ package pvtdatastorage
 
 import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/internal/version"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/internal/version"
 	"google.golang.org/protobuf/proto"
 )
 

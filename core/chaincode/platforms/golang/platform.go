@@ -22,10 +22,10 @@ import (
 	"strings"
 
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/util"
-	"github.com/hyperledger/fabric/internal/ccmetadata"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/ccmetadata"
 )
 
 // Platform for chaincodes written in Go

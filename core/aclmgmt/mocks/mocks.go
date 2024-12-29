@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/stretchr/testify/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 type MockACLProvider struct {

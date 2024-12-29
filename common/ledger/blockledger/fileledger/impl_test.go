@@ -16,13 +16,13 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	cl "github.com/hyperledger/fabric/common/ledger"
-	"github.com/hyperledger/fabric/common/ledger/blkstorage/blkstoragetest"
-	"github.com/hyperledger/fabric/common/ledger/blockledger"
-	"github.com/hyperledger/fabric/common/ledger/testutil"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	cl "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blkstorage/blkstoragetest"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var genesisBlock = protoutil.NewBlock(0, nil)

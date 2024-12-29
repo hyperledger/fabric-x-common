@@ -11,12 +11,12 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 
-	"github.com/hyperledger/fabric/core/committer/txvalidator/v20/valinforetriever"
-	"github.com/hyperledger/fabric/core/committer/txvalidator/v20/valinforetriever/mocks"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/committer/txvalidator/v20/valinforetriever"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/committer/txvalidator/v20/valinforetriever/mocks"
 )
 
 func TestValidationInfoRetrieverFromNew(t *testing.T) {

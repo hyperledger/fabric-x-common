@@ -11,9 +11,9 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 
-	"github.com/hyperledger/fabric/pkg/tx"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/pkg/tx"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var (

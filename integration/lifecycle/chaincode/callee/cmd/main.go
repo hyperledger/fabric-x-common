@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
-	"github.com/hyperledger/fabric/integration/lifecycle/chaincode/callee"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/lifecycle/chaincode/callee"
 )
 
 func main() {

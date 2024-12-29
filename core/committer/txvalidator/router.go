@@ -8,7 +8,7 @@ package txvalidator
 
 import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/channelconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
 )
 
 //go:generate mockery -dir . -name Validator -case underscore -output mocks

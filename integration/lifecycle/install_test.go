@@ -12,16 +12,16 @@ import (
 	"syscall"
 
 	docker "github.com/fsouza/go-dockerclient"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/integration/nwo/fabricconfig"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/fabricconfig"
 )
 
 var _ = Describe("chaincode install", func() {
@@ -93,7 +93,7 @@ var _ = Describe("chaincode install", func() {
 				Name:            "failure-external",
 				Version:         "0.0",
 				Lang:            "golang",
-				Path:            "github.com/hyperledger/fabric/integration/chaincode/simple/cmd",
+				Path:            "github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd",
 				Ctor:            `{"Args":["init","a","100","b","200"]}`,
 				Policy:          `OR ('Org1MSP.member','Org2MSP.member')`,
 				SignaturePolicy: `OR ('Org1MSP.member','Org2MSP.member')`,

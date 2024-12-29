@@ -7,9 +7,9 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric/common/deliverclient/blocksprovider"
-	"github.com/hyperledger/fabric/internal/pkg/identity"
-	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/smartbft"
 )
 
 type BFTDelivererFactory struct {

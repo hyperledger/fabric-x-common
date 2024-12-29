@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
 	"google.golang.org/protobuf/proto"
 )
 

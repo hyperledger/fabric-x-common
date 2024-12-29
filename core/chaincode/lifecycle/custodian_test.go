@@ -9,11 +9,11 @@ package lifecycle_test
 import (
 	"fmt"
 
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle/mock"
-	"github.com/hyperledger/fabric/core/container"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container"
 )
 
 var _ = Describe("Custodian", func() {

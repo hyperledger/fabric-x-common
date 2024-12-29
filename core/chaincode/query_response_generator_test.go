@@ -13,9 +13,9 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/queryresult"
-	"github.com/hyperledger/fabric/core/chaincode"
-	"github.com/hyperledger/fabric/core/chaincode/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/mock"
 )
 
 const totalQueryLimit = 103

@@ -14,9 +14,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/hyperledger/fabric/core/container/ccintf"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/ccintf"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 )
 
 const (

@@ -12,13 +12,13 @@ import (
 	"testing"
 
 	bpkcs11 "github.com/hyperledger/fabric-lib-go/bccsp/pkcs11"
-	"github.com/hyperledger/fabric/integration"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
 )
 
 func TestPKCS11(t *testing.T) {

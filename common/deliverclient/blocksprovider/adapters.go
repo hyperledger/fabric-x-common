@@ -10,7 +10,7 @@ import (
 	"context"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 	"google.golang.org/grpc"
 )
 

@@ -4,7 +4,7 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/common/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/chaincode"
 )
 
 type ChaincodeStore struct {

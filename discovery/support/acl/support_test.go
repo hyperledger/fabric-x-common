@@ -9,14 +9,14 @@ package acl_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/common/channelconfig"
-	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/discovery/support/acl"
-	"github.com/hyperledger/fabric/discovery/support/mocks"
-	gmocks "github.com/hyperledger/fabric/internal/peer/gossip/mocks"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/support/acl"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/support/mocks"
+	gmocks "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/peer/gossip/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func TestGetChannelConfigFunc(t *testing.T) {

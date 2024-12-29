@@ -10,12 +10,12 @@ import (
 	"errors"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
-	"github.com/hyperledger/fabric/core/scc/lscc"
-	"github.com/hyperledger/fabric/core/scc/lscc/mock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/scc/lscc"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/scc/lscc/mock"
 	"google.golang.org/protobuf/proto"
 )
 

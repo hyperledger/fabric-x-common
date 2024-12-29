@@ -10,13 +10,13 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
-	commonledger "github.com/hyperledger/fabric/common/ledger"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
-	"github.com/hyperledger/fabric/core/common/sysccprovider"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/scc/lscc"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	commonledger "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/sysccprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/scc/lscc"
 )
 
 //go:generate counterfeiter -o mock/chaincode_builder.go --fake-name ChaincodeBuilder . chaincodeBuilder

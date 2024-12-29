@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
-	"github.com/hyperledger/fabric/orderer/mocks/util"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/mocks/util"
 )
 
 const (

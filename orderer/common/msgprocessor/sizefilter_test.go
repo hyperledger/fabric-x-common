@@ -11,8 +11,8 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/orderer/common/msgprocessor/mocks"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/msgprocessor/mocks"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -7,8 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package validation
 
 import (
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api"
-	"github.com/hyperledger/fabric/protoutil"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 // PolicyEvaluator evaluates policies

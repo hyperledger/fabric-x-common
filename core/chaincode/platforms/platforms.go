@@ -16,12 +16,12 @@ import (
 
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric/common/metadata"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/golang"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/java"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/node"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/util"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/metadata"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/golang"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/java"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/node"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/util"
 )
 
 // SupportedPlatforms is the canonical list of platforms Fabric supports

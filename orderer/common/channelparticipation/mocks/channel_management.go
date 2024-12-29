@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/orderer/common/channelparticipation"
-	"github.com/hyperledger/fabric/orderer/common/types"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
 )
 
 type ChannelManagement struct {

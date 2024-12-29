@@ -6,8 +6,8 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	peera "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	ledgera "github.com/hyperledger/fabric/common/ledger"
-	"github.com/hyperledger/fabric/core/ledger"
+	ledgera "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 type PeerLedger struct {

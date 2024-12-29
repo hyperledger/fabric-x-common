@@ -13,13 +13,13 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	commonerrors "github.com/hyperledger/fabric/common/errors"
-	"github.com/hyperledger/fabric/core/common/validation/statebased"
-	vc "github.com/hyperledger/fabric/core/handlers/validation/api/capabilities"
-	vi "github.com/hyperledger/fabric/core/handlers/validation/api/identities"
-	vp "github.com/hyperledger/fabric/core/handlers/validation/api/policies"
-	vs "github.com/hyperledger/fabric/core/handlers/validation/api/state"
-	"github.com/hyperledger/fabric/protoutil"
+	commonerrors "github.ibm.com/decentralized-trust-research/fabricx-config/common/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/validation/statebased"
+	vc "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/capabilities"
+	vi "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/identities"
+	vp "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/policies"
+	vs "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/state"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var logger = flogging.MustGetLogger("vscc")

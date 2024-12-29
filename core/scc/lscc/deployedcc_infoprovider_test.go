@@ -12,12 +12,12 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/queryresult"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
-	"github.com/hyperledger/fabric/core/common/privdata"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/scc/lscc"
-	"github.com/hyperledger/fabric/core/scc/lscc/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/privdata"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/scc/lscc"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/scc/lscc/mock"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -4,7 +4,7 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/common/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
 )
 
 type SimpleQueryExecutor struct {

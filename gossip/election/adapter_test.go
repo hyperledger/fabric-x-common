@@ -16,13 +16,13 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	proto "github.com/hyperledger/fabric-protos-go-apiv2/gossip"
-	"github.com/hyperledger/fabric/gossip/common"
-	"github.com/hyperledger/fabric/gossip/discovery"
-	"github.com/hyperledger/fabric/gossip/metrics"
-	"github.com/hyperledger/fabric/gossip/metrics/mocks"
-	"github.com/hyperledger/fabric/gossip/protoext"
-	"github.com/hyperledger/fabric/gossip/util"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/discovery"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/util"
 )
 
 func init() {

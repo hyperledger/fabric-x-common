@@ -14,13 +14,13 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/crypto/tlsgen"
-	"github.com/hyperledger/fabric/core/chaincode/accesscontrol"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
-	"github.com/hyperledger/fabric/core/chaincode/mock"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
-	"github.com/hyperledger/fabric/core/container"
 	"github.com/stretchr/testify/assert"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/accesscontrol"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container"
 )
 
 // sleepTime - еhe time that must be set for the Init transaction to execute.

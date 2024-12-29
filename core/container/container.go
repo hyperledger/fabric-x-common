@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric/core/chaincode/persistence"
-	"github.com/hyperledger/fabric/core/container/ccintf"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/persistence"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/ccintf"
 
 	"github.com/pkg/errors"
 )

@@ -8,9 +8,9 @@ package endorsement
 
 import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/gossip/api"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/api"
 )
 
 func principalsFromCollectionConfig(ccp *peer.CollectionConfigPackage) (principalSetsByCollectionName, error) {

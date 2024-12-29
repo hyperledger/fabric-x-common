@@ -8,7 +8,7 @@ package endorsement
 
 import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
-	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api"
+	endorsement "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api"
 )
 
 // State defines interaction with the world state

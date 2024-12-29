@@ -14,22 +14,22 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/hyperledger/fabric/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
 
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ordererProtos "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/ledger/blkstorage"
-	"github.com/hyperledger/fabric/common/ledger/blockledger/fileledger"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/ordererclient"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blkstorage"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger/fileledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/ordererclient"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 )
 
 func extractLedger(network *nwo.Network, orderer *nwo.Orderer, channelId string) []*common.Block {

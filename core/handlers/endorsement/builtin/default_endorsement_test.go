@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/endorser/mocks"
-	"github.com/hyperledger/fabric/core/handlers/endorsement/builtin"
-	mocks2 "github.com/hyperledger/fabric/core/handlers/endorsement/builtin/mocks"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/endorser/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/builtin"
+	mocks2 "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/builtin/mocks"
 )
 
 func TestDefaultEndorsement(t *testing.T) {

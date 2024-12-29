@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	gp "github.com/hyperledger/fabric-protos-go-apiv2/gossip"
-	"github.com/hyperledger/fabric/discovery/support/gossip"
-	"github.com/hyperledger/fabric/discovery/support/gossip/mocks"
-	"github.com/hyperledger/fabric/gossip/common"
-	"github.com/hyperledger/fabric/gossip/discovery"
-	"github.com/hyperledger/fabric/gossip/protoext"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/support/gossip"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/support/gossip/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/discovery"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
 )
 
 func TestChannelExists(t *testing.T) {

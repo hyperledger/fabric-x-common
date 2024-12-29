@@ -13,17 +13,17 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api"
 	"github.com/stretchr/testify/require"
+	endorsement "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api"
 	"google.golang.org/protobuf/proto"
 )
 
 const (
-	authPluginPackage      = "github.com/hyperledger/fabric/core/handlers/auth/plugin"
-	decoratorPluginPackage = "github.com/hyperledger/fabric/core/handlers/decoration/plugin"
-	endorsementTestPlugin  = "github.com/hyperledger/fabric/core/handlers/endorsement/testdata/"
-	validationTestPlugin   = "github.com/hyperledger/fabric/core/handlers/validation/testdata/"
+	authPluginPackage      = "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/auth/plugin"
+	decoratorPluginPackage = "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/decoration/plugin"
+	endorsementTestPlugin  = "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/testdata/"
+	validationTestPlugin   = "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/testdata/"
 )
 
 var (

@@ -8,9 +8,9 @@ package service
 import (
 	"time"
 
-	"github.com/hyperledger/fabric/gossip/election"
-	"github.com/hyperledger/fabric/gossip/util"
 	"github.com/spf13/viper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/election"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/util"
 )
 
 const (

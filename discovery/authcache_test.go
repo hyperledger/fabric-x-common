@@ -12,9 +12,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func TestSignedDataToKey(t *testing.T) {

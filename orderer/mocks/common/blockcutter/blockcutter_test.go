@@ -19,7 +19,7 @@ package blockcutter
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/orderer/common/blockcutter"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/blockcutter"
 )
 
 func TestBlockCutterInterface(t *testing.T) {

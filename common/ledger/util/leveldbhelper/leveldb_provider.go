@@ -11,10 +11,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/hyperledger/fabric/common/ledger/dataformat"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/dataformat"
 )
 
 const (

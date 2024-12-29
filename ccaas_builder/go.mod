@@ -1,4 +1,4 @@
-module github.com/hyperledger/fabric/ccaas_builder
+module github.ibm.com/decentralized-trust-research/fabricx-config/ccaas_builder
 
 go 1.16
 

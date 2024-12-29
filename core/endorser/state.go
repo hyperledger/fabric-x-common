@@ -8,10 +8,10 @@ package endorser
 
 import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
-	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api/state"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/transientstore"
 	"github.com/pkg/errors"
+	endorsement "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api/state"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/transientstore"
 )
 
 // QueryCreator creates new QueryExecutors

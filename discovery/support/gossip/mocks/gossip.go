@@ -4,11 +4,11 @@ package mocks
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/discovery/support/gossip"
-	"github.com/hyperledger/fabric/gossip/api"
-	"github.com/hyperledger/fabric/gossip/common"
-	"github.com/hyperledger/fabric/gossip/discovery"
-	"github.com/hyperledger/fabric/gossip/protoext"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/support/gossip"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/api"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/discovery"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
 )
 
 type Gossip struct {

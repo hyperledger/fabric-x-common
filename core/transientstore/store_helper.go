@@ -12,8 +12,8 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/ledger/util"
-	"github.com/hyperledger/fabric/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 var (

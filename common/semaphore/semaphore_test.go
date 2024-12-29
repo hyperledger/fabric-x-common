@@ -10,9 +10,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hyperledger/fabric/common/semaphore"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/semaphore"
 )
 
 func TestNewSemaphorePanic(t *testing.T) {

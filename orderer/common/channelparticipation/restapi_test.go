@@ -18,13 +18,13 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/orderer/common/channelparticipation"
-	"github.com/hyperledger/fabric/orderer/common/channelparticipation/mocks"
-	"github.com/hyperledger/fabric/orderer/common/localconfig"
-	"github.com/hyperledger/fabric/orderer/common/types"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/channelparticipation/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/localconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func TestNewHTTPHandler(t *testing.T) {

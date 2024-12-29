@@ -13,11 +13,11 @@ import (
 	"testing"
 
 	etcdraftproto "github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
-	"github.com/hyperledger/fabric/common/channelconfig"
-	"github.com/hyperledger/fabric/common/crypto/tlsgen"
-	"github.com/hyperledger/fabric/orderer/consensus/etcdraft"
-	"github.com/hyperledger/fabric/orderer/consensus/etcdraft/mocks"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/etcdraft"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/etcdraft/mocks"
 	"go.etcd.io/etcd/raft/v3/raftpb"
 	"google.golang.org/protobuf/proto"
 )

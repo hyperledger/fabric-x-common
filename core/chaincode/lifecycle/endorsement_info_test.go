@@ -10,11 +10,11 @@ import (
 	"fmt"
 
 	lb "github.com/hyperledger/fabric-protos-go-apiv2/peer/lifecycle"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle"
-	"github.com/hyperledger/fabric/core/chaincode/lifecycle/mock"
-	"github.com/hyperledger/fabric/core/scc"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/lifecycle/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/scc"
 )
 
 var _ = Describe("ChaincodeEndorsementInfoSource", func() {

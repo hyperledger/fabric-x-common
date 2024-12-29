@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric/core/config/configtest"
 	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
 )
 
 func TestLoadGoodConfig(t *testing.T) {

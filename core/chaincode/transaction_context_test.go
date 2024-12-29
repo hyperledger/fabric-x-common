@@ -9,10 +9,10 @@ package chaincode_test
 import (
 	"fmt"
 
-	"github.com/hyperledger/fabric/core/chaincode"
-	"github.com/hyperledger/fabric/core/chaincode/mock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/mock"
 )
 
 var _ = Describe("TransactionContext", func() {

@@ -8,11 +8,11 @@ package chaincode_test
 
 import (
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/chaincode"
-	"github.com/hyperledger/fabric/core/chaincode/mock"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
 )
 
 var _ = Describe("TransactionContexts", func() {

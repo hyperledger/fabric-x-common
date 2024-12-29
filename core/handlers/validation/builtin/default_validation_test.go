@@ -10,15 +10,15 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	commonerrors "github.com/hyperledger/fabric/common/errors"
-	"github.com/hyperledger/fabric/core/committer/txvalidator/plugin"
-	. "github.com/hyperledger/fabric/core/handlers/validation/api"
-	vmocks "github.com/hyperledger/fabric/core/handlers/validation/builtin/mocks"
-	"github.com/hyperledger/fabric/core/handlers/validation/builtin/v12/mocks"
-	v20mocks "github.com/hyperledger/fabric/core/handlers/validation/builtin/v20/mocks"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	commonerrors "github.ibm.com/decentralized-trust-research/fabricx-config/common/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/committer/txvalidator/plugin"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api"
+	vmocks "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/builtin/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/builtin/v12/mocks"
+	v20mocks "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/builtin/v20/mocks"
 )
 
 func TestInit(t *testing.T) {

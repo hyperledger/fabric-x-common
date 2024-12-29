@@ -9,9 +9,9 @@ package chaincode
 import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	common2 "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/chaincode"
-	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/common/policies/inquire"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies/inquire"
 	"google.golang.org/protobuf/proto"
 )
 

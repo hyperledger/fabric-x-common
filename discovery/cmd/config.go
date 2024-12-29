@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/hyperledger/fabric/cmd/common"
-	discovery "github.com/hyperledger/fabric/discovery/client"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common"
+	discovery "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/client"
 )
 
 // NewConfigCmd creates a new ConfigCmd

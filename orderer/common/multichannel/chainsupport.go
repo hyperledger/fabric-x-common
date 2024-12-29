@@ -9,14 +9,14 @@ package multichannel
 import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/ledger/blockledger"
-	"github.com/hyperledger/fabric/internal/pkg/identity"
-	"github.com/hyperledger/fabric/orderer/common/blockcutter"
-	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
-	"github.com/hyperledger/fabric/orderer/common/types"
-	"github.com/hyperledger/fabric/orderer/consensus"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/blockcutter"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/msgprocessor"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 // ChainSupport holds the resources for a particular channel.

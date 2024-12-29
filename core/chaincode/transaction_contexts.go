@@ -10,9 +10,9 @@ import (
 	"sync"
 
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	commonledger "github.com/hyperledger/fabric/common/ledger"
-	"github.com/hyperledger/fabric/core/common/ccprovider"
 	"github.com/pkg/errors"
+	commonledger "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/ccprovider"
 )
 
 // TransactionContexts maintains active transaction contexts for a Handler.

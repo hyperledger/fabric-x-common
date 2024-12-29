@@ -11,10 +11,10 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	msgprocessormocks "github.com/hyperledger/fabric/orderer/common/msgprocessor/mocks"
-	"github.com/hyperledger/fabric/orderer/common/multichannel/mocks"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	msgprocessormocks "github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/msgprocessor/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/multichannel/mocks"
 )
 
 func TestConsensusMetadataValidation(t *testing.T) {

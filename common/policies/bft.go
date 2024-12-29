@@ -11,8 +11,8 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mspa "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/common/policydsl"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policydsl"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 const (

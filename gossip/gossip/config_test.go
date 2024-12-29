@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric/gossip/comm"
-	"github.com/hyperledger/fabric/gossip/discovery"
-	"github.com/hyperledger/fabric/gossip/election"
-	"github.com/hyperledger/fabric/gossip/gossip"
-	"github.com/hyperledger/fabric/gossip/gossip/algo"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/discovery"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/election"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/gossip"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/gossip/algo"
 )
 
 func TestGlobalConfig(t *testing.T) {

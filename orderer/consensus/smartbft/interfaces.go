@@ -7,9 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
-	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/orderer/common/cluster"
-	"github.com/hyperledger/fabric/orderer/consensus"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/cluster"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus"
 )
 
 //go:generate mockery --dir . --name consenterSupport --case underscore --with-expecter=true --exported --output mocks

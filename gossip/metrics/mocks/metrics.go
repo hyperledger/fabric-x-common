@@ -9,7 +9,7 @@ package mocks
 import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
-	gmetrics "github.com/hyperledger/fabric/gossip/metrics"
+	gmetrics "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics"
 )
 
 type TestMetricProvider struct {

@@ -13,12 +13,12 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/configtx/test"
-	"github.com/hyperledger/fabric/core/ledger/ledgermgmt"
-	"github.com/hyperledger/fabric/core/ledger/ledgermgmt/ledgermgmttest"
-	"github.com/hyperledger/fabric/core/ledger/snapshotgrpc/mock"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/ledgermgmt"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/ledgermgmt/ledgermgmttest"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/snapshotgrpc/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 //go:generate counterfeiter -o mock/ledger_getter.go -fake-name LedgerGetter . ledgerGetter

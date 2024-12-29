@@ -9,14 +9,14 @@ package statebased
 import (
 	"testing"
 
-	verr "github.com/hyperledger/fabric/common/errors"
-	"github.com/hyperledger/fabric/core/common/validation/statebased/mocks"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/rwsetutil"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	verr "github.ibm.com/decentralized-trust-research/fabricx-config/common/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/common/validation/statebased/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/rwsetutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func Test0(t *testing.T) {

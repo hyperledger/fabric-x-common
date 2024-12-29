@@ -13,13 +13,13 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/integration/nwo/runner"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/runner"
 )
 
 var _ = Describe("all shim APIs for non-private data", func() {
@@ -44,7 +44,7 @@ var _ = Describe("all shim APIs for non-private data", func() {
 		chaincode = nwo.Chaincode{
 			Name:            "marbles",
 			Version:         "0.0",
-			Path:            "github.com/hyperledger/fabric/integration/chaincode/marbles/cmdwithindexspecs",
+			Path:            "github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles/cmdwithindexspecs",
 			Lang:            "golang",
 			PackageFile:     filepath.Join(setup.testDir, "marbles.tar.gz"),
 			Label:           "marbles",

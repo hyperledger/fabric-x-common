@@ -4,7 +4,7 @@ package mocks
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/core/transientstore"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/transientstore"
 )
 
 type StoreProvider struct {

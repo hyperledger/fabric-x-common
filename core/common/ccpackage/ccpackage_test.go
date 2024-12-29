@@ -15,11 +15,11 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mspprotos "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/policydsl"
-	"github.com/hyperledger/fabric/msp"
-	mspmgmt "github.com/hyperledger/fabric/msp/mgmt"
-	msptesttools "github.com/hyperledger/fabric/msp/mgmt/testtools"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policydsl"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	mspmgmt "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"
+	msptesttools "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt/testtools"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 

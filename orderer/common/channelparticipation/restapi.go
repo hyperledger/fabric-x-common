@@ -18,10 +18,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/configtx"
-	"github.com/hyperledger/fabric/orderer/common/localconfig"
-	"github.com/hyperledger/fabric/orderer/common/types"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/localconfig"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
 	"google.golang.org/protobuf/proto"
 )
 

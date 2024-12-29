@@ -9,8 +9,8 @@ package blocksprovider_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/common/deliverclient/blocksprovider"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
 )
 
 func TestNewBFTCensorshipMonitorFactory(t *testing.T) {

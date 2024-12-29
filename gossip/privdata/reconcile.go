@@ -14,12 +14,12 @@ import (
 
 	protosgossip "github.com/hyperledger/fabric-protos-go-apiv2/gossip"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/committer"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/gossip/metrics"
-	privdatacommon "github.com/hyperledger/fabric/gossip/privdata/common"
-	"github.com/hyperledger/fabric/gossip/util"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/committer"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/metrics"
+	privdatacommon "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/privdata/common"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/util"
 )
 
 //go:generate mockery -dir . -name ReconciliationFetcher -case underscore -output mocks/

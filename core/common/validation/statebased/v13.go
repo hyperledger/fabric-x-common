@@ -7,10 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package statebased
 
 import (
-	commonerrors "github.com/hyperledger/fabric/common/errors"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api/policies"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	commonerrors "github.ibm.com/decentralized-trust-research/fabricx-config/common/errors"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/policies"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 // NewV13Evaluator returns a policy evaluator that checks

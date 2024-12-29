@@ -9,9 +9,9 @@ package platforms_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/core/chaincode/platforms"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms"
 )
 
 //go:generate counterfeiter -o mock/platform.go --fake-name Platform . platform

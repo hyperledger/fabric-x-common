@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
 )
 
 type FileLedgerBlockStore struct {

@@ -21,20 +21,20 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/queryresult"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/common/ledger/testutil"
-	"github.com/hyperledger/fabric/common/util"
-	"github.com/hyperledger/fabric/core/chaincode/implicitcollection"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/cceventmgmt"
-	"github.com/hyperledger/fabric/core/ledger/confighistory/confighistorytest"
-	"github.com/hyperledger/fabric/core/ledger/internal/version"
-	kvledgermock "github.com/hyperledger/fabric/core/ledger/kvledger/mock"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/msgs"
-	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb/statecouchdb"
-	"github.com/hyperledger/fabric/core/ledger/mock"
-	"github.com/hyperledger/fabric/internal/fileutil"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/implicitcollection"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/cceventmgmt"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/confighistory/confighistorytest"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/internal/version"
+	kvledgermock "github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/msgs"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/kvledger/txmgmt/statedb/statecouchdb"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -559,7 +559,7 @@ func TestGenerateSnapshotErrors(t *testing.T) {
 		require.Error(t, err)
 		errStackTrace := fmt.Sprintf("%+v", err)
 		require.Contains(t, errStackTrace, "internal leveldb error while obtaining db iterator")
-		require.Contains(t, errStackTrace, "github.com/hyperledger/fabric/common/ledger/blkstorage")
+		require.Contains(t, errStackTrace, "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blkstorage")
 	})
 
 	t.Run("config history mgr returns error", func(t *testing.T) {
@@ -569,7 +569,7 @@ func TestGenerateSnapshotErrors(t *testing.T) {
 		require.Error(t, err)
 		errStackTrace := fmt.Sprintf("%+v", err)
 		require.Contains(t, errStackTrace, "internal leveldb error while obtaining db iterator")
-		require.Contains(t, errStackTrace, "github.com/hyperledger/fabric/core/ledger/confighistory")
+		require.Contains(t, errStackTrace, "github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/confighistory")
 	})
 
 	t.Run("statedb returns error", func(t *testing.T) {

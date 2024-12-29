@@ -12,11 +12,11 @@ import (
 	"slices"
 	"time"
 
-	"github.com/hyperledger/fabric/common/deliverclient/orderers"
-	"github.com/hyperledger/fabric/core/config"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 )
 
 const (

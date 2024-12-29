@@ -7,9 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package lifecycle
 
 import (
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/scc"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/scc"
 )
 
 //go:generate counterfeiter -o mock/legacy_lifecycle.go --fake-name LegacyLifecycle . Lifecycle

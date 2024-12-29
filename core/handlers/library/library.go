@@ -9,14 +9,14 @@ package library
 import (
 	"time"
 
-	"github.com/hyperledger/fabric/core/handlers/auth"
-	"github.com/hyperledger/fabric/core/handlers/auth/filter"
-	"github.com/hyperledger/fabric/core/handlers/decoration"
-	"github.com/hyperledger/fabric/core/handlers/decoration/decorator"
-	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api"
-	eb "github.com/hyperledger/fabric/core/handlers/endorsement/builtin"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api"
-	vb "github.com/hyperledger/fabric/core/handlers/validation/builtin"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/auth"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/auth/filter"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/decoration"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/decoration/decorator"
+	endorsement "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api"
+	eb "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/builtin"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api"
+	vb "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/builtin"
 )
 
 // HandlerLibrary is used to assert

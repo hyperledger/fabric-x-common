@@ -13,9 +13,9 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	mspmgmt "github.com/hyperledger/fabric/msp/mgmt"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	mspmgmt "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var putilsLogger = flogging.MustGetLogger("protoutils")

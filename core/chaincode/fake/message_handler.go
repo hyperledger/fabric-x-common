@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/chaincode"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode"
 )
 
 type MessageHandler struct {

@@ -9,10 +9,10 @@ package lifecycle
 import (
 	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/queryresult"
-	commonledger "github.com/hyperledger/fabric/common/ledger"
-	validatorstate "github.com/hyperledger/fabric/core/handlers/validation/api/state"
-	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/pkg/errors"
+	commonledger "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	validatorstate "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api/state"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 type StateIterator interface {

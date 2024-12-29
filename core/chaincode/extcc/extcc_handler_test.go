@@ -11,11 +11,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/hyperledger/fabric/common/crypto/tlsgen"
-	"github.com/hyperledger/fabric/core/chaincode/extcc"
-	"github.com/hyperledger/fabric/core/chaincode/extcc/mock"
-	"github.com/hyperledger/fabric/core/container/ccintf"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/extcc"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/extcc/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/ccintf"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 
 	"google.golang.org/grpc"
 

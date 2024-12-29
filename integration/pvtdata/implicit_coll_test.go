@@ -13,14 +13,14 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hyperledger/fabric/integration/chaincode/kvexecutor"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/kvexecutor"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
 )
 
 var _ = Describe("Pvtdata dissemination for implicit collection", func() {
@@ -64,7 +64,7 @@ var _ = Describe("Pvtdata dissemination for implicit collection", func() {
 		testChaincode = nwo.Chaincode{
 			Name:        "kvexecutor",
 			Version:     "1.0",
-			Path:        components.Build("github.com/hyperledger/fabric/integration/chaincode/kvexecutor/cmd"),
+			Path:        components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/kvexecutor/cmd"),
 			Lang:        "binary",
 			PackageFile: filepath.Join(network.RootDir, "kvexecutor.tar.gz"),
 			Label:       "kvexecutor",

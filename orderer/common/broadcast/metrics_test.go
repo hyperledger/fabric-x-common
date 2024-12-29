@@ -7,10 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package broadcast_test
 
 import (
-	"github.com/hyperledger/fabric/orderer/common/broadcast"
-	"github.com/hyperledger/fabric/orderer/common/broadcast/mock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/broadcast"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/broadcast/mock"
 )
 
 var _ = Describe("Metrics", func() {

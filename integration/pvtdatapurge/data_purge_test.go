@@ -20,17 +20,17 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/integration/pvtdata/marblechaincodeutil"
-	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/pvtdata/marblechaincodeutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -108,7 +108,7 @@ var _ = Describe("Pvtdata purge", func() {
 		chaincode = &nwo.Chaincode{
 			Name:              "marblesp",
 			Version:           "0.0",
-			Path:              components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+			Path:              components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 			Lang:              "binary",
 			PackageFile:       filepath.Join(testDir, "purgecc.tar.gz"),
 			Ctor:              `{"Args":[]}`,

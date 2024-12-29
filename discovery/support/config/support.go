@@ -15,9 +15,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/discovery"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/common/channelconfig"
-	mspconstants "github.com/hyperledger/fabric/msp"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
+	mspconstants "github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"google.golang.org/protobuf/proto"
 )
 

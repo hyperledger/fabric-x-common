@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 
 package consensus
 
-import "github.com/hyperledger/fabric/orderer/common/types"
+import "github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
 
 // StatusReporter is implemented by cluster-type Chain implementations.
 // It allows the node to report its cluster relation and its status within that relation.

@@ -4,7 +4,7 @@ package mocks
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/orderer/common/follower"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/follower"
 )
 
 type ChainCreator struct {

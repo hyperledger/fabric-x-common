@@ -25,7 +25,7 @@ import (
 
 func TestPluginLoadingFailure(t *testing.T) {
 	gt := NewGomegaWithT(t)
-	peer, err := gexec.Build("github.com/hyperledger/fabric/cmd/peer")
+	peer, err := gexec.Build("github.ibm.com/decentralized-trust-research/fabricx-config/cmd/peer")
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer gexec.CleanupBuildArtifacts()
 
@@ -63,7 +63,7 @@ func TestPluginLoadingFailure(t *testing.T) {
 			cmd.Env = []string{
 				fmt.Sprintf("CORE_PEER_FILESYSTEMPATH=%s", tempDir),
 				fmt.Sprintf("CORE_LEDGER_SNAPSHOTS_ROOTDIR=%s", filepath.Join(tempDir, "snapshots")),
-				fmt.Sprintf("CORE_PEER_HANDLERS_%s_LIBRARY=%s", plugin, filepath.Join(parentDir, "internal/peer/testdata/invalid_plugins/invalidplugin.so")),
+				fmt.Sprintf("CORE_PEER_HANDLERS_%s_LIBRARY=%s", plugin, filepath.Join(parentDir, "internaltools/peer/testdata/invalid_plugins/invalidplugin.so")),
 				fmt.Sprintf("CORE_PEER_LISTENADDRESS=%s", peerListenAddress),
 				fmt.Sprintf("CORE_PEER_CHAINCODELISTENADDRESS=%s", chaincodeListenAddress),
 				fmt.Sprintf("CORE_PEER_MSPCONFIGPATH=%s", "msp"),
@@ -75,7 +75,7 @@ func TestPluginLoadingFailure(t *testing.T) {
 			gt.Expect(err).NotTo(HaveOccurred())
 			gt.Eventually(sess, time.Minute).Should(gexec.Exit(2))
 
-			gt.Expect(sess.Err).To(gbytes.Say(fmt.Sprintf("panic: Error opening plugin at path %s", filepath.Join(parentDir, "internal/peer/testdata/invalid_plugins/invalidplugin.so"))))
+			gt.Expect(sess.Err).To(gbytes.Say(fmt.Sprintf("panic: Error opening plugin at path %s", filepath.Join(parentDir, "internaltools/peer/testdata/invalid_plugins/invalidplugin.so"))))
 			gt.Expect(sess.Err).To(gbytes.Say("plugin.Open"))
 		})
 	}

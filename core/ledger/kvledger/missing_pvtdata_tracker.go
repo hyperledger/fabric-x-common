@@ -9,7 +9,7 @@ package kvledger
 import (
 	"math"
 
-	"github.com/hyperledger/fabric/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 type missingPvtdataTracker struct {

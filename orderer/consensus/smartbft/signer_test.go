@@ -14,11 +14,11 @@ import (
 	"github.com/hyperledger-labs/SmartBFT/pkg/types"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
-	"github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
-	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/smartbft"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/smartbft/mocks"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
 )
 

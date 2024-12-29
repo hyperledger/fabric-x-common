@@ -11,7 +11,7 @@ import (
 	"crypto/x509"
 	"os"
 
-	"github.com/hyperledger/fabric/internal/pkg/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 )
 
 type TLS struct {

@@ -12,10 +12,10 @@ import (
 	"syscall"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric/core/container/externalbuilder"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/externalbuilder"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

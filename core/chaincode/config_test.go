@@ -9,10 +9,10 @@ package chaincode_test
 import (
 	"time"
 
-	"github.com/hyperledger/fabric/core/chaincode"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/viper"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode"
 )
 
 var _ = Describe("Config", func() {

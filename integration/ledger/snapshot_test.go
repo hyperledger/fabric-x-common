@@ -23,19 +23,19 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/ledger/util"
-	"github.com/hyperledger/fabric/integration/chaincode/kvexecutor"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/integration/nwo/runner"
-	"github.com/hyperledger/fabric/integration/pvtdata/marblechaincodeutil"
-	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/kvexecutor"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/runner"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/pvtdata/marblechaincodeutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 const testchannelID = "testchannel"
@@ -280,7 +280,7 @@ var _ = Describe("Snapshot Generation and Bootstrap", func() {
 			cc2 := nwo.Chaincode{
 				Name:            "kvexecutor",
 				Version:         "1.0",
-				Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/kvexecutor/cmd"),
+				Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/kvexecutor/cmd"),
 				Lang:            "binary",
 				SignaturePolicy: `OR ('Org1MSP.member','Org2MSP.member', 'Org3MSP.member', 'Org4MSP.member')`,
 				PackageFile:     filepath.Join(setup.testDir, "kvexecutor20.tar.gz"),
@@ -303,7 +303,7 @@ var _ = Describe("Snapshot Generation and Bootstrap", func() {
 			chaincode = nwo.Chaincode{
 				Name:              "marblesp",
 				Version:           "1.0",
-				Path:              components.Build("github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd"),
+				Path:              components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/marbles_private/cmd"),
 				Lang:              "binary",
 				PackageFile:       filepath.Join(setup.testDir, "marbles-pvtdata.tar.gz"),
 				Label:             "marbles-private-20",

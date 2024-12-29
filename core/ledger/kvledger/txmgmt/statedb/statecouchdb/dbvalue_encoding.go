@@ -9,8 +9,8 @@ package statecouchdb
 import (
 	"encoding/base64"
 
-	"github.com/hyperledger/fabric/core/ledger/internal/version"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/internal/version"
 	"google.golang.org/protobuf/proto"
 )
 

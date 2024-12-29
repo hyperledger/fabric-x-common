@@ -14,10 +14,10 @@ import (
 	"os"
 	"plugin"
 
-	"github.com/hyperledger/fabric/core/handlers/auth"
-	"github.com/hyperledger/fabric/core/handlers/decoration"
-	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api"
-	validation "github.com/hyperledger/fabric/core/handlers/validation/api"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/auth"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/decoration"
+	endorsement "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api"
+	validation "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/validation/api"
 )
 
 // loadPlugin loads a pluggable handler

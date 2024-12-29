@@ -15,19 +15,19 @@ excluded_packages=(
 
 # packages that must be run serially
 serial_packages=(
-    "github.com/hyperledger/fabric/gossip/..."
+    "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/..."
 )
 
 # packages which need to be tested with build tag pkcs11
 pkcs11_packages=(
-    "github.com/hyperledger/fabric/bccsp/factory"
-    "github.com/hyperledger/fabric/bccsp/pkcs11"
-    "github.com/hyperledger/fabric/internal/peer/common"
+    "github.ibm.com/decentralized-trust-research/fabricx-config/bccsp/factory"
+    "github.ibm.com/decentralized-trust-research/fabricx-config/bccsp/pkcs11"
+    "github.ibm.com/decentralized-trust-research/fabricx-config/internal/peer/common"
 )
 
 # packages that are only tested when they (or their deps) change
 conditional_packages=(
-    "github.com/hyperledger/fabric/gossip/..."
+    "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/..."
 )
 
 # join array elements by the specified string
@@ -59,7 +59,7 @@ packages_diff() {
     git -C "${base_dir}" diff --no-commit-id --name-only -r "${1:-HEAD}" |
         (grep '.go$' || true) | \
         sed 's%/[^/]*$%%' | sort -u | \
-        awk '{print "github.com/hyperledger/fabric/"$1}'
+        awk '{print "github.ibm.com/decentralized-trust-research/fabricx-config/"$1}'
 }
 
 # obtain list of changed packages for verification
@@ -173,7 +173,7 @@ run_tests_with_coverage() {
 
 main() {
     # default behavior is to run all tests
-    local -a package_spec=("${TEST_PKGS:-github.com/hyperledger/fabric/...}")
+    local -a package_spec=("${TEST_PKGS:-github.ibm.com/decentralized-trust-research/fabricx-config/...}")
 
     # when running a "verify" job, only test packages that have changed
     if [ "${JOB_TYPE}" = "VERIFY" ]; then

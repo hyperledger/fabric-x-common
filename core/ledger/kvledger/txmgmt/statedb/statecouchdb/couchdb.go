@@ -28,8 +28,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 	"go.uber.org/zap/zapcore"
 )
 

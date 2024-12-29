@@ -6,7 +6,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/common/ledger/blockledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger"
 )
 
 type BlockReader struct {

@@ -11,10 +11,10 @@ import (
 	"sync"
 
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api"
-	endorsement3 "github.com/hyperledger/fabric/core/handlers/endorsement/api/identities"
-	"github.com/hyperledger/fabric/core/transientstore"
 	"github.com/pkg/errors"
+	endorsement "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api"
+	endorsement3 "github.ibm.com/decentralized-trust-research/fabricx-config/core/handlers/endorsement/api/identities"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/transientstore"
 )
 
 //go:generate mockery -dir . -name TransientStoreRetriever -case underscore -output mocks/

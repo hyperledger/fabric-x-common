@@ -18,11 +18,11 @@ import (
 	"time"
 
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/java"
-	"github.com/hyperledger/fabric/core/chaincode/platforms/util"
-	"github.com/hyperledger/fabric/core/config/configtest"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/java"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/chaincode/platforms/util"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
 )
 
 const chaincodePathFolderGradle = "testdata/gradle"

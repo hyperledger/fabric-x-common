@@ -8,9 +8,9 @@ package multichannel
 
 import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
-	"github.com/hyperledger/fabric/orderer/common/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/types"
 )
 
 var _ = Describe("Metrics", func() {

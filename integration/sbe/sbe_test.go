@@ -15,15 +15,15 @@ import (
 
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
 )
 
 var _ = Describe("SBE_E2E", func() {
@@ -80,7 +80,7 @@ var _ = Describe("SBE_E2E", func() {
 			chaincode = nwo.Chaincode{
 				Name:              "mycc",
 				Version:           "0.0",
-				Path:              "github.com/hyperledger/fabric/integration/chaincode/keylevelep/cmd",
+				Path:              "github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/keylevelep/cmd",
 				Lang:              "golang",
 				PackageFile:       filepath.Join(tempDir, "simplecc.tar.gz"),
 				Ctor:              `{"Args":["init"]}`,

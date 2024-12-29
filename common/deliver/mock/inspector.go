@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hyperledger/fabric/common/deliver"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
 	"google.golang.org/protobuf/proto"
 )
 

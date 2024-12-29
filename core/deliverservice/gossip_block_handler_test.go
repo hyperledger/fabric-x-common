@@ -11,9 +11,9 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric/common/deliverclient/blocksprovider/fake"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider/fake"
 )
 
 func TestGossipBlockHandler_HandleBlock(t *testing.T) {

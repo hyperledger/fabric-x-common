@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hyperledger/fabric/internal/ledgerutil/compare"
-	"github.com/hyperledger/fabric/internal/ledgerutil/identifytxs"
-	"github.com/hyperledger/fabric/internal/ledgerutil/verify"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/ledgerutil/compare"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/ledgerutil/identifytxs"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/ledgerutil/verify"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 

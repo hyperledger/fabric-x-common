@@ -10,8 +10,8 @@ import (
 	"context"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric/core/container/ccintf"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container/ccintf"
 
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 

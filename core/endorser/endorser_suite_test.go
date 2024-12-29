@@ -9,9 +9,9 @@ package endorser_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/core/endorser"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/msp"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/endorser"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

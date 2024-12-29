@@ -16,9 +16,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/discovery"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/discovery/protoext"
-	gprotoext "github.com/hyperledger/fabric/gossip/protoext"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/discovery/protoext"
+	gprotoext "github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
 	"google.golang.org/protobuf/proto"
 )
 

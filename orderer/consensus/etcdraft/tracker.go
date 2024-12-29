@@ -12,7 +12,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
-	"github.com/hyperledger/fabric/protoutil"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"go.etcd.io/etcd/raft/v3"
 )
 

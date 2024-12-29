@@ -12,8 +12,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hyperledger/fabric/internal/fileutil"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
 )
 
 const (

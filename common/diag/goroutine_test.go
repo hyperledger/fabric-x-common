@@ -10,9 +10,9 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging/floggingtest"
-	"github.com/hyperledger/fabric/common/diag"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/diag"
 )
 
 func TestCaptureGoRoutines(t *testing.T) {
@@ -21,7 +21,7 @@ func TestCaptureGoRoutines(t *testing.T) {
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	gt.Expect(output).To(MatchRegexp(`goroutine \d+ \[running\]:`))
-	gt.Expect(output).To(ContainSubstring("github.com/hyperledger/fabric/common/diag.CaptureGoRoutines"))
+	gt.Expect(output).To(ContainSubstring("github.ibm.com/decentralized-trust-research/fabricx-config/common/diag.CaptureGoRoutines"))
 }
 
 func TestLogGoRoutines(t *testing.T) {

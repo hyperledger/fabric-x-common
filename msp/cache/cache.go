@@ -9,8 +9,8 @@ package cache
 import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	pmsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric/msp"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 )
 
 const (

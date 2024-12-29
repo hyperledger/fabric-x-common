@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/hyperledger/fabric/core/container"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/container"
 )
 
 type ExternalBuilder struct {

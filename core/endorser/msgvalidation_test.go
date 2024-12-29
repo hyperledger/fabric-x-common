@@ -12,12 +12,12 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/endorser"
-	"github.com/hyperledger/fabric/core/endorser/fake"
-	. "github.com/hyperledger/fabric/internal/test"
-	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/endorser"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/endorser/fake"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 var _ = Describe("UnpackProposal", func() {

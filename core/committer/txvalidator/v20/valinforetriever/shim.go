@@ -9,8 +9,8 @@ package valinforetriever
 import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/committer/txvalidator/v20/plugindispatcher"
-	"github.com/hyperledger/fabric/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/committer/txvalidator/v20/plugindispatcher"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 	"google.golang.org/protobuf/proto"
 )
 

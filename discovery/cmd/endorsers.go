@@ -17,10 +17,10 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/gossip"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/cmd/common"
-	discoveryclient "github.com/hyperledger/fabric/discovery/client"
-	"github.com/hyperledger/fabric/gossip/protoext"
 	"github.com/pkg/errors"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common"
+	discoveryclient "github.ibm.com/decentralized-trust-research/fabricx-config/discovery/client"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/gossip/protoext"
 	"google.golang.org/protobuf/proto"
 )
 

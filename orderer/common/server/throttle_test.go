@@ -14,10 +14,10 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric/orderer/common/broadcast/mock"
-	"github.com/hyperledger/fabric/orderer/common/server"
-	mock2 "github.com/hyperledger/fabric/orderer/common/server/mock"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/broadcast/mock"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/server"
+	mock2 "github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/server/mock"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/peer"
 )

@@ -8,10 +8,10 @@ package dispatcher_test
 
 import (
 	lc "github.com/hyperledger/fabric-protos-go-apiv2/peer/lifecycle"
-	"github.com/hyperledger/fabric/core/dispatcher"
-	. "github.com/hyperledger/fabric/internal/test"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/dispatcher"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
 	"google.golang.org/protobuf/proto"
 )
 

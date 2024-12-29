@@ -16,7 +16,7 @@ limitations under the License.
 
 package kvledger
 
-import "github.com/hyperledger/fabric/core/ledger"
+import "github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 
 type recoverable interface {
 	// ShouldRecover return whether recovery is need.

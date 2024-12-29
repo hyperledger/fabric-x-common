@@ -15,16 +15,16 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-	"github.com/hyperledger/fabric/integration/nwo"
-	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/channelparticipation"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/integration/nwo/commands"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/grpc"
 )
 
@@ -86,7 +86,7 @@ var _ = Describe("Release interoperability", func() {
 		chaincode := nwo.Chaincode{
 			Name:            "mycc",
 			Version:         "0.0",
-			Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/simple/cmd"),
+			Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd"),
 			Lang:            "binary",
 			PackageFile:     filepath.Join(testDir, "simplecc.tar.gz"),
 			SignaturePolicy: `AND ('Org1MSP.member','Org2MSP.member')`,
@@ -134,7 +134,7 @@ var _ = Describe("Release interoperability", func() {
 		chaincode = nwo.Chaincode{
 			Name:            "mycc",
 			Version:         "1.0",
-			Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/simple/cmd"),
+			Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd"),
 			Lang:            "binary",
 			PackageFile:     filepath.Join(testDir, "simplecc.tar.gz"),
 			SignaturePolicy: `OR ('Org1MSP.member','Org2MSP.member')`,
@@ -194,7 +194,7 @@ var _ = Describe("Release interoperability", func() {
 			chaincode := nwo.Chaincode{
 				Name:            "mycc",
 				Version:         "0.0",
-				Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/simple/cmd"),
+				Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/chaincode/simple/cmd"),
 				Lang:            "binary",
 				PackageFile:     filepath.Join(testDir, "simplecc.tar.gz"),
 				SignaturePolicy: `AND ('Org1MSP.member','Org2MSP.member')`,
@@ -245,7 +245,7 @@ var _ = Describe("Release interoperability", func() {
 				callerDefNew = nwo.Chaincode{
 					Name:            "caller",
 					Version:         "0.0",
-					Path:            components.Build("github.com/hyperledger/fabric/integration/lifecycle/chaincode/caller/cmd"),
+					Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/lifecycle/chaincode/caller/cmd"),
 					Lang:            "binary",
 					PackageFile:     filepath.Join(testDir, "caller.tar.gz"),
 					SignaturePolicy: ccEP,
@@ -257,7 +257,7 @@ var _ = Describe("Release interoperability", func() {
 				calleeDefNew = nwo.Chaincode{
 					Name:            "callee",
 					Version:         "0.0",
-					Path:            components.Build("github.com/hyperledger/fabric/integration/lifecycle/chaincode/callee/cmd"),
+					Path:            components.Build("github.ibm.com/decentralized-trust-research/fabricx-config/integration/lifecycle/chaincode/callee/cmd"),
 					Lang:            "binary",
 					PackageFile:     filepath.Join(testDir, "callee.tar.gz"),
 					SignaturePolicy: ccEP,

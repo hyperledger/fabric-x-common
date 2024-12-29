@@ -6,19 +6,19 @@ import (
 	api "github.com/hyperledger-labs/SmartBFT/pkg/api"
 	bccsp "github.com/hyperledger/fabric-lib-go/bccsp"
 
-	cluster "github.com/hyperledger/fabric/orderer/common/cluster"
+	cluster "github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/cluster"
 
 	common "github.com/hyperledger/fabric-protos-go-apiv2/common"
 
-	consensus "github.com/hyperledger/fabric/orderer/consensus"
+	consensus "github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus"
 
 	flogging "github.com/hyperledger/fabric-lib-go/common/flogging"
 
-	localconfig "github.com/hyperledger/fabric/orderer/common/localconfig"
+	localconfig "github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/localconfig"
 
 	mock "github.com/stretchr/testify/mock"
 
-	smartbft "github.com/hyperledger/fabric/orderer/consensus/smartbft"
+	smartbft "github.ibm.com/decentralized-trust-research/fabricx-config/orderer/consensus/smartbft"
 
 	types "github.com/hyperledger-labs/SmartBFT/pkg/types"
 )

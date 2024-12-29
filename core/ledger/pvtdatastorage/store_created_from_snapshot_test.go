@@ -12,11 +12,11 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/confighistory/confighistorytest"
-	"github.com/hyperledger/fabric/core/ledger/internal/version"
-	btltestutil "github.com/hyperledger/fabric/core/ledger/pvtdatapolicy/testutil"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/confighistory/confighistorytest"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/internal/version"
+	btltestutil "github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger/pvtdatapolicy/testutil"
 )
 
 func TestPvtdataStoreCreatedFromSnapshot(t *testing.T) {
