@@ -9,7 +9,6 @@ package configtest
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,55 +40,69 @@ func dirExists(path string) bool {
 // maintained with the source tree. This should only be used in a
 // test/development context.
 func GetDevConfigDir() string {
-	path, err := gomodDevConfigDir()
-	if err != nil {
-		path, err = gopathDevConfigDir()
+	var errs []error
+	for _, getter := range []func() ([]string, error){
+		envDevConfigDir,
+		goModCacheConfigDir,
+		goModDevConfigDir,
+		goPathDevConfigDir,
+	} {
+		paths, err := getter()
 		if err != nil {
-			panic(err)
+			errs = append(errs, err)
+			continue
 		}
+		for _, path := range paths {
+			if path != "" && dirExists(path) {
+				return path
+			}
+		}
+
 	}
-	return path
+	panic(errors.Join(errs...))
 }
 
-func gopathDevConfigDir() (string, error) {
-	buf := bytes.NewBuffer(nil)
-	cmd := exec.Command("go", "env", "GOPATH")
-	cmd.Stdout = buf
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
+func envDevConfigDir() ([]string, error) {
+	return []string{os.Getenv("FABRIC_CFG_PATH")}, nil
+}
 
-	gopath := strings.TrimSpace(buf.String())
+func goModCacheConfigDir() ([]string, error) {
+	modCache, err := goCMD(
+		"list", "-m", "-f", "{{.Dir}}", "github.ibm.com/decentralized-trust-research/fabricx-config",
+	)
+	if err != nil {
+		return nil, err
+	}
+	if modCache == "" {
+		return nil, errors.New("not in module cache")
+	}
+	return []string{filepath.Join(modCache, "sampleconfig")}, nil
+}
+
+func goPathDevConfigDir() ([]string, error) {
+	gopath, err := goCMD("env", "GOPATH")
+	if err != nil {
+		return nil, err
+	}
+	var paths []string
 	for _, p := range filepath.SplitList(gopath) {
-		devPath := filepath.Join(p, "src/github.ibm.com/decentralized-trust-research/fabricx-config/sampleconfig")
-		if dirExists(devPath) {
-			return devPath, nil
-		}
+		paths = append(
+			paths,
+			filepath.Join(p, "src/github.ibm.com/decentralized-trust-research/fabricx-config/sampleconfig"),
+		)
 	}
-
-	return "", fmt.Errorf("unable to find sampleconfig directory on GOPATH")
+	return paths, nil
 }
 
-func gomodDevConfigDir() (string, error) {
-	buf := bytes.NewBuffer(nil)
-	cmd := exec.Command("go", "env", "GOMOD")
-	cmd.Stdout = buf
-
-	if err := cmd.Run(); err != nil {
-		return "", err
+func goModDevConfigDir() ([]string, error) {
+	modFile, err := goCMD("env", "GOMOD")
+	if err != nil {
+		return nil, err
 	}
-
-	modFile := strings.TrimSpace(buf.String())
 	if modFile == "" {
-		return "", errors.New("not a module or not in module mode")
+		return nil, errors.New("not a module or not in module mode")
 	}
-
-	devPath := filepath.Join(filepath.Dir(modFile), "sampleconfig")
-	if !dirExists(devPath) {
-		return "", fmt.Errorf("%s does not exist", devPath)
-	}
-
-	return devPath, nil
+	return []string{filepath.Join(filepath.Dir(modFile), "sampleconfig")}, nil
 }
 
 // GetDevMspDir gets the path to the sampleconfig/msp tree that is maintained
@@ -103,4 +116,14 @@ func GetDevMspDir() string {
 func SetDevFabricConfigPath(t *testing.T) {
 	t.Helper()
 	t.Setenv("FABRIC_CFG_PATH", GetDevConfigDir())
+}
+
+func goCMD(vars ...string) (string, error) {
+	cmd := exec.Command("go", vars...)
+	buf := bytes.NewBuffer(nil)
+	cmd.Stdout = buf
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(buf.String()), nil
 }

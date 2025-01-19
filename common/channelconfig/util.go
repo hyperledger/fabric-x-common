@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package channelconfig
 
 import (
+	"crypto/x509"
 	"fmt"
 	"math"
 	"os"
@@ -180,6 +181,16 @@ func CapabilitiesValue(capabilities map[string]bool) *StandardConfigValue {
 	return &StandardConfigValue{
 		key:   CapabilitiesKey,
 		value: c,
+	}
+}
+
+func MetaNamespaceVerificationKeyValue(key []byte) *StandardConfigValue {
+	return &StandardConfigValue{
+		key: MetaNamespaceVerificationKey,
+		// We use existing proto here to avoid introducing new once.
+		// So we encode the key schema as the identifier.
+		// This will be replaced in the future with a generic policy mechanism.
+		value: &mspprotos.KeyInfo{KeyIdentifier: x509.ECDSA.String(), KeyMaterial: key},
 	}
 }
 

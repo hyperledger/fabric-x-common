@@ -26,6 +26,7 @@ const (
 	// EtcdRaft The type key for etcd based RAFT consensus.
 	EtcdRaft = "etcdraft"
 	BFT      = "BFT"
+	Arma     = "arma"
 )
 
 var logger = flogging.MustGetLogger("common.tools.configtxgen.localconfig")
@@ -62,6 +63,10 @@ const (
 	// SampleSingleMSPChannelProfile references the sample profile which
 	// includes only the sample MSP and is used to create a channel
 	SampleSingleMSPChannelProfile = "SampleSingleMSPChannel"
+
+	// SampleFabricX references the sample profile used for
+	// testing the arma-based ordering service and the scalable committer.
+	SampleFabricX = "SampleFabricX"
 
 	// SampleConsortiumName is the sample consortium from the
 	// sample configtx.yaml
@@ -110,10 +115,11 @@ type Consortium struct {
 // Application encodes the application-level configuration needed in config
 // transactions.
 type Application struct {
-	Organizations []*Organization    `yaml:"Organizations"`
-	Capabilities  map[string]bool    `yaml:"Capabilities"`
-	Policies      map[string]*Policy `yaml:"Policies"`
-	ACLs          map[string]string  `yaml:"ACLs"`
+	Organizations                    []*Organization    `yaml:"Organizations"`
+	Capabilities                     map[string]bool    `yaml:"Capabilities"`
+	Policies                         map[string]*Policy `yaml:"Policies"`
+	ACLs                             map[string]string  `yaml:"ACLs"`
+	MetaNamespaceVerificationKeyPath string             `yaml:"MetaNamespaceVerificationKeyPath"`
 }
 
 // Organization encodes the organization-level configuration needed in
@@ -156,6 +162,7 @@ type Orderer struct {
 	ConsenterMapping []*Consenter             `yaml:"ConsenterMapping"`
 	EtcdRaft         *etcdraft.ConfigMetadata `yaml:"EtcdRaft"`
 	SmartBFT         *smartbft.Options        `yaml:"SmartBFT"`
+	Arma             *ConsensusMetadata       `yaml:"Arma"`
 	Organizations    []*Organization          `yaml:"Organizations"`
 	MaxChannels      uint64                   `yaml:"MaxChannels"`
 	Capabilities     map[string]bool          `yaml:"Capabilities"`
@@ -177,6 +184,10 @@ type Consenter struct {
 	Identity      string `yaml:"Identity"`
 	ClientTLSCert string `yaml:"ClientTLSCert"`
 	ServerTLSCert string `yaml:"ServerTLSCert"`
+}
+
+type ConsensusMetadata struct {
+	LoadFromPath string `yaml:"Path"`
 }
 
 var genesisDefaults = TopLevel{
@@ -214,6 +225,7 @@ var genesisDefaults = TopLevel{
 			SyncOnStart:               types.DefaultConfig.SyncOnStart,
 			SpeedUpViewChange:         types.DefaultConfig.SpeedUpViewChange,
 		},
+		Arma: &ConsensusMetadata{},
 	},
 }
 
@@ -424,37 +436,46 @@ loop:
 			logger.Infof("Orderer.SmartBFT.Options unset, setting to %v", genesisDefaults.Orderer.SmartBFT)
 			ord.SmartBFT = genesisDefaults.Orderer.SmartBFT
 		}
-
-		if len(ord.ConsenterMapping) == 0 {
-			logger.Panicf("%s configuration did not specify any consenter", BFT)
+		ord.translateConsenterMapping(configDir, BFT)
+	case Arma:
+		if ord.Arma == nil {
+			logger.Infof("Orderer.Arma unset, setting to %v", genesisDefaults.Orderer.Arma)
+			ord.Arma = genesisDefaults.Orderer.Arma
 		}
-
-		for _, c := range ord.ConsenterMapping {
-			if c.Host == "" {
-				logger.Panicf("consenter info in %s configuration did not specify host", BFT)
-			}
-			if c.Port == 0 {
-				logger.Panicf("consenter info in %s configuration did not specify port", BFT)
-			}
-			if c.ClientTLSCert == "" {
-				logger.Panicf("consenter info in %s configuration did not specify client TLS cert", BFT)
-			}
-			if c.ServerTLSCert == "" {
-				logger.Panicf("consenter info in %s configuration did not specify server TLS cert", BFT)
-			}
-			if len(c.MSPID) == 0 {
-				logger.Panicf("consenter info in %s configuration did not specify MSP ID", BFT)
-			}
-			if len(c.Identity) == 0 {
-				logger.Panicf("consenter info in %s configuration did not specify identity certificate", BFT)
-			}
-
-			cf.TranslatePathInPlace(configDir, &c.ClientTLSCert)
-			cf.TranslatePathInPlace(configDir, &c.ServerTLSCert)
-			cf.TranslatePathInPlace(configDir, &c.Identity)
-		}
+		ord.translateConsenterMapping(configDir, Arma)
 	default:
 		logger.Panicf("unknown orderer type: %s", ord.OrdererType)
+	}
+}
+
+func (ord *Orderer) translateConsenterMapping(configDir string, ordererType string) {
+	if len(ord.ConsenterMapping) == 0 {
+		logger.Panicf("%s configuration did not specify any consenter", ordererType)
+	}
+
+	for _, c := range ord.ConsenterMapping {
+		if c.Host == "" {
+			logger.Panicf("consenter info in %s configuration did not specify host", ordererType)
+		}
+		if c.Port == 0 {
+			logger.Panicf("consenter info in %s configuration did not specify port", ordererType)
+		}
+		if c.ClientTLSCert == "" {
+			logger.Panicf("consenter info in %s configuration did not specify client TLS cert", ordererType)
+		}
+		if c.ServerTLSCert == "" {
+			logger.Panicf("consenter info in %s configuration did not specify server TLS cert", ordererType)
+		}
+		if len(c.MSPID) == 0 {
+			logger.Panicf("consenter info in %s configuration did not specify MSP ID", ordererType)
+		}
+		if len(c.Identity) == 0 {
+			logger.Panicf("consenter info in %s configuration did not specify identity certificate", ordererType)
+		}
+
+		cf.TranslatePathInPlace(configDir, &c.ClientTLSCert)
+		cf.TranslatePathInPlace(configDir, &c.ServerTLSCert)
+		cf.TranslatePathInPlace(configDir, &c.Identity)
 	}
 }
 
