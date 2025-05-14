@@ -15,7 +15,6 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/stretchr/testify/require"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/mocks/util"
 )
 
 const (
@@ -160,7 +159,7 @@ func TestPEMBlocksFromFile(t *testing.T) {
 
 	var pems []byte
 	for i := 0; i < 3; i++ {
-		publicKeyCert, _, _ := util.GenerateMockPublicPrivateKeyPairPEM(true)
+		publicKeyCert, _, _ := generateMockPublicPrivateKeyPairPEM(true)
 		pems = append(pems, publicKeyCert...)
 	}
 
@@ -186,7 +185,7 @@ func TestPEMBlocksFromFileEnv(t *testing.T) {
 
 	var pems []byte
 	for i := 0; i < 3; i++ {
-		publicKeyCert, _, _ := util.GenerateMockPublicPrivateKeyPairPEM(true)
+		publicKeyCert, _, _ := generateMockPublicPrivateKeyPairPEM(true)
 		pems = append(pems, publicKeyCert...)
 	}
 

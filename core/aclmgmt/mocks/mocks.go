@@ -9,9 +9,7 @@ package mocks
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/mock"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/core/ledger"
 )
 
 type MockACLProvider struct {
@@ -33,10 +31,6 @@ func (m *MockACLProvider) CheckACL(resName string, channelID string, idinfo inte
 func (m *MockACLProvider) CheckACLNoChannel(resName string, idinfo interface{}) error {
 	args := m.mock.Called(resName, idinfo)
 	return args.Error(0)
-}
-
-func (m *MockACLProvider) GenerateSimulationResults(txEnvelop *common.Envelope, simulator ledger.TxSimulator, initializingLedger bool) error {
-	return nil
 }
 
 // On overrider the mock method for convenience

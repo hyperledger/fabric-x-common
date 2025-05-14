@@ -1,6 +1,0 @@
-#!/bin/bash
-if [ $# -ne 2 ] ; then
-  exit 2
-fi
-
-exit 0

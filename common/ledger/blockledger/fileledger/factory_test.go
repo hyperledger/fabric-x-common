@@ -15,8 +15,8 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	"github.com/stretchr/testify/require"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/filerepo"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger/fileledger/mock"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/orderer/common/filerepo"
 )
 
 //go:generate counterfeiter -o mock/file_ledger_block_store.go --fake-name FileLedgerBlockStore . fileLedgerBlockStore
