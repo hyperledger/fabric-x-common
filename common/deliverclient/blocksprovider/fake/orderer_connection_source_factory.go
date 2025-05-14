@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
 )

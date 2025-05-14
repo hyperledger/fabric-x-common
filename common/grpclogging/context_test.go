@@ -12,9 +12,10 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
 )
 
 var _ = Describe("Context", func() {

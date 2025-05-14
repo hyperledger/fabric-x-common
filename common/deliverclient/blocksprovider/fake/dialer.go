@@ -4,8 +4,9 @@ package fake
 import (
 	"sync"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
 	"google.golang.org/grpc"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
 )
 
 type Dialer struct {

@@ -1,0 +1,35 @@
+language: go
+arch: amd64
+virt: vm
+os: linux
+dist: focal
+go:
+  - "1.24"
+
+cache:
+  directories:
+    - $HOME/.cache/go-build # Cache the binaries
+    - $HOME/gopath/pkg/mod # Cache the Go modules
+
+stages:
+  - lint
+
+jobs:
+  include:
+    - stage: lint
+      install:
+        # Install dependencies
+        - go install golang.org/x/tools/cmd/goimports@latest
+        - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.0.2
+      before_script:
+        # Fetch main to only detect issues from changes to main
+        - git fetch origin main:main
+        # Apply formatting
+        - find . -name \*.go -not -name \*.pb.go -exec goimports -d -e -local "github.ibm.com/decentralized-trust-research/fabricx-config" {} \; | tee /dev/stderr | [ $(wc -c) -eq 0 ]
+        - find . -name \*.go -not -name \*.pb.go -exec gofmt -d -e  {} \; | tee /dev/stderr | [ $(wc -c) -eq 0 ]
+      script:
+        # Check if original code changed due to formatting
+        - git diff | tee /dev/stderr | [ $(wc -c) -eq 0 ]
+        # Run lint and test
+        - make lint
+        - make tools

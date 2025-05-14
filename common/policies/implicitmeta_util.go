@@ -8,6 +8,7 @@ package policies
 
 import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 

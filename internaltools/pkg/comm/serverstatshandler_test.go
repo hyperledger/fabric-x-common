@@ -15,11 +15,12 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
 	. "github.com/onsi/gomega"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm/testpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/stats"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm/testpb"
 )
 
 func TestConnectionCounters(t *testing.T) {

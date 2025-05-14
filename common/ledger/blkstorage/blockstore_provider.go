@@ -12,6 +12,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
 	"github.com/pkg/errors"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/dataformat"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"

@@ -11,10 +11,11 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"google.golang.org/protobuf/proto"
 )
 
 type provider struct {

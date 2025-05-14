@@ -21,6 +21,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )

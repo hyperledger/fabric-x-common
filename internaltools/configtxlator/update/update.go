@@ -11,8 +11,9 @@ import (
 	"fmt"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 func computePoliciesMapUpdate(original, updated map[string]*cb.ConfigPolicy) (readSet, writeSet, sameSet map[string]*cb.ConfigPolicy, updatedMembers bool) {

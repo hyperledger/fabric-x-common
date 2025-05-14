@@ -18,6 +18,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/stretchr/testify/require"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil/fakes"
 )

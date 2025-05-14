@@ -12,6 +12,7 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/stretchr/testify/require"
+
 	cc "github.ibm.com/decentralized-trust-research/fabricx-config/common/capabilities"
 )
 

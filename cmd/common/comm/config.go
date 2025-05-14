@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
 )

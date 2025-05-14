@@ -11,8 +11,9 @@ import (
 	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 	"google.golang.org/protobuf/proto"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 )
 
 // ComparablePrincipal defines an MSPPrincipal that can be compared to other principals

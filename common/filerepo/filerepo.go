@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
 )
 

@@ -4,6 +4,7 @@ package mocks
 
 import (
 	mock "github.com/stretchr/testify/mock"
+
 	msp "github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 
 	protoutil "github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"

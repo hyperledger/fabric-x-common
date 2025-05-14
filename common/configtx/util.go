@@ -8,8 +8,9 @@ package configtx
 
 import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 // UnmarshalConfig attempts to unmarshal bytes to a *cb.Config

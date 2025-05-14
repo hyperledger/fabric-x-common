@@ -13,6 +13,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/pkg/errors"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/encoder"

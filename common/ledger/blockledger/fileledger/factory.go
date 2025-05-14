@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/filerepo"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blkstorage"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger"

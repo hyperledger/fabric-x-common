@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"

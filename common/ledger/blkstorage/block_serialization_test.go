@@ -11,9 +11,10 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/encoding/protowire"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"google.golang.org/protobuf/encoding/protowire"
 )
 
 func TestBlockSerialization(t *testing.T) {

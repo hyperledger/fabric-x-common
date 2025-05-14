@@ -15,6 +15,7 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	"github.com/stretchr/testify/require"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/filerepo"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger/fileledger/mock"
 )

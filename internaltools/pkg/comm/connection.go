@@ -12,9 +12,10 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
+	"google.golang.org/grpc/credentials"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"google.golang.org/grpc/credentials"
 )
 
 var commLogger = flogging.MustGetLogger("comm")

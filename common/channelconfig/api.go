@@ -12,6 +12,7 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"

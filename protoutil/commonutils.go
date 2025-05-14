@@ -12,9 +12,10 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/pkg/errors"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
 )
 
 // MarshalOrPanic serializes a protobuf message and panics if this

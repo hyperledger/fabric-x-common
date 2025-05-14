@@ -17,6 +17,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
 )
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging/floggingtest"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/diag"
 )
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/stretchr/testify/require"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"
 )
 

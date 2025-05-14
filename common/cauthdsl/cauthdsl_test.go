@@ -15,9 +15,10 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policydsl"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"google.golang.org/protobuf/proto"
 )
 
 var invalidSignature = []byte("badsigned")

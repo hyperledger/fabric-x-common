@@ -18,6 +18,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/encoder"

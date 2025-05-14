@@ -20,6 +20,10 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider/fake"
@@ -29,9 +33,6 @@ import (
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/genesisconfig"
 	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 const eventuallyTO = 20 * time.Second

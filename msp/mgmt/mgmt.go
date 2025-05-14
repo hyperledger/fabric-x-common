@@ -12,6 +12,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/spf13/viper"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/cache"
 )

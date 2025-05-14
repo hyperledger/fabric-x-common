@@ -13,6 +13,7 @@ import (
 	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/cauthdsl"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policydsl"

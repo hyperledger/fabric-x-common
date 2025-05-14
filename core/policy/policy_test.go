@@ -11,6 +11,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/stretchr/testify/require"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/core/policy/mocks"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"

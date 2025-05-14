@@ -15,10 +15,11 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/ca"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/csp"
 	fabricmsp "github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"gopkg.in/yaml.v2"
 )
 
 const (

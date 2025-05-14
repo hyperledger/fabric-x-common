@@ -20,8 +20,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/pkg/errors"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"google.golang.org/protobuf/proto"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 )
 
 const (

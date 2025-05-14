@@ -13,6 +13,7 @@ import (
 	"time"
 
 	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"

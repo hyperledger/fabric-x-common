@@ -5,8 +5,9 @@ import (
 	"context"
 	"sync"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
 	"go.uber.org/zap/zapcore"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
 )
 
 type Leveler struct {

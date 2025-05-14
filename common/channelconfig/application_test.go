@@ -11,9 +11,10 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/proto"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/capabilities"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"google.golang.org/protobuf/proto"
 )
 
 func TestApplicationInterface(t *testing.T) {

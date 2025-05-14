@@ -11,10 +11,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/ca"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/msp"
 	fabricmsp "github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"gopkg.in/yaml.v2"
 )
 
 const (

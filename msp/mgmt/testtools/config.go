@@ -8,6 +8,7 @@ package msptesttools
 
 import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"

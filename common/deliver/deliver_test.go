@@ -21,6 +21,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver/mock"
@@ -28,7 +30,6 @@ import (
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
 	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (

@@ -15,6 +15,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"

@@ -18,6 +18,8 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/genesis"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
@@ -28,7 +30,6 @@ import (
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"google.golang.org/protobuf/proto"
 )
 
 const (

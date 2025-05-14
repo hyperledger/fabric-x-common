@@ -15,14 +15,15 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics/fakes"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics/testpb"
-	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics/fakes"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics/testpb"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
 )
 
 var _ = Describe("Interceptor", func() {

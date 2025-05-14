@@ -11,8 +11,9 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
 	"google.golang.org/protobuf/proto"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
 )
 
 // BindingInspector receives as parameters a gRPC context and an Envelope,

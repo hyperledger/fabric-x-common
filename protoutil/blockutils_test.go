@@ -15,10 +15,11 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+
 	configtxtest "github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil/mocks"
-	"google.golang.org/protobuf/proto"
 )
 
 var testChannelID = "myuniquetestchainid"

@@ -13,12 +13,14 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"google.golang.org/protobuf/proto"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/txflags"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/stretchr/testify/require"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil/fakes"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	mspmgmt "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"

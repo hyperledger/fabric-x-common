@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
 )
 

@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
-	"google.golang.org/grpc"
 )
 
 const defaultTimeout = time.Second * 5

@@ -14,12 +14,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/cauthdsl"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policydsl"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/core/policy/mocks"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"google.golang.org/protobuf/proto"
 )
 
 func TestComponentIntegrationSignaturePolicyEnv(t *testing.T) {

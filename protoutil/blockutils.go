@@ -17,8 +17,9 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
 	"google.golang.org/protobuf/proto"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
 )
 
 // NewBlock constructs a block with no data and no metadata.

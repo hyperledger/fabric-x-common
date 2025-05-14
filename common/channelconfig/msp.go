@@ -12,9 +12,10 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	mspprotos "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/cache"
-	"google.golang.org/protobuf/proto"
 )
 
 type pendingMSPConfig struct {

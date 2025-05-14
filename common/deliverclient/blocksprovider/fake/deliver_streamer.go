@@ -6,8 +6,9 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
 	"google.golang.org/grpc"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
 )
 
 type DeliverStreamer struct {

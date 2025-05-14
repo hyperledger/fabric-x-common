@@ -11,6 +11,7 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/genesis"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"

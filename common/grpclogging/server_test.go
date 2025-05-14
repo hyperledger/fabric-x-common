@@ -17,10 +17,6 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/fakes"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/testpb"
-	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -29,6 +25,11 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/fakes"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/testpb"
+	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
 )
 
 var _ = Describe("Server", func() {

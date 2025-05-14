@@ -17,6 +17,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/viperutil"
 	cf "github.ibm.com/decentralized-trust-research/fabricx-config/core/config"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"

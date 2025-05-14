@@ -17,8 +17,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/pkg/errors"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
 	"go.uber.org/zap/zapcore"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
 )
 
 // BlockProgressReporter provides information on the last block fetched from an orderer.

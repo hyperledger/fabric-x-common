@@ -12,9 +12,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"gopkg.in/alecthomas/kingpin.v2"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/comm"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/signer"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (

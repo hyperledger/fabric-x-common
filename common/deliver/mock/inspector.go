@@ -5,8 +5,9 @@ import (
 	"context"
 	"sync"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
 	"google.golang.org/protobuf/proto"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
 )
 
 type Inspector struct {

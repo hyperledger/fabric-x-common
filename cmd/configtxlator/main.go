@@ -23,13 +23,14 @@ import (
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/pkg/errors"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/metadata"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/rest"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/update"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"gopkg.in/alecthomas/kingpin.v2"
+
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/metadata"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/rest"
+	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/update"
 )
 
 // command line flags

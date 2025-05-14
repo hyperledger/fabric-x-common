@@ -11,6 +11,7 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/graph"
 	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 )

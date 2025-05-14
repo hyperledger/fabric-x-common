@@ -4,6 +4,7 @@ package mocks
 
 import (
 	mock "github.com/stretchr/testify/mock"
+
 	policies "github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
 )
 
