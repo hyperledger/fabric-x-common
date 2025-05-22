@@ -52,6 +52,8 @@ clean: ## Cleans the build area
 lint: FORCE
 	@echo "Running Go Linters..."
 	golangci-lint run --color=always --new-from-rev=main --timeout=4m
+	@echo "Running License Header Linters..."
+	scripts/license-lint.sh
 
 # https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
 # If a rule has no prerequisites or recipe, and the target of the rule is a nonexistent file,

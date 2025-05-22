@@ -1,3 +1,7 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 version: "2"
 linters:
   enable:
@@ -37,6 +41,7 @@ linters:
     - usetesting
     - wastedassign
     - whitespace
+    - goheader
     # wrapcheck is not working as expected. It is categorizing internal packages as external.
     #- wrapcheck
   settings:
@@ -182,6 +187,11 @@ linters:
       # Default: []
       # ignoreInterfaceRegexps:
       #   - ^(?i)c(?-i)ach(ing|e)
+    goheader:
+      template: |-
+        Copyright IBM Corp. All Rights Reserved.
+  
+        SPDX-License-Identifier: Apache-2.0
   exclusions:
       # Mode of the generated files analysis.
       #
