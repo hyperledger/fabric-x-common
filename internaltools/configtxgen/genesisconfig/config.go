@@ -188,7 +188,7 @@ type Consenter struct {
 }
 
 type ConsensusMetadata struct {
-	LoadFromPath string `yaml:"Path"`
+	Path string `yaml:"Path"`
 }
 
 var genesisDefaults = TopLevel{

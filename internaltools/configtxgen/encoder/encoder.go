@@ -240,8 +240,8 @@ func NewOrdererGroup(conf *genesisconfig.Orderer, channelCapabilities map[string
 			return nil, errors.Errorf("cannot load consenter config for orderer type %s: %s", ConsensusTypeBFT, err)
 		}
 		addValue(ordererGroup, channelconfig.OrderersValue(consenterProtos), channelconfig.AdminsPolicyKey)
-		if conf.Arma.LoadFromPath != "" {
-			if consensusMetadata, err = os.ReadFile(conf.Arma.LoadFromPath); err != nil {
+		if conf.Arma.Path != "" {
+			if consensusMetadata, err = os.ReadFile(conf.Arma.Path); err != nil {
 				return nil, errors.Errorf("cannot load metadata for orderer type %s: %s", conf.OrdererType, err)
 			}
 		}
