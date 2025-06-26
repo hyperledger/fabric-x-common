@@ -718,11 +718,57 @@ Profiles:
         Orderer:
             <<: *OrdererDefaults
             OrdererType: arma
-            BatchSize:
-                MaxMessageCount: 5000
-                AbsoluteMaxBytes: 10 MB
+            Arma:
+                Path: path/to/shared_config.binpb
             Organizations:
                 - <<: *SampleOrg
+                  OrdererEndpoints:
+                      # Fabric-X have separated endpoints for broadcast and deliver.
+                      # This requires explicitly identifying the API that each endpoint provides (broadcast, deliver).
+                      # Since we may have multiple endpoints per party (one per API), the party ID of each endpoint
+                      # must be specified.
+                      #
+                      # For this end, an orderer endpoints may contain the following fields:
+                      # - host     (required) the party's host.
+                      # - port     (required) the party's post.
+                      # - id       (optional) the orderer party ID (default: 0).
+                      # - api      (optional) a list of supported APIs (default: ["broadcast", "deliver"]).
+                      #
+                      # This can be encoded using the following schemas.
+                      # It will be parsed according to the first schema that succeed according to the following order.
+                      # - JSON.
+                      # - YAML.
+                      # - [id=ID,][broadcast,][deliver,][host=Host,][port=Port,][Host:Port].
+                      #
+                      # Following are examples of encoding host=localhost, port=7050, ID=0, API=broadcast,deliver:
+                      # - localhost:7050
+                      # - id=0,broadcast,deliver,localhost:7050
+                      # - id=0,broadcast,deliver,host=localhost,port=7050
+                      # - {"host": "localhost", "port": 7050]}
+                      # - {"host": "localhost", "port": 7050, "id": 0, "api": ["broadcast", "deliver"]}
+                      # - -|
+                      #   host: localhost
+                      #   port: 7050
+                      # - -|
+                      #   host: localhost
+                      #   port: 7050
+                      #   id: 0
+                      #   api:
+                      #     - broadcast
+                      #     - deliver
+                      #
+                      # Following are examples of encoding host=localhost, port=7050, ID=5, API=deliver:
+                      # - id=5,deliver,localhost:7050
+                      # - id=5,deliver,host=localhost,port=7050
+                      # - {"host": "localhost", "port": 7050, "id": 5, "api": ["deliver"]}
+                      # - -|
+                      #   host: localhost
+                      #   port: 7050
+                      #   id: 5
+                      #   api: [ "deliver" ]
+                      - id=0,broadcast,localhost:7050
+                      - id=0,deliver,localhost:7060
+
         Application:
             <<: *ApplicationDefaults
             MetaNamespaceVerificationKeyPath: path/to/MetaNamespaceVerification.key
