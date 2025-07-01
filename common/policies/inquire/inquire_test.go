@@ -17,8 +17,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policydsl"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/policydsl"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 type testCase struct {

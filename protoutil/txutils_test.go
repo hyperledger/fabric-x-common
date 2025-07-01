@@ -19,8 +19,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil/fakes"
+	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/protoutil/fakes"
 )
 
 func TestGetPayloads(t *testing.T) {

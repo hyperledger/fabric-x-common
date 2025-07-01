@@ -14,9 +14,9 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/pkg/errors"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/capabilities"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.com/hyperledger/fabric-x-common/common/capabilities"
+	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/msp"
 )
 
 // Channel config keys

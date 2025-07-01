@@ -4,7 +4,7 @@ package mocks
 import (
 	"sync"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
 )
 
 type SignerSerializer struct {

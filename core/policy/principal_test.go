@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"
+	"github.com/hyperledger/fabric-x-common/msp/mgmt"
 )
 
 func TestNewLocalMSPPrincipalGetter(t *testing.T) {

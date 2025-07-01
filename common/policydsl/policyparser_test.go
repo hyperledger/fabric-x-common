@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestOutOf1(t *testing.T) {

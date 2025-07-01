@@ -21,8 +21,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestX509CertExpiresAt(t *testing.T) {

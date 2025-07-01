@@ -24,15 +24,15 @@ import (
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider/fake"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/encoder"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/genesisconfig"
-	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/core/config/configtest"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
+	. "github.com/hyperledger/fabric-x-common/internaltools/test"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 const eventuallyTO = 20 * time.Second

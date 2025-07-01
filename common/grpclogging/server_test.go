@@ -26,10 +26,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/fakes"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/testpb"
-	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
+	"github.com/hyperledger/fabric-x-common/common/grpclogging"
+	"github.com/hyperledger/fabric-x-common/common/grpclogging/fakes"
+	"github.com/hyperledger/fabric-x-common/common/grpclogging/testpb"
+	. "github.com/hyperledger/fabric-x-common/internaltools/test"
 )
 
 var _ = Describe("Server", func() {

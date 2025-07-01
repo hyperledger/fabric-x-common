@@ -23,13 +23,13 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver/mock"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
-	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
+	"github.com/hyperledger/fabric-x-common/common/deliver"
+	"github.com/hyperledger/fabric-x-common/common/deliver/mock"
+	"github.com/hyperledger/fabric-x-common/common/ledger/blockledger"
+	"github.com/hyperledger/fabric-x-common/common/util"
+	. "github.com/hyperledger/fabric-x-common/internaltools/test"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 var (

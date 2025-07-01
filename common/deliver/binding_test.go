@@ -22,9 +22,9 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm/testpb"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm/testpb"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestBindingInspectorBadInit(t *testing.T) {

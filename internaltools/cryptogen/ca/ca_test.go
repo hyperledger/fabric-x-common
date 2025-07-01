@@ -15,8 +15,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/ca"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/csp"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/ca"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/csp"
 )
 
 const (

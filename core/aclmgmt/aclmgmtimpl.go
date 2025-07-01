@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 
 package aclmgmt
 
-import "github.ibm.com/decentralized-trust-research/fabricx-config/core/policy"
+import "github.com/hyperledger/fabric-x-common/core/policy"
 
 // implementation of aclMgmt. CheckACL calls in fabric result in the following flow
 //

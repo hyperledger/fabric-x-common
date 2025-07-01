@@ -19,11 +19,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	cl "github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blkstorage/blkstoragetest"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	cl "github.com/hyperledger/fabric-x-common/common/ledger"
+	"github.com/hyperledger/fabric-x-common/common/ledger/blkstorage/blkstoragetest"
+	"github.com/hyperledger/fabric-x-common/common/ledger/blockledger"
+	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 var genesisBlock = protoutil.NewBlock(0, nil)

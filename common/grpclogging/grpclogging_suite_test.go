@@ -23,7 +23,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/testpb"
+	"github.com/hyperledger/fabric-x-common/common/grpclogging/testpb"
 )
 
 //go:generate protoc --proto_path=testpb --go_out=plugins=grpc,paths=source_relative:testpb testpb/echo.proto

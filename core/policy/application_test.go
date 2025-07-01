@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/cauthdsl"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policydsl"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/core/policy/mocks"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/cauthdsl"
+	"github.com/hyperledger/fabric-x-common/common/policydsl"
+	"github.com/hyperledger/fabric-x-common/core/policy/mocks"
+	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestComponentIntegrationSignaturePolicyEnv(t *testing.T) {

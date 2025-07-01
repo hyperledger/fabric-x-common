@@ -18,7 +18,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
 func TestEcdsaSigner(t *testing.T) {

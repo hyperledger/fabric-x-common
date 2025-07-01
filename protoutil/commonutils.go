@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
 )
 
 // MarshalOrPanic serializes a protobuf message and panics if this

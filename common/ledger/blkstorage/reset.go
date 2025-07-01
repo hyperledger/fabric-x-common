@@ -12,7 +12,7 @@ import (
 	"path"
 	"strconv"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
+	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
 )
 
 // ResetBlockStore drops the block storage index and truncates the blocks files for all channels/ledgers to genesis blocks

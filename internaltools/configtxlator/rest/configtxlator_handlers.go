@@ -14,7 +14,7 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/update"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/update"
 )
 
 func fieldBytes(fieldName string, r *http.Request) ([]byte, error) {

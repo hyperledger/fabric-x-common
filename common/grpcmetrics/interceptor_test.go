@@ -20,10 +20,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics/fakes"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpcmetrics/testpb"
-	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
+	"github.com/hyperledger/fabric-x-common/common/grpcmetrics"
+	"github.com/hyperledger/fabric-x-common/common/grpcmetrics/fakes"
+	"github.com/hyperledger/fabric-x-common/common/grpcmetrics/testpb"
+	. "github.com/hyperledger/fabric-x-common/internaltools/test"
 )
 
 var _ = Describe("Interceptor", func() {

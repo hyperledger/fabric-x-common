@@ -12,7 +12,7 @@ import (
 	pmsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/stretchr/testify/mock"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.com/hyperledger/fabric-x-common/msp"
 )
 
 type MockMSP struct {

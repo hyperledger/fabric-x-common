@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 // More duplicate utility which should go away, but the utils are a bit of a mess right now with import cycles

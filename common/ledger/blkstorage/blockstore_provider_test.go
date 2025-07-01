@@ -14,9 +14,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/txflags"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestIndexConfig(t *testing.T) {

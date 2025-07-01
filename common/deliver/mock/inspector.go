@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
+	"github.com/hyperledger/fabric-x-common/common/deliver"
 )
 
 type Inspector struct {

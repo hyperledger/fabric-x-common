@@ -28,9 +28,9 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/metadata"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/rest"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/update"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/metadata"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/rest"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/update"
 )
 
 // command line flags

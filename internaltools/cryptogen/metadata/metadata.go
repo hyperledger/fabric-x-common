@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/metadata"
+	"github.com/hyperledger/fabric-x-common/common/metadata"
 )
 
 const ProgramName = "cryptogen"

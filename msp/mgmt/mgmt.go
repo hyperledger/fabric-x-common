@@ -13,8 +13,8 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/spf13/viper"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/cache"
+	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/msp/cache"
 )
 
 // FIXME: AS SOON AS THE CHAIN MANAGEMENT CODE IS COMPLETE,

@@ -4,7 +4,7 @@ package mock
 import (
 	"sync"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
+	"github.com/hyperledger/fabric-x-common/common/deliver"
 )
 
 type ChainManager struct {

@@ -24,7 +24,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/csp"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/csp"
 )
 
 type CA struct {

@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/core/aclmgmt/mocks"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/core/policy"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
-	msptesttools "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt/testtools"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/core/aclmgmt/mocks"
+	"github.com/hyperledger/fabric-x-common/core/policy"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
+	msptesttools "github.com/hyperledger/fabric-x-common/msp/mgmt/testtools"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func newPolicyProvider(pEvaluator policyEvaluator) aclmgmtPolicyProvider {

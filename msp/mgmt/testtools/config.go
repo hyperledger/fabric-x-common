@@ -9,9 +9,9 @@ package msptesttools
 import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"
+	"github.com/hyperledger/fabric-x-common/core/config/configtest"
+	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/msp/mgmt"
 )
 
 // LoadTestMSPSetup sets up the local MSP

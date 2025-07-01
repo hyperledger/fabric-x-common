@@ -12,7 +12,7 @@ MAKEFLAGS += --no-builtin-rules
 
 BUILD_DIR ?= bin
 
-PKGNAME = github.ibm.com/decentralized-trust-research/fabricx-config
+PKGNAME = github.com/hyperledger/fabric-x-common
 
 GO_TAGS ?=
 

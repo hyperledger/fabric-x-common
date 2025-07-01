@@ -16,7 +16,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
 )
 
 type comparableEndpoint struct {

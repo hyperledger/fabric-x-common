@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp/mocks"
+	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/msp/mocks"
 )
 
 func TestNewCacheMsp(t *testing.T) {

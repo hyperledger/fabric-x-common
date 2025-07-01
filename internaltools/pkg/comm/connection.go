@@ -14,8 +14,8 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"google.golang.org/grpc/credentials"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.com/hyperledger/fabric-x-common/common/channelconfig"
+	"github.com/hyperledger/fabric-x-common/msp"
 )
 
 var commLogger = flogging.MustGetLogger("comm")

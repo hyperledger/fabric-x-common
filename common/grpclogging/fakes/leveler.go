@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
+	"github.com/hyperledger/fabric-x-common/common/grpclogging"
 )
 
 type Leveler struct {

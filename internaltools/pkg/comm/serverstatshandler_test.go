@@ -19,8 +19,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/stats"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm/testpb"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm/testpb"
 )
 
 func TestConnectionCounters(t *testing.T) {

@@ -16,8 +16,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/testpb"
+	"github.com/hyperledger/fabric-x-common/common/grpclogging"
+	"github.com/hyperledger/fabric-x-common/common/grpclogging/testpb"
 )
 
 var _ = Describe("Fields", func() {

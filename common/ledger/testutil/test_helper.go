@@ -15,17 +15,17 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/txflags"
+	"github.com/hyperledger/fabric-x-common/common/configtx/test"
+	"github.com/hyperledger/fabric-x-common/common/crypto"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
 
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil/fakes"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	mspmgmt "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt"
-	msptesttools "github.ibm.com/decentralized-trust-research/fabricx-config/msp/mgmt/testtools"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/ledger/testutil/fakes"
+	"github.com/hyperledger/fabric-x-common/msp"
+	mspmgmt "github.com/hyperledger/fabric-x-common/msp/mgmt"
+	msptesttools "github.com/hyperledger/fabric-x-common/msp/mgmt/testtools"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 var signer msp.SigningIdentity

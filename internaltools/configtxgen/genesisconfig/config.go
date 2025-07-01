@@ -18,9 +18,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/viperutil"
-	cf "github.ibm.com/decentralized-trust-research/fabricx-config/core/config"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.com/hyperledger/fabric-x-common/common/viperutil"
+	cf "github.com/hyperledger/fabric-x-common/core/config"
+	"github.com/hyperledger/fabric-x-common/msp"
 )
 
 const (

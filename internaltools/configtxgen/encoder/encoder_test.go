@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/test"
+	. "github.com/hyperledger/fabric-x-common/internaltools/test"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
@@ -21,12 +21,12 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/encoder"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/encoder/fakes"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/genesisconfig"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder/fakes"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 //go:generate counterfeiter -o fakes/signer_serializer.go --fake-name SignerSerializer . signerSerializer

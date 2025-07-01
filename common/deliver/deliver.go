@@ -21,11 +21,11 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/crypto"
+	"github.com/hyperledger/fabric-x-common/common/ledger/blockledger"
+	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 var logger = flogging.MustGetLogger("common.deliver")

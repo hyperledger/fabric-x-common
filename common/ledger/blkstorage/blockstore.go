@@ -12,9 +12,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/snapshot"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
+	"github.com/hyperledger/fabric-x-common/common/ledger"
+	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
+	"github.com/hyperledger/fabric-x-common/common/ledger/util/leveldbhelper"
 )
 
 // BlockStore - filesystem based implementation for `BlockStore`

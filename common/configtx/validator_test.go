@@ -14,9 +14,9 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
 
-	mockpolicies "github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/mock"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	mockpolicies "github.com/hyperledger/fabric-x-common/common/configtx/mock"
+	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 //go:generate counterfeiter -o mock/policy_manager.go --fake-name PolicyManager . policyManager

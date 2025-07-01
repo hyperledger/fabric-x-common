@@ -223,6 +223,6 @@ formatters:
       # with the given prefixes are grouped after 3rd-party packages.
       # Default: ""
       local-prefixes:
-        - github.ibm.com/decentralized-trust-research/fabricx-config
+        - github.com/hyperledger/fabric-x-common
   exclusions:
     generated: lax

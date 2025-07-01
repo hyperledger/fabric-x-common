@@ -19,9 +19,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider/fake"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestBftHeaderReceiver_NoBlocks_RecvError(t *testing.T) {

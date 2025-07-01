@@ -19,8 +19,8 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"google.golang.org/grpc"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
 )
 
 // LedgerInfo an adapter to provide the interface to query

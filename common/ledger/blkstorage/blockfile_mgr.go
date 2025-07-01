@@ -20,9 +20,9 @@ import (
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/ledger/util/leveldbhelper"
+	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 const (

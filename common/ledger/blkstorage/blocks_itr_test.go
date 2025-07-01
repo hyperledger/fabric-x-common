@@ -14,7 +14,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
 )
 
 func TestBlocksItrBlockingNext(t *testing.T) {

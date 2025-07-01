@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 )
 
 type BlockProgressReporter struct {

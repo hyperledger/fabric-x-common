@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protowire"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
 )
 
 func TestConstructBlockfilesInfo(t *testing.T) {

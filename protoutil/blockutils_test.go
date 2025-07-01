@@ -17,9 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	configtxtest "github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx/test"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil/mocks"
+	configtxtest "github.com/hyperledger/fabric-x-common/common/configtx/test"
+	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/protoutil/mocks"
 )
 
 var testChannelID = "myuniquetestchainid"

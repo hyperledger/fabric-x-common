@@ -17,9 +17,9 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/ca"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/csp"
-	fabricmsp "github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/ca"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/csp"
+	fabricmsp "github.com/hyperledger/fabric-x-common/msp"
 )
 
 const (

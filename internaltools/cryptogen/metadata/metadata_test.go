@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/metadata"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/metadata"
 )
 
 func TestGetVersionInfo(t *testing.T) {

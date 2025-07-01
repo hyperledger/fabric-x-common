@@ -15,9 +15,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/pkg/errors"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 // BlockHandler abstracts the next stage of processing after the block is fetched from the orderer.

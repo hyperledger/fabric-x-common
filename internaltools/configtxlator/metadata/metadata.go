@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/metadata"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/metadata"
 )
 
 const ProgramName = "configtxlator"

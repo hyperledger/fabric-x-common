@@ -16,11 +16,11 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/core/config/configtest"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/encoder"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/genesisconfig"
+	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient"
+	"github.com/hyperledger/fabric-x-common/core/config/configtest"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
 )
 
 func TestBlockVerifierAssembler(t *testing.T) {

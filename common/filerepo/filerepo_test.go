@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/filerepo"
+	"github.com/hyperledger/fabric-x-common/common/filerepo"
 )
 
 func TestNewFileRepo(t *testing.T) {

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 //
-module github.ibm.com/decentralized-trust-research/fabricx-config
+module github.com/hyperledger/fabric-x-common
 
 go 1.24
 

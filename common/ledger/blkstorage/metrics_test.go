@@ -14,7 +14,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
 )
 
 func TestStatsBlockchainHeight(t *testing.T) {

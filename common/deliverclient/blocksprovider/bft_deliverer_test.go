@@ -27,10 +27,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider/fake"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 type bftDelivererTestSetup struct {

@@ -17,9 +17,9 @@ import (
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider/fake"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
 )
 
 func TestDeliveryRequester_Connect_Success(t *testing.T) {

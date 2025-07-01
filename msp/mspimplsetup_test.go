@@ -15,7 +15,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/onsi/gomega"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
+	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 )
 
 var (

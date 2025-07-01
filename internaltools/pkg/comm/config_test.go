@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
+	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 )
 
 func TestServerKeepaliveOptions(t *testing.T) {

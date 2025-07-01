@@ -18,10 +18,10 @@ import (
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/snapshot"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/util/leveldbhelper"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/txflags"
+	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
+	"github.com/hyperledger/fabric-x-common/common/ledger/util"
+	"github.com/hyperledger/fabric-x-common/common/ledger/util/leveldbhelper"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
 )
 
 const (

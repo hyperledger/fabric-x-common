@@ -15,7 +15,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/pkg/errors"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 // BFTHeaderReceiver receives a stream of blocks from an orderer, where each block contains a header and metadata.

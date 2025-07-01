@@ -20,16 +20,16 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/channelconfig"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/genesis"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policydsl"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/util"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/genesisconfig"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxlator/update"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/channelconfig"
+	"github.com/hyperledger/fabric-x-common/common/genesis"
+	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/common/policydsl"
+	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/update"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
+	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 const (

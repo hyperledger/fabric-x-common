@@ -9,7 +9,7 @@ package blkstorage
 import (
 	"sync"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	"github.com/hyperledger/fabric-x-common/common/ledger"
 )
 
 // blocksItr - an iterator for iterating over a sequence of blocks

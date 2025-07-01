@@ -4,9 +4,9 @@ package mock
 import (
 	"sync"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliver"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/blockledger"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
+	"github.com/hyperledger/fabric-x-common/common/deliver"
+	"github.com/hyperledger/fabric-x-common/common/ledger/blockledger"
+	"github.com/hyperledger/fabric-x-common/common/policies"
 )
 
 type Chain struct {

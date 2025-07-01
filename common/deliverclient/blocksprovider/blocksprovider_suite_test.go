@@ -14,7 +14,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/identity"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
 )
 
 //go:generate counterfeiter -o fake/signer.go --fake-name Signer . signer

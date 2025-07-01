@@ -29,9 +29,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/crypto/tlsgen"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm/testpb"
+	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm/testpb"
 )
 
 // Embedded certificates for testing

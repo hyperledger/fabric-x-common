@@ -9,9 +9,9 @@ package channelconfig
 import (
 	"sync/atomic"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/configtx"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/msp"
+	"github.com/hyperledger/fabric-x-common/common/configtx"
+	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/msp"
 )
 
 // BundleSource stores a reference to the current configuration bundle

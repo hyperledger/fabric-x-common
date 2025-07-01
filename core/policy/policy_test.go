@@ -12,9 +12,9 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/policies"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/core/policy/mocks"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/core/policy/mocks"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestCheckPolicyInvalidArgs(t *testing.T) {

@@ -13,10 +13,10 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/ca"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/csp"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/metadata"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/cryptogen/msp"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/ca"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/csp"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/metadata"
+	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/msp"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"

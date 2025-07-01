@@ -30,7 +30,7 @@ jobs:
         - git fetch origin main:main
         # Apply formatting
         - gofmt -w .
-        - goimports -local "github.ibm.com/decentralized-trust-research/fabricx-config" -w .
+        - goimports -local "github.com/hyperledger/fabric-x-common" -w .
       script:
         # Check if original code changed due to formatting
         - git diff | tee /dev/stderr | [ $(wc -c) -eq 0 ]

@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/grpclogging/testpb"
+	"github.com/hyperledger/fabric-x-common/common/grpclogging/testpb"
 )
 
 type EchoServiceServer struct {

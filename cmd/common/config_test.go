@@ -16,8 +16,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/comm"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/signer"
+	"github.com/hyperledger/fabric-x-common/cmd/common/comm"
+	"github.com/hyperledger/fabric-x-common/cmd/common/signer"
 )
 
 func TestConfig(t *testing.T) {

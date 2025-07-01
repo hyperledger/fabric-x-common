@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/semaphore"
+	"github.com/hyperledger/fabric-x-common/common/semaphore"
 )
 
 func TestNewSemaphorePanic(t *testing.T) {

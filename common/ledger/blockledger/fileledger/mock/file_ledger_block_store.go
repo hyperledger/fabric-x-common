@@ -6,7 +6,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger"
+	"github.com/hyperledger/fabric-x-common/common/ledger"
 )
 
 type FileLedgerBlockStore struct {

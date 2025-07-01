@@ -15,7 +15,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/dataformat"
+	"github.com/hyperledger/fabric-x-common/common/ledger/dataformat"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient/blocksprovider"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 )
 
 type Dialer struct {

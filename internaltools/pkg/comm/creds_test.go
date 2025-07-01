@@ -19,7 +19,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging/floggingtest"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/pkg/comm"
+	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm"
 )
 
 func TestCreds(t *testing.T) {

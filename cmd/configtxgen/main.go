@@ -15,9 +15,9 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/genesisconfig"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/configtxgen/metadata"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
+	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/metadata"
 )
 
 var logger = flogging.MustGetLogger("common.tools.configtxgen")

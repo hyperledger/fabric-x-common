@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
+	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
 )
 
 // constructBlockfilesInfo scans the last blockfile (if any) and construct the blockfilesInfo

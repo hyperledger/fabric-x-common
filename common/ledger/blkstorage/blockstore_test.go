@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/ledger/testutil"
+	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
 )
 
 func TestWrongBlockNumber(t *testing.T) {

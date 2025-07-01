@@ -12,8 +12,8 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/deliverclient"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/protoutil"
+	"github.com/hyperledger/fabric-x-common/common/deliverclient"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestConfigFromBlockBadInput(t *testing.T) {

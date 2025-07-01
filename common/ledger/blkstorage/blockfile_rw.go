@@ -11,7 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/internaltools/fileutil"
+	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
 )
 
 // //  WRITER ////

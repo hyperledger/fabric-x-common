@@ -17,7 +17,7 @@ import (
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/pkg/errors"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/common/capabilities"
+	"github.com/hyperledger/fabric-x-common/common/capabilities"
 )
 
 const (

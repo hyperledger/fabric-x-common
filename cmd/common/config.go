@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
-	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/comm"
-	"github.ibm.com/decentralized-trust-research/fabricx-config/cmd/common/signer"
+	"github.com/hyperledger/fabric-x-common/cmd/common/comm"
+	"github.com/hyperledger/fabric-x-common/cmd/common/signer"
 )
 
 // Config aggregates configuration of TLS and signing
