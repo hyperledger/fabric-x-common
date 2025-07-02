@@ -1,0 +1,38 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.3'
+
+      - name: Dependencies
+        run: scripts/install-dev-dependencies.sh
+
+      - name: Lint
+        run: |
+          gofmt -w .
+          goimports -local "github.com/hyperledger/fabric-x-common" -w .
+          # Check if original code changed due to formatting
+          git diff | tee /dev/stderr | [ $(wc -c) -eq 0 ]
+          make lint
+
+      - name: Build
+        run: make tools
