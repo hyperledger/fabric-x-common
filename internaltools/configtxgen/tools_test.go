@@ -163,6 +163,8 @@ func TestFabricXGenesisBlock(t *testing.T) {
 	addTlsCertToConsenters(config)
 	keyPath := filepath.Join(configtest.GetDevConfigDir(), "msp", "signcerts", "peer.pem")
 	config.Application.MetaNamespaceVerificationKeyPath = keyPath
+	armaPath := filepath.Join(configtest.GetDevConfigDir(), "arma_shared_config.pbbin")
+	config.Orderer.Arma.Path = armaPath
 
 	require.NoError(t, DoOutputBlock(config, "foo", blockDest))
 }
