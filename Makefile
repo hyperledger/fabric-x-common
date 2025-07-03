@@ -39,6 +39,7 @@ tools: $(TOOLS_EXES) ## Builds all tools
 test: FORCE
 	go test -v ./cmd/...
 	go test -v ./internaltools/...
+	go test -v ./common/...
 
 .PHONY: $(TOOLS_EXES)
 $(TOOLS_EXES): %: $(BUILD_DIR)/% ## Builds a native binary
@@ -56,7 +57,7 @@ clean: ## Cleans the build area
 
 lint: FORCE
 	@echo "Running Go Linters..."
-	golangci-lint run --color=always --new-from-rev=origin/main --timeout=4m
+	golangci-lint run --color=always --new-from-rev=main --timeout=4m
 	@echo "Running License Header Linters..."
 	scripts/license-lint.sh
 

@@ -18,6 +18,8 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 
+	"github.com/hyperledger/fabric-x-common/common/orderer"
+
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
 	cf "github.com/hyperledger/fabric-x-common/core/config"
 	"github.com/hyperledger/fabric-x-common/msp"
@@ -135,8 +137,8 @@ type Organization struct {
 	// Note: Viper deserialization does not seem to care for
 	// embedding of types, so we use one organization struct
 	// for both orderers and applications.
-	AnchorPeers      []*AnchorPeer `yaml:"AnchorPeers"`
-	OrdererEndpoints []string      `yaml:"OrdererEndpoints"`
+	AnchorPeers      []*AnchorPeer       `yaml:"AnchorPeers"`
+	OrdererEndpoints []*orderer.Endpoint `yaml:"OrdererEndpoints"`
 
 	// AdminPrincipal is deprecated and may be removed in a future release
 	// it was used for modifying the default policy generation, but policies

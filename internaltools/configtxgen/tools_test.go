@@ -6,6 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/hyperledger/fabric-x-common/common/channelconfig"
+	"github.com/hyperledger/fabric-x-common/common/orderer"
+	"github.com/hyperledger/fabric-x-common/protoutil"
+
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/stretchr/testify/require"
 
@@ -167,4 +171,39 @@ func TestFabricXGenesisBlock(t *testing.T) {
 	config.Orderer.Arma.Path = armaPath
 
 	require.NoError(t, DoOutputBlock(config, "foo", blockDest))
+
+	configBlock, err := ReadBlock(blockDest)
+	require.NoError(t, err)
+	require.NotNil(t, configBlock)
+
+	envelope, err := protoutil.ExtractEnvelope(configBlock, 0)
+	require.NoError(t, err)
+	require.NotNil(t, envelope)
+	bundle, err := channelconfig.NewBundleFromEnvelope(envelope, factory.GetDefault())
+	require.NoError(t, err)
+	require.NotNil(t, bundle)
+
+	oc, ok := bundle.OrdererConfig()
+	require.True(t, ok)
+	require.NotNil(t, oc)
+
+	var endpoints []*orderer.Endpoint
+	for orgID, org := range oc.Organizations() {
+		endpointsStr := org.Endpoints()
+		for _, eStr := range endpointsStr {
+			t.Log(eStr)
+			e, parseErr := orderer.ParseOrdererEndpoint(eStr)
+			require.NoError(t, parseErr)
+			e.MspID = orgID
+			endpoints = append(endpoints, e)
+		}
+	}
+	allAPI := []string{orderer.Broadcast, orderer.Deliver}
+	expected := []*orderer.Endpoint{
+		{MspID: "SampleOrg", ID: 0, API: allAPI[:1], Host: "orderer-1", Port: 7050},
+		{MspID: "SampleOrg", ID: 0, API: allAPI[1:], Host: "orderer-1", Port: 7060},
+		{MspID: "SampleOrg", ID: 1, API: allAPI, Host: "orderer-2", Port: 7050},
+		{MspID: "SampleOrg", ID: 2, API: nil, Host: "orderer-3", Port: 7050},
+	}
+	require.ElementsMatch(t, expected, endpoints)
 }
