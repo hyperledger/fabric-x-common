@@ -18,11 +18,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hyperledger/fabric-x-common/common/orderer"
+
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var logger = flogging.MustGetLogger("viperutil")
@@ -371,6 +373,23 @@ func bccspHook(f reflect.Type, t reflect.Type, data interface{}) (interface{}, e
 	return config, nil
 }
 
+func ordererEndpointDecoder(dataType, targetType reflect.Type, rawData any) (result any, err error) {
+	stringData, ok := getStringData(dataType, rawData)
+	if !ok || targetType != reflect.TypeOf(orderer.Endpoint{}) {
+		return rawData, nil
+	}
+	endpoint, err := orderer.ParseOrdererEndpoint(stringData)
+	return endpoint, errors.Wrap(err, "failed to parse orderer endpoint")
+}
+
+func getStringData(dataType reflect.Type, rawData any) (stringData string, isStringData bool) {
+	if dataType.Kind() != reflect.String {
+		return stringData, false
+	}
+	stringData, isStringData = rawData.(string)
+	return stringData, isStringData
+}
+
 // EnhancedExactUnmarshal is intended to unmarshal a config file into a structure
 // producing error when extraneous variables are introduced and supporting
 // the time.Duration type
@@ -400,6 +419,7 @@ func (c *ConfigParser) EnhancedExactUnmarshal(output interface{}) error {
 			byteSizeDecodeHook,
 			stringFromFileDecodeHook,
 			pemBlocksFromFileDecodeHook,
+			ordererEndpointDecoder,
 		),
 	}
 
@@ -408,20 +428,4 @@ func (c *ConfigParser) EnhancedExactUnmarshal(output interface{}) error {
 		return err
 	}
 	return decoder.Decode(leafKeys)
-}
-
-// YamlStringToStructHook is a hook for viper(viper.Unmarshal(*,*, here)), it is able to parse a string of minified yaml into a slice of structs
-func YamlStringToStructHook(m interface{}) func(rf reflect.Kind, rt reflect.Kind, data interface{}) (interface{}, error) {
-	return func(rf reflect.Kind, rt reflect.Kind, data interface{}) (interface{}, error) {
-		if rf != reflect.String || rt != reflect.Slice {
-			return data, nil
-		}
-
-		raw := data.(string)
-		if raw == "" {
-			return m, nil
-		}
-
-		return m, yaml.UnmarshalStrict([]byte(raw), &m)
-	}
 }

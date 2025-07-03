@@ -67,8 +67,13 @@ func MakeGenesisBlockFromMSPs(channelID string, appMSPConf, ordererMSPConf *mspp
 		ModPolicy: channelconfig.AdminsPolicyKey,
 	}
 
+	endpoints := profile.Orderer.Organizations[0].OrdererEndpoints
+	addresses := make([]string, len(endpoints))
+	for i, e := range endpoints {
+		addresses[i] = e.String()
+	}
 	ordererOrgProtos := &cb.OrdererAddresses{
-		Addresses: profile.Orderer.Organizations[0].OrdererEndpoints,
+		Addresses: addresses,
 	}
 	ordererOrg.Values[channelconfig.EndpointsKey] = &cb.ConfigValue{
 		Value:     protoutil.MarshalOrPanic(ordererOrgProtos),
