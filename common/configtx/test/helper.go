@@ -7,13 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 import (
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/common/genesis"
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
@@ -21,7 +21,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
-var logger = flogging.MustGetLogger("common.configtx.test")
+var logger = util.MustGetLogger("common.configtx.test")
 
 // MakeGenesisBlock creates a genesis block using the test templates for the given channelID
 func MakeGenesisBlock(channelID string) (*cb.Block, error) {

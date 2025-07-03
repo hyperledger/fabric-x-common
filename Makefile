@@ -16,6 +16,9 @@ PKGNAME = github.com/hyperledger/fabric-x-common
 
 GO_TAGS ?=
 
+go_cmd          ?= go
+go_test         ?= $(go_cmd) test -json -v -timeout 30m
+
 TOOLS_EXES = configtxgen configtxlator cryptogen
 
 pkgmap.configtxgen    := $(PKGNAME)/cmd/configtxgen
@@ -35,10 +38,11 @@ help: ## List all commands with documentation
 .PHONY: tools
 tools: $(TOOLS_EXES) ## Builds all tools
 
-## Run CMD and tools tests
+GO_TEST_FMT_FLAGS := -hide empty-packages
+
+## Run all tests
 test: FORCE
-	go test -v ./cmd/...
-	go test -v ./internaltools/...
+	@$(go_test) ./... | gotestfmt ${GO_TEST_FMT_FLAGS}
 
 .PHONY: $(TOOLS_EXES)
 $(TOOLS_EXES): %: $(BUILD_DIR)/% ## Builds a native binary
@@ -56,7 +60,7 @@ clean: ## Cleans the build area
 
 lint: FORCE
 	@echo "Running Go Linters..."
-	golangci-lint run --color=always --new-from-rev=origin/main --timeout=4m
+	golangci-lint run --color=always --new-from-rev=main --timeout=4m
 	@echo "Running License Header Linters..."
 	scripts/license-lint.sh
 

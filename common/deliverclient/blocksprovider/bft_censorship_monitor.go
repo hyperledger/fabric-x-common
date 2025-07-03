@@ -20,6 +20,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
 // BlockProgressReporter provides information on the last block fetched from an orderer.
@@ -137,7 +138,7 @@ func NewBFTCensorshipMonitor(
 		blockSourceIndex:        blockSourceIndex,
 		timeoutConfig:           timeoutConf,
 		stopHistoryWindowDur:    stopWindowDur,
-		logger:                  flogging.MustGetLogger("BFTCensorshipMonitor").With("channel", chainID),
+		logger:                  util.MustGetLogger("BFTCensorshipMonitor").With("channel", chainID),
 	}
 
 	return m
@@ -366,7 +367,8 @@ func (m *BFTCensorshipMonitor) launchHeaderReceivers() error {
 			continue
 		}
 
-		hrRcvMon.headerReceiver = NewBFTHeaderReceiver(m.chainID, ep.Address, headerClient, m.updatableHeaderVerifier, hrRcvMon.headerReceiver, flogging.MustGetLogger("BFTHeaderReceiver"))
+		hrRcvMon.headerReceiver = NewBFTHeaderReceiver(m.chainID, ep.Address, headerClient, m.updatableHeaderVerifier,
+			hrRcvMon.headerReceiver, util.MustGetLogger("BFTHeaderReceiver"))
 		hrRcvMon.connectFailureCounter = 0
 		hrRcvMon.retryDeadline = time.Time{}
 

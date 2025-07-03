@@ -10,9 +10,9 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/spf13/viper"
 
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/msp/cache"
 )
@@ -26,7 +26,7 @@ var (
 	m         sync.Mutex
 	localMsp  msp.MSP
 	mspMap    = make(map[string]msp.MSPManager)
-	mspLogger = flogging.MustGetLogger("msp")
+	mspLogger = util.MustGetLogger("msp")
 )
 
 // TODO - this is a temporary solution to allow the peer to track whether the

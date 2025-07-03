@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/hyperledger-labs/SmartBFT/pkg/types"
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
 	cf "github.com/hyperledger/fabric-x-common/core/config"
 	"github.com/hyperledger/fabric-x-common/msp"
@@ -30,7 +30,7 @@ const (
 	Arma     = "arma"
 )
 
-var logger = flogging.MustGetLogger("common.tools.configtxgen.localconfig")
+var logger = util.MustGetLogger("common.tools.configtxgen.localconfig")
 
 const (
 	// SampleInsecureSoloProfile references the sample profile which does not

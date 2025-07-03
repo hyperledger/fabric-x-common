@@ -17,6 +17,8 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
 var (
@@ -28,7 +30,7 @@ var (
 	alpnProtoStr = []string{"h2"}
 
 	// Logger for TLS client connections
-	tlsClientLogger = flogging.MustGetLogger("comm.tls")
+	tlsClientLogger = util.MustGetLogger("comm.tls")
 )
 
 // NewServerTransportCredentials returns a new initialized

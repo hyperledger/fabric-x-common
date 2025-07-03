@@ -9,16 +9,16 @@ package blkstorage
 import (
 	"os"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/dataformat"
 	"github.com/hyperledger/fabric-x-common/common/ledger/util/leveldbhelper"
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
 )
 
-var logger = flogging.MustGetLogger("blkstorage")
+var logger = util.MustGetLogger("blkstorage")
 
 // IndexableAttr represents an indexable attribute
 type IndexableAttr string

@@ -19,13 +19,14 @@ import (
 	"strings"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
+
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
-var logger = flogging.MustGetLogger("viperutil")
+var logger = util.MustGetLogger("viperutil")
 
 // ConfigPaths returns the paths from environment and
 // defaults which are CWD and /etc/hyperledger/fabric.

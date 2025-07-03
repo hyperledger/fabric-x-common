@@ -30,6 +30,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
@@ -221,7 +222,7 @@ func (s *bftDelivererTestSetup) initialize(t *testing.T) {
 		Signer:                          s.fakeSigner,
 		DeliverStreamer:                 s.fakeDeliverStreamer,
 		CensorshipDetectorFactory:       s.fakeCensorshipMonFactory,
-		Logger:                          flogging.MustGetLogger("BFTDeliverer.test"),
+		Logger:                          util.MustGetLogger("BFTDeliverer.test"),
 		TLSCertHash:                     []byte("tls-cert-hash"),
 		MaxRetryInterval:                10 * time.Second,
 		InitialRetryInterval:            100 * time.Millisecond,

@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
@@ -39,7 +38,7 @@ const (
 	epoch      = 0
 )
 
-var logger = flogging.MustGetLogger("common.tools.configtxgen.encoder")
+var logger = util.MustGetLogger("common.tools.configtxgen.encoder")
 
 const (
 	// ConsensusTypeSolo identifies the solo consensus implementation.

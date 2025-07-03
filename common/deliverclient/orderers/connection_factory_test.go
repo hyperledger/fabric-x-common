@@ -9,17 +9,17 @@ package orderers_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
 func TestCreateConnectionSource(t *testing.T) {
 	factory := &orderers.ConnectionSourceFactory{}
 	require.NotNil(t, factory)
 	require.Nil(t, factory.Overrides)
-	lg := flogging.MustGetLogger("test")
+	lg := util.MustGetLogger("test")
 	connSource := factory.CreateConnectionSource(lg, "")
 	require.NotNil(t, connSource)
 
