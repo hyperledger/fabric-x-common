@@ -13,6 +13,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
@@ -57,7 +58,7 @@ func TestOrgSpecificOrdererEndpoints(t *testing.T) {
 		require.Nil(t, cg)
 		require.EqualError(t, err, "could not create orderer group: failed to create orderer org: orderer endpoints for organization SampleOrg are missing and must be configured when capability V3_0 is enabled")
 
-		conf.Orderer.Organizations[0].OrdererEndpoints = []string{"127.0.0.1:7050"}
+		conf.Orderer.Organizations[0].OrdererEndpoints = []*types.OrdererEndpoint{{Host: "127.0.0.1", Port: 7050}}
 		cg, err = encoder.NewChannelGroup(conf)
 		require.NoError(t, err)
 

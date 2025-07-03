@@ -775,21 +775,19 @@ Profiles:
                       #
                       # This can be encoded using the following schemas.
                       # It will be parsed according to the first schema that succeed according to the following order.
-                      # - JSON.
                       # - YAML.
+                      # - JSON.
                       # - [id=ID,][broadcast,][deliver,][host=Host,][port=Port,][Host:Port].
                       #
                       # Following are examples of encoding host=localhost, port=7050, ID=0, API=broadcast,deliver:
                       # - localhost:7050
                       # - id=0,broadcast,deliver,localhost:7050
                       # - id=0,broadcast,deliver,host=localhost,port=7050
-                      # - {"host": "localhost", "port": 7050]}
-                      # - {"host": "localhost", "port": 7050, "id": 0, "api": ["broadcast", "deliver"]}
-                      # - -|
-                      #   host: localhost
+                      # - {host: "localhost", port: 7050]}
+                      # - {host: "localhost", port: 7050, id: 0, api: ["broadcast", "deliver"]}
+                      # - host: localhost
                       #   port: 7050
-                      # - -|
-                      #   host: localhost
+                      # - host: localhost
                       #   port: 7050
                       #   id: 0
                       #   api:
@@ -799,14 +797,20 @@ Profiles:
                       # Following are examples of encoding host=localhost, port=7050, ID=5, API=deliver:
                       # - id=5,deliver,localhost:7050
                       # - id=5,deliver,host=localhost,port=7050
-                      # - {"host": "localhost", "port": 7050, "id": 5, "api": ["deliver"]}
-                      # - -|
-                      #   host: localhost
+                      # - {host: "localhost", port: 7050, id: 5, api: ["deliver"]}
+                      # - host: localhost
                       #   port: 7050
                       #   id: 5
                       #   api: [ "deliver" ]
-                      - id=0,broadcast,localhost:7050
-                      - id=0,deliver,localhost:7060
+                      - id=0,broadcast,orderer-1:7050
+                      - id=0,deliver,orderer-1:7060
+                      - id: 1
+                        api:
+                            - broadcast
+                            - deliver
+                        host: orderer-2
+                        port: 7050
+                      - {id: 2, host: "orderer-3", port: 7050}
 
         Application:
             <<: *ApplicationDefaults
