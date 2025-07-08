@@ -65,9 +65,14 @@ type NodeSpec struct {
 	PublicKeyAlgorithm string   `yaml:"PublicKeyAlgorithm"`
 }
 
+type UserSpec struct {
+	Name string `yaml:"Name"`
+}
+
 type UsersSpec struct {
-	Count              int    `yaml:"Count"`
-	PublicKeyAlgorithm string `yaml:"PublicKeyAlgorithm"`
+	Count              int        `yaml:"Count"`
+	PublicKeyAlgorithm string     `yaml:"PublicKeyAlgorithm"`
+	Specs              []UserSpec `yaml:"Specs"`
 }
 
 type OrgSpec struct {
@@ -209,6 +214,8 @@ PeerOrgs:
       Count: 1
     Users:
       Count: 1
+	  Specs:
+	  	- Name: testuser
 `
 
 // command line flags
@@ -561,16 +568,25 @@ func generatePeerOrg(baseDir string, orgSpec OrgSpec) {
 	generateNodes(peersDir, orgSpec.Specs, signCA, tlsCA, msp.PEER, orgSpec.EnableNodeOUs)
 
 	publicKeyAlg := getPublicKeyAlg(orgSpec.Users.PublicKeyAlgorithm)
-	// TODO: add ability to specify usernames
 	users := []NodeSpec{}
-	for j := 1; j <= orgSpec.Users.Count; j++ {
-		user := NodeSpec{
-			CommonName:         fmt.Sprintf("%s%d@%s", userBaseName, j, orgName),
-			PublicKeyAlgorithm: publicKeyAlg,
+	if len(orgSpec.Users.Specs) != 0 {
+		for j := 0; j < len(orgSpec.Users.Specs); j++ {
+			user := NodeSpec{
+				CommonName:         fmt.Sprintf("%s@%s", orgSpec.Users.Specs[j].Name, orgName),
+				PublicKeyAlgorithm: publicKeyAlg,
+			}
+			users = append(users, user)
 		}
-
-		users = append(users, user)
+	} else {
+		for j := 1; j <= orgSpec.Users.Count; j++ {
+			user := NodeSpec{
+				CommonName:         fmt.Sprintf("%s%d@%s", userBaseName, j, orgName),
+				PublicKeyAlgorithm: publicKeyAlg,
+			}
+			users = append(users, user)
+		}
 	}
+
 	// add an admin user
 	adminUser := NodeSpec{
 		isAdmin:            true,
