@@ -16,6 +16,8 @@ PKGNAME = github.com/hyperledger/fabric-x-common
 
 GO_TAGS ?=
 
+IMAGE_TAG ?= latest
+
 TOOLS_EXES = configtxgen configtxlator cryptogen
 
 pkgmap.configtxgen    := $(PKGNAME)/cmd/configtxgen
@@ -59,6 +61,16 @@ lint: FORCE
 	golangci-lint run --color=always --new-from-rev=origin/main --timeout=4m
 	@echo "Running License Header Linters..."
 	scripts/license-lint.sh
+
+# Build the fxtools image for the current machine platform.
+.PHONY: build-fxtools-image
+build-fxtools-image:
+	./images/build_image.sh --tag docker.io/hyperledger/fxtools:$(IMAGE_TAG) -f ./images/Dockerfile
+
+# Build the fxtools image for multiple platforms.
+.PHONY: build-fxtools-multiplatform-image
+build-fxtools-multiplatform-image:
+	./images/build_image.sh --tag docker.io/hyperledger/fxtools:$(IMAGE_TAG) -f ./images/Dockerfile --multiplatform --push
 
 # https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
 # If a rule has no prerequisites or recipe, and the target of the rule is a nonexistent file,
