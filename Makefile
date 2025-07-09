@@ -16,6 +16,8 @@ PKGNAME = github.com/hyperledger/fabric-x-common
 
 GO_TAGS ?=
 
+IMAGE_TAG ?= latest
+
 go_cmd          ?= go
 go_test         ?= $(go_cmd) test -json -v -timeout 30m
 
@@ -63,6 +65,16 @@ lint: FORCE
 	golangci-lint run --color=always --new-from-rev=main --timeout=4m
 	@echo "Running License Header Linters..."
 	scripts/license-lint.sh
+
+# Build the fabric-x-tools image for the current machine platform.
+.PHONY: build-fabric-x-tools-image
+build-fabric-x-tools-image:
+	./images/build_image.sh --tag docker.io/hyperledger/fabric-x-tools:$(IMAGE_TAG) -f ./images/Dockerfile
+
+# Build the fabric-x-tools image for multiple platforms.
+.PHONY: build-fabric-x-tools-multiplatform-image
+build-fabric-x-tools-multiplatform-image:
+	./images/build_image.sh --tag docker.io/hyperledger/fabric-x-tools:$(IMAGE_TAG) -f ./images/Dockerfile --multiplatform --push
 
 # https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
 # If a rule has no prerequisites or recipe, and the target of the rule is a nonexistent file,
