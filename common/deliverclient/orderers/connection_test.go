@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -1078,7 +1077,6 @@ var _ = Describe("Connection", func() {
 			})
 
 			When("the global set of addresses shrinks, removing self endpoint", func() {
-				flogging.ActivateSpec("debug")
 				BeforeEach(func() {
 					cs.Update([]string{"global-addr2"}, map[string]orderers.OrdererOrg{
 						"org1": org1,

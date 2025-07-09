@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/pkg/errors"
@@ -96,7 +95,6 @@ func TestBftHeaderReceiver_NilResponse(t *testing.T) {
 }
 
 func TestBftHeaderReceiver_WithBlocks_Renew(t *testing.T) {
-	flogging.ActivateSpec("debug")
 	fakeBlockVerifier := &fake.UpdatableBlockVerifier{}
 	fakeBlockVerifier.VerifyBlockAttestationCalls(naiveBlockVerifier)
 	fakeBlockVerifier.CloneReturns(fakeBlockVerifier)
@@ -164,7 +162,6 @@ func TestBftHeaderReceiver_WithBlocks_Renew(t *testing.T) {
 }
 
 func TestBftHeaderReceiver_WithBlocks_StopOnVerificationFailure(t *testing.T) {
-	flogging.ActivateSpec("debug")
 	fakeBlockVerifier := &fake.UpdatableBlockVerifier{}
 	fakeBlockVerifier.VerifyBlockAttestationCalls(naiveBlockVerifier)
 	fakeBlockVerifier.CloneReturns(fakeBlockVerifier)
@@ -224,7 +221,6 @@ func TestBftHeaderReceiver_WithBlocks_StopOnVerificationFailure(t *testing.T) {
 }
 
 func TestBftHeaderReceiver_WithBlocks_ConfigVerification(t *testing.T) {
-	flogging.ActivateSpec("debug")
 	fakeBlockVerifier := &fake.UpdatableBlockVerifier{}
 	fakeBlockVerifier.VerifyBlockAttestationCalls(naiveBlockVerifier)
 	fakeBlockVerifier.CloneReturns(fakeBlockVerifier)
@@ -289,7 +285,6 @@ func TestBftHeaderReceiver_WithBlocks_ConfigVerification(t *testing.T) {
 }
 
 func TestBftHeaderReceiver_VerifyOnce(t *testing.T) {
-	flogging.ActivateSpec("debug")
 	fakeBlockVerifier := &fake.UpdatableBlockVerifier{}
 	fakeBlockVerifier.VerifyBlockAttestationCalls(naiveBlockVerifier)
 	fakeBlockVerifier.CloneReturns(fakeBlockVerifier)
