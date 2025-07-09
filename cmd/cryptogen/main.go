@@ -215,8 +215,8 @@ PeerOrgs:
       Count: 1
     Users:
       Count: 1
-	  Specs:
-	  	- Name: testuser
+      Specs:
+        - Name: testuser
 `
 
 // command line flags
