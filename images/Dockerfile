@@ -1,3 +1,8 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
 # syntax=docker/dockerfile:1
 FROM golang:1.24 AS builder
 
