@@ -7,15 +7,15 @@ SPDX-License-Identifier: Apache-2.0
 package fileledger
 
 import (
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger"
 	"github.com/hyperledger/fabric-x-common/common/ledger/blockledger"
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
-var logger = flogging.MustGetLogger("common.ledger.blockledger.file")
+var logger = util.MustGetLogger("common.ledger.blockledger.file")
 
 // FileLedger is a struct used to interact with a node's ledger
 type FileLedger struct {

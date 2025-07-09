@@ -11,17 +11,17 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
 
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
 )
 
-var logger = flogging.MustGetLogger("leveldbhelper")
+var logger = util.MustGetLogger("leveldbhelper")
 
 type dbState int32
 

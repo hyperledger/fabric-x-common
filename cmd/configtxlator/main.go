@@ -16,7 +16,6 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/hyperledger/fabric-config/protolator"
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
@@ -28,6 +27,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"gopkg.in/alecthomas/kingpin.v2"
 
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/metadata"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/rest"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/update"
@@ -61,7 +61,7 @@ var (
 	version = app.Command("version", "Show version information")
 )
 
-var logger = flogging.MustGetLogger("configtxlator")
+var logger = util.MustGetLogger("configtxlator")
 
 func main() {
 	kingpin.Version("0.0.1")

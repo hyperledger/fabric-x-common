@@ -8,17 +8,17 @@ import (
 	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/hyperledger/fabric-config/protolator/protoext/ordererext"
 	"github.com/hyperledger/fabric-config/protolator/protoext/peerext"
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/pkg/errors"
 
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
-var logger = flogging.MustGetLogger("common.tools.configtxgen")
+var logger = util.MustGetLogger("common.tools.configtxgen")
 
 func GetOutputBlock(config *genesisconfig.Profile, channelID string) (*cb.Block, error) {
 	pgen, err := encoder.NewBootstrapper(config)

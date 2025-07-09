@@ -17,6 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
 type comparableEndpoint struct {
@@ -83,7 +84,7 @@ var _ = Describe("Connection", func() {
 		org2Certs = [][]byte{cert3}
 		overrideCerts = [][]byte{cert2}
 
-		cs = orderers.NewConnectionSource(flogging.MustGetLogger("peer.orderers"),
+		cs = orderers.NewConnectionSource(util.MustGetLogger("peer.orderers"),
 			map[string]*orderers.Endpoint{
 				"override-address": {
 					Address:   "re-mapped-address",
@@ -571,7 +572,7 @@ var _ = Describe("Connection", func() {
 
 	When("a self-endpoint exists as in the orderer", func() {
 		BeforeEach(func() {
-			cs = orderers.NewConnectionSource(flogging.MustGetLogger("peer.orderers"),
+			cs = orderers.NewConnectionSource(util.MustGetLogger("peer.orderers"),
 				map[string]*orderers.Endpoint{
 					"override-address": {
 						Address:   "re-mapped-address",
@@ -1012,7 +1013,7 @@ var _ = Describe("Connection", func() {
 			var globalCerts [][]byte
 
 			BeforeEach(func() {
-				cs = orderers.NewConnectionSource(flogging.MustGetLogger("peer.orderers"),
+				cs = orderers.NewConnectionSource(util.MustGetLogger("peer.orderers"),
 					map[string]*orderers.Endpoint{
 						"override-address": {
 							Address:   "re-mapped-address",
