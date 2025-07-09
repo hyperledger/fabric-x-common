@@ -62,15 +62,15 @@ lint: FORCE
 	@echo "Running License Header Linters..."
 	scripts/license-lint.sh
 
-# Build the fxtools image for the current machine platform.
-.PHONY: build-fxtools-image
-build-fxtools-image:
-	./images/build_image.sh --tag docker.io/hyperledger/fxtools:$(IMAGE_TAG) -f ./images/Dockerfile
+# Build the fabric-x-tools image for the current machine platform.
+.PHONY: build-fabric-x-tools-image
+build-fabric-x-tools-image:
+	./images/build_image.sh --tag docker.io/hyperledger/fabric-x-tools:$(IMAGE_TAG) -f ./images/Dockerfile
 
-# Build the fxtools image for multiple platforms.
-.PHONY: build-fxtools-multiplatform-image
-build-fxtools-multiplatform-image:
-	./images/build_image.sh --tag docker.io/hyperledger/fxtools:$(IMAGE_TAG) -f ./images/Dockerfile --multiplatform --push
+# Build the fabric-x-tools image for multiple platforms.
+.PHONY: build-fabric-x-tools-multiplatform-image
+build-fabric-x-tools-multiplatform-image:
+	./images/build_image.sh --tag docker.io/hyperledger/fabric-x-tools:$(IMAGE_TAG) -f ./images/Dockerfile --multiplatform --push
 
 # https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
 # If a rule has no prerequisites or recipe, and the target of the rule is a nonexistent file,

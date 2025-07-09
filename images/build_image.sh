@@ -32,8 +32,8 @@ Options:
   -h, --help        Display this help message and exit.
 
 Examples:
-  $0 --tag docker.io/hyperledger/fxtools:latest
-  $0 --tag docker.io/hyperledger/fxtools:latest --multiplatform
+  $0 --tag docker.io/hyperledger/fabric-x-tools:latest
+  $0 --tag docker.io/hyperledger/fabric-x-tools:latest --multiplatform
 EOF
 }
 
