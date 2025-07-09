@@ -65,6 +65,7 @@ type NodeSpec struct {
 	PublicKeyAlgorithm string   `yaml:"PublicKeyAlgorithm"`
 }
 
+// UserSpec Contains User specifications needed to customize the crypto material generation.
 type UserSpec struct {
 	Name string `yaml:"Name"`
 }
@@ -568,23 +569,18 @@ func generatePeerOrg(baseDir string, orgSpec OrgSpec) {
 	generateNodes(peersDir, orgSpec.Specs, signCA, tlsCA, msp.PEER, orgSpec.EnableNodeOUs)
 
 	publicKeyAlg := getPublicKeyAlg(orgSpec.Users.PublicKeyAlgorithm)
-	users := []NodeSpec{}
-	if len(orgSpec.Users.Specs) != 0 {
-		for j := 0; j < len(orgSpec.Users.Specs); j++ {
-			user := NodeSpec{
-				CommonName:         fmt.Sprintf("%s@%s", orgSpec.Users.Specs[j].Name, orgName),
-				PublicKeyAlgorithm: publicKeyAlg,
-			}
-			users = append(users, user)
-		}
-	} else {
-		for j := 1; j <= orgSpec.Users.Count; j++ {
-			user := NodeSpec{
-				CommonName:         fmt.Sprintf("%s%d@%s", userBaseName, j, orgName),
-				PublicKeyAlgorithm: publicKeyAlg,
-			}
-			users = append(users, user)
-		}
+	users := make([]NodeSpec, 0, len(orgSpec.Users.Specs)+orgSpec.Users.Count)
+	for _, s := range orgSpec.Users.Specs {
+		users = append(users, NodeSpec{
+			CommonName:         fmt.Sprintf("%s@%s", s.Name, orgName),
+			PublicKeyAlgorithm: publicKeyAlg,
+		})
+	}
+	for j := range orgSpec.Users.Count {
+		users = append(users, NodeSpec{
+			CommonName:         fmt.Sprintf("%s%d@%s", userBaseName, j+1, orgName),
+			PublicKeyAlgorithm: publicKeyAlg,
+		})
 	}
 
 	// add an admin user
