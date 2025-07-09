@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	. "github.com/onsi/gomega"
@@ -386,7 +385,6 @@ func TestBFTDeliverer_FatalErrors(t *testing.T) {
 
 func TestBFTDeliverer_DialRetries(t *testing.T) {
 	t.Run("Dial returns error, then succeeds", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -417,7 +415,6 @@ func TestBFTDeliverer_DialRetries(t *testing.T) {
 	})
 
 	t.Run("Dial returns several consecutive errors, exponential backoff, then succeeds", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -469,7 +466,6 @@ func TestBFTDeliverer_DialRetries(t *testing.T) {
 	})
 
 	t.Run("Dial returns repeated consecutive errors, exponential backoff saturates", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -506,7 +502,6 @@ func TestBFTDeliverer_DialRetries(t *testing.T) {
 	})
 
 	t.Run("Dial returns repeated consecutive errors, total sleep larger than MaxRetryDuration", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -554,7 +549,6 @@ func TestBFTDeliverer_DialRetries(t *testing.T) {
 
 func TestBFTDeliverer_DeliverRetries(t *testing.T) {
 	t.Run("Deliver returns error, then succeeds", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -582,7 +576,6 @@ func TestBFTDeliverer_DeliverRetries(t *testing.T) {
 	})
 
 	t.Run("Deliver returns several consecutive errors, exponential backoff, then succeeds", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -631,7 +624,6 @@ func TestBFTDeliverer_DeliverRetries(t *testing.T) {
 	})
 
 	t.Run("Deliver returns repeated consecutive errors, exponential backoff saturates", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -667,7 +659,6 @@ func TestBFTDeliverer_DeliverRetries(t *testing.T) {
 
 func TestBFTDeliverer_BlockReception(t *testing.T) {
 	t.Run("Block is valid", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 		startTime := time.Now()
@@ -720,7 +711,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 	})
 
 	t.Run("Block is invalid", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -766,7 +756,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 	})
 
 	t.Run("Block handling fails", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -813,7 +802,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 	})
 
 	t.Run("Block reception resets failure counter", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 
@@ -880,7 +868,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 	})
 
 	t.Run("Block reception resets total sleep time", func(t *testing.T) { // TODO
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 		setup.fakeDurationExceededHandler.DurationExceededHandlerReturns(true)
@@ -953,7 +940,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 	})
 
 	t.Run("Config block is valid, updates verifier, updates connection-source", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 		setup.gWithT.Eventually(setup.fakeOrdererConnectionSource.UpdateCallCount, eventuallyTO).Should(Equal(1))
@@ -1045,8 +1031,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 func TestBFTDeliverer_CensorshipMonitorEvents(t *testing.T) {
 	for _, errVal := range []error{nil, errors.New("some error"), &blocksprovider.ErrFatal{Message: "some fatal error"}, &blocksprovider.ErrStopping{Message: "stopping"}} {
 		t.Run("unexpected error or value: "+fmt.Sprintf("%v", errVal), func(t *testing.T) {
-			flogging.ActivateSpec("debug")
-
 			setup := newBFTDelivererTestSetup(t)
 			setup.initialize(t)
 			setup.start()
@@ -1072,8 +1056,6 @@ func TestBFTDeliverer_CensorshipMonitorEvents(t *testing.T) {
 	}
 
 	t.Run("censorship", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
-
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 		setup.start()
@@ -1099,8 +1081,6 @@ func TestBFTDeliverer_CensorshipMonitorEvents(t *testing.T) {
 	})
 
 	t.Run("repeated censorship events, with exponential backoff", func(t *testing.T) {
-		flogging.ActivateSpec("debug")
-
 		setup := newBFTDelivererTestSetup(t)
 		setup.initialize(t)
 		setup.start()
@@ -1166,7 +1146,6 @@ func TestBFTDeliverer_CensorshipMonitorEvents(t *testing.T) {
 }
 
 func TestBFTDeliverer_RefreshEndpoints(t *testing.T) {
-	flogging.ActivateSpec("debug")
 	setup := newBFTDelivererTestSetup(t)
 	setup.initialize(t)
 
