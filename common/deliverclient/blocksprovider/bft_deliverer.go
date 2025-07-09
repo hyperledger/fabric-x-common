@@ -19,6 +19,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
 )
 
@@ -115,7 +116,7 @@ func (d *BFTDeliverer) Initialize(channelConfig *common.Config, selfEndpoint str
 		d.DeliverStreamer,
 	)
 
-	osLogger := flogging.MustGetLogger("peer.orderers")
+	osLogger := util.MustGetLogger("peer.orderers")
 	ordererSource := d.OrderersSourceFactory.CreateConnectionSource(osLogger, selfEndpoint)
 	globalAddresses, orgAddresses, err := extractAddresses(d.ChannelID, channelConfig, d.CryptoProvider)
 	if err != nil {
@@ -361,7 +362,7 @@ func (d *BFTDeliverer) FetchBlocks(source *orderers.Endpoint) {
 			recvC:                  make(chan *orderer.DeliverResponse),
 			stopC:                  make(chan struct{}),
 			endpoint:               source,
-			logger:                 flogging.MustGetLogger("BlockReceiver").With("orderer-address", source.Address),
+			logger:                 util.MustGetLogger("BlockReceiver").With("orderer-address", source.Address),
 		}
 
 		d.mutex.Lock()

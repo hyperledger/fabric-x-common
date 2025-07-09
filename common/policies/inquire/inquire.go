@@ -9,14 +9,14 @@ package inquire
 import (
 	"fmt"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 
 	"github.com/hyperledger/fabric-x-common/common/graph"
 	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
-var logger = flogging.MustGetLogger("policies.inquire")
+var logger = util.MustGetLogger("policies.inquire")
 
 const (
 	combinationsUpperBound = 10000

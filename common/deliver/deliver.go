@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/pkg/errors"
@@ -28,7 +27,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
-var logger = flogging.MustGetLogger("common.deliver")
+var logger = util.MustGetLogger("common.deliver")
 
 //go:generate counterfeiter -o mock/chain_manager.go -fake-name ChainManager . ChainManager
 

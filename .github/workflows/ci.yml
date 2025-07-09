@@ -12,18 +12,15 @@ on:
 
 jobs:
 
-  build:
+  lint:
+    name: Lint and Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - name: Dependencies
-        run: scripts/install-dev-dependencies.sh
+      - run: scripts/install-dev-dependencies.sh
 
       - name: Lint
         run: |
@@ -33,11 +30,19 @@ jobs:
           # Check if original code changed due to formatting.
           git diff --exit-code
           # Fetch main to only show new lint issues.
-          git fetch origin main
+          git fetch -u origin main:main
           make lint
 
       - name: Build tools
         run: make tools
 
-      - name: Tests
-        run: make test
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: scripts/install-dev-dependencies.sh
+      - run: make test

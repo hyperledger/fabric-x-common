@@ -7,15 +7,15 @@ SPDX-License-Identifier: Apache-2.0
 package blockledger
 
 import (
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
-var logger = flogging.MustGetLogger("common.ledger.blockledger.util")
+var logger = util.MustGetLogger("common.ledger.blockledger.util")
 
 var closedChan chan struct{}
 

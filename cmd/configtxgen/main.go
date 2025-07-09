@@ -13,14 +13,14 @@ import (
 	"strings"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/metadata"
 )
 
-var logger = flogging.MustGetLogger("common.tools.configtxgen")
+var logger = util.MustGetLogger("common.tools.configtxgen")
 
 func main() {
 	var outputBlock, outputChannelCreateTx, channelCreateTxBaseProfile, profile, configPath, channelID, inspectBlock, inspectChannelCreateTx, asOrg, printOrg string

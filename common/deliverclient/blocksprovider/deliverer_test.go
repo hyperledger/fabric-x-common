@@ -15,7 +15,6 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	. "github.com/onsi/ginkgo/v2"
@@ -28,6 +27,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
@@ -138,7 +138,7 @@ var _ = Describe("CFT-Deliverer", func() {
 			DoneC:                           make(chan struct{}),
 			Signer:                          fakeSigner,
 			DeliverStreamer:                 fakeDeliverStreamer,
-			Logger:                          flogging.MustGetLogger("blocksprovider"),
+			Logger:                          util.MustGetLogger("blocksprovider"),
 			TLSCertHash:                     []byte("tls-cert-hash"),
 			MaxRetryDuration:                time.Hour,
 			MaxRetryDurationExceededHandler: fakeDurationExceededHandler.DurationExceededHandler,

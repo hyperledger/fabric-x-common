@@ -7,13 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package msp
 
 import (
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
-var mspLogger = flogging.MustGetLogger("msp")
+var mspLogger = util.MustGetLogger("msp")
 
 type mspManagerImpl struct {
 	// map that contains all MSPs that we have setup or otherwise added
