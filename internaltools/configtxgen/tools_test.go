@@ -9,15 +9,20 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/api/types"
+	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestInspectMissing(t *testing.T) {
+	t.Parallel()
 	require.EqualError(t, DoInspectBlock("NonSenseBlockFileThatDoesn'tActuallyExist"), "could not read block NonSenseBlockFileThatDoesn'tActuallyExist")
 }
 
 func TestInspectBlock(t *testing.T) {
+	t.Parallel()
 	blockDest := filepath.Join(t.TempDir(), "block")
 
 	config := genesisconfig.Load(genesisconfig.SampleAppChannelInsecureSoloProfile, configtest.GetDevConfigDir())
@@ -27,6 +32,7 @@ func TestInspectBlock(t *testing.T) {
 }
 
 func TestInspectBlockErr(t *testing.T) {
+	t.Parallel()
 	config := genesisconfig.Load(genesisconfig.SampleAppChannelInsecureSoloProfile, configtest.GetDevConfigDir())
 
 	require.EqualError(t, DoOutputBlock(config, "foo", ""), "error writing genesis block: open : no such file or directory")
@@ -34,6 +40,7 @@ func TestInspectBlockErr(t *testing.T) {
 }
 
 func TestMissingOrdererSection(t *testing.T) {
+	t.Parallel()
 	blockDest := filepath.Join(t.TempDir(), "block")
 
 	config := genesisconfig.Load(genesisconfig.SampleAppChannelInsecureSoloProfile, configtest.GetDevConfigDir())
@@ -43,6 +50,7 @@ func TestMissingOrdererSection(t *testing.T) {
 }
 
 func TestApplicationChannelGenesisBlock(t *testing.T) {
+	t.Parallel()
 	blockDest := filepath.Join(t.TempDir(), "block")
 
 	config := genesisconfig.Load(genesisconfig.SampleAppChannelInsecureSoloProfile, configtest.GetDevConfigDir())
@@ -51,6 +59,7 @@ func TestApplicationChannelGenesisBlock(t *testing.T) {
 }
 
 func TestApplicationChannelMissingApplicationSection(t *testing.T) {
+	t.Parallel()
 	blockDest := filepath.Join(t.TempDir(), "block")
 
 	config := genesisconfig.Load(genesisconfig.SampleAppChannelInsecureSoloProfile, configtest.GetDevConfigDir())
@@ -60,6 +69,7 @@ func TestApplicationChannelMissingApplicationSection(t *testing.T) {
 }
 
 func TestMissingConsortiumValue(t *testing.T) {
+	t.Parallel()
 	configTxDest := filepath.Join(t.TempDir(), "configtx")
 
 	config := genesisconfig.Load(genesisconfig.SampleSingleMSPChannelProfile, configtest.GetDevConfigDir())
@@ -69,6 +79,7 @@ func TestMissingConsortiumValue(t *testing.T) {
 }
 
 func TestUnsuccessfulChannelTxFileCreation(t *testing.T) {
+	t.Parallel()
 	configTxDest := filepath.Join(t.TempDir(), "configtx")
 
 	config := genesisconfig.Load(genesisconfig.SampleSingleMSPChannelProfile, configtest.GetDevConfigDir())
@@ -77,6 +88,7 @@ func TestUnsuccessfulChannelTxFileCreation(t *testing.T) {
 }
 
 func TestMissingApplicationValue(t *testing.T) {
+	t.Parallel()
 	configTxDest := filepath.Join(t.TempDir(), "configtx")
 
 	config := genesisconfig.Load(genesisconfig.SampleSingleMSPChannelProfile, configtest.GetDevConfigDir())
@@ -86,10 +98,12 @@ func TestMissingApplicationValue(t *testing.T) {
 }
 
 func TestInspectMissingConfigTx(t *testing.T) {
+	t.Parallel()
 	require.EqualError(t, DoInspectChannelCreateTx("ChannelCreateTxFileWhichDoesn'tReallyExist"), "could not read channel create tx: open ChannelCreateTxFileWhichDoesn'tReallyExist: no such file or directory")
 }
 
 func TestInspectConfigTx(t *testing.T) {
+	t.Parallel()
 	configTxDest := filepath.Join(t.TempDir(), "configtx")
 
 	config := genesisconfig.Load(genesisconfig.SampleSingleMSPChannelProfile, configtest.GetDevConfigDir())
@@ -99,6 +113,7 @@ func TestInspectConfigTx(t *testing.T) {
 }
 
 func TestPrintOrg(t *testing.T) {
+	t.Parallel()
 	require.NoError(t, factory.InitFactories(nil))
 	config := genesisconfig.LoadTopLevel(configtest.GetDevConfigDir())
 
@@ -131,6 +146,7 @@ func addTlsCertToConsenters(config *genesisconfig.Profile) {
 }
 
 func TestBftOrdererTypeWithoutV3CapabilitiesShouldRaiseAnError(t *testing.T) {
+	t.Parallel()
 	// ### Arrange
 	blockDest := filepath.Join(t.TempDir(), "block")
 	config := createBftOrdererConfig()
@@ -147,6 +163,7 @@ func TestBftOrdererTypeWithoutV3CapabilitiesShouldRaiseAnError(t *testing.T) {
 }
 
 func TestBftOrdererTypeWithV3CapabilitiesShouldNotRaiseAnError(t *testing.T) {
+	t.Parallel()
 	// ### Arrange
 	blockDest := filepath.Join(t.TempDir(), "block")
 	config := createBftOrdererConfig()
@@ -157,6 +174,7 @@ func TestBftOrdererTypeWithV3CapabilitiesShouldNotRaiseAnError(t *testing.T) {
 }
 
 func TestFabricXGenesisBlock(t *testing.T) {
+	t.Parallel()
 	blockDest := filepath.Join(t.TempDir(), "block")
 
 	config := genesisconfig.Load(genesisconfig.SampleFabricX, configtest.GetDevConfigDir())
@@ -167,4 +185,39 @@ func TestFabricXGenesisBlock(t *testing.T) {
 	config.Orderer.Arma.Path = armaPath
 
 	require.NoError(t, DoOutputBlock(config, "foo", blockDest))
+
+	configBlock, err := ReadBlock(blockDest)
+	require.NoError(t, err)
+	require.NotNil(t, configBlock)
+
+	envelope, err := protoutil.ExtractEnvelope(configBlock, 0)
+	require.NoError(t, err)
+	require.NotNil(t, envelope)
+	bundle, err := channelconfig.NewBundleFromEnvelope(envelope, factory.GetDefault())
+	require.NoError(t, err)
+	require.NotNil(t, bundle)
+
+	oc, ok := bundle.OrdererConfig()
+	require.True(t, ok)
+	require.NotNil(t, oc)
+
+	var endpoints []*types.OrdererEndpoint
+	for orgID, org := range oc.Organizations() {
+		endpointsStr := org.Endpoints()
+		for _, eStr := range endpointsStr {
+			t.Log(eStr)
+			e, parseErr := types.ParseOrdererEndpoint(eStr)
+			require.NoError(t, parseErr)
+			e.MspID = orgID
+			endpoints = append(endpoints, e)
+		}
+	}
+	allAPI := []string{types.Broadcast, types.Deliver}
+	expected := []*types.OrdererEndpoint{
+		{MspID: "SampleOrg", ID: 0, API: allAPI[:1], Host: "orderer-1", Port: 7050},
+		{MspID: "SampleOrg", ID: 0, API: allAPI[1:], Host: "orderer-1", Port: 7060},
+		{MspID: "SampleOrg", ID: 1, API: allAPI, Host: "orderer-2", Port: 7050},
+		{MspID: "SampleOrg", ID: 2, API: nil, Host: "orderer-3", Port: 7050},
+	}
+	require.ElementsMatch(t, expected, endpoints)
 }
