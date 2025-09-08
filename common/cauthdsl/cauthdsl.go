@@ -24,7 +24,7 @@ var cauthdslLogger = util.MustGetLogger("cauthdsl")
 // passing them to this function for evaluation
 func compile(policy *cb.SignaturePolicy, identities []*mb.MSPPrincipal) (func([]msp.Identity, []bool) bool, error) {
 	if policy == nil {
-		return nil, fmt.Errorf("Empty policy element")
+		return nil, fmt.Errorf("empty policy element")
 	}
 
 	switch t := policy.Type.(type) {
@@ -88,6 +88,6 @@ func compile(policy *cb.SignaturePolicy, identities []*mb.MSPPrincipal) (func([]
 			return false
 		}, nil
 	default:
-		return nil, fmt.Errorf("Unknown type: %T:%v", t, t)
+		return nil, fmt.Errorf("unknown type: %T:%v", t, t)
 	}
 }
