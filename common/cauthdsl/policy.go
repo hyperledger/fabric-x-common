@@ -7,12 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package cauthdsl
 
 import (
-	"fmt"
-
 	"github.com/cockroachdb/errors"
+	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -58,8 +56,10 @@ type EnvelopeBasedPolicyProvider struct {
 	Deserializer msp.IdentityDeserializer
 }
 
-// NewPolicy creates a new policy from the policy envelope. //nolint:ireturn
-func (pp *EnvelopeBasedPolicyProvider) NewPolicy(sigPolicy *cb.SignaturePolicyEnvelope) (policies.Policy, error) {
+// NewPolicy creates a new policy from the policy envelope.
+func (pp *EnvelopeBasedPolicyProvider) NewPolicy( //nolint:ireturn
+	sigPolicy *cb.SignaturePolicyEnvelope,
+) (policies.Policy, error) {
 	if sigPolicy == nil {
 		return nil, errors.New("invalid arguments")
 	}
@@ -96,10 +96,10 @@ func (p *policy) EvaluateSignedData(signatureSet []*protoutil.SignedData) error 
 }
 
 // EvaluateIdentities takes an array of identities and evaluates whether
-// they satisfy the policy
+// they satisfy the policy.
 func (p *policy) EvaluateIdentities(identities []msp.Identity) error {
 	if p == nil {
-		return fmt.Errorf("no such policy")
+		return errors.New("no such policy")
 	}
 
 	ok := p.evaluator(identities, make([]bool, len(identities)))
