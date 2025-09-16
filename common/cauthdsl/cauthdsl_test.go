@@ -65,7 +65,8 @@ func TestComplexNestedSignature(t *testing.T) {
 	if !spe(ToIdentities(append(signers, [][]byte{[]byte("signer0")}...), &MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication to succeed with valid signatures")
 	}
-	if !spe(ToIdentities([][]byte{[]byte("signer0"), []byte("signer0"), []byte("signer0")}, &MockIdentityDeserializer{})) {
+	if !spe(ToIdentities([][]byte{[]byte("signer0"), []byte("signer0"), []byte("signer0")},
+		&MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication to succeed with valid signatures")
 	}
 	if spe(ToIdentities(signers, &MockIdentityDeserializer{})) {
