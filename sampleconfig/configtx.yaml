@@ -46,6 +46,7 @@ Organizations:
 
         # MSPDir is the filesystem path which contains the MSP configuration.
         MSPDir: msp
+        # MSPDir: msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -69,9 +70,48 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('SampleOrg.member')"
+        OrdererEndpoints:
+            - "127.0.0.1:7050"
 
-        # OrdererEndpoints is a list of all orderers this org runs which clients
-        # and peers may to connect to push transactions and receive blocks respectively.
+    - &Org1
+        Name: Org1
+        SkipAsForeign: false
+        ID: Org1
+        MSPDir: crypto/Org1/peers/peer0.Org1/msp
+        Policies: &Org1Policies
+            Readers:
+                Type: Signature
+                Rule: "OR('Org1.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org1.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org1.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Org1.member')"
+        OrdererEndpoints:
+            - "127.0.0.1:7050"
+
+    - &Org2
+        Name: Org2
+        SkipAsForeign: false
+        ID: Org2
+        MSPDir: crypto/Org2/peers/peer0.Org2/msp
+        Policies: &Org2Policies
+            Readers:
+                Type: Signature
+                Rule: "OR('Org2.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org2.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org2.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Org2.member')"
         OrdererEndpoints:
             - "127.0.0.1:7050"
 
@@ -774,3 +814,33 @@ Profiles:
             MetaNamespaceVerificationKeyPath: path/to/MetaNamespaceVerification.key
             Organizations:
                 - <<: *SampleOrg
+
+    TwoOrgsSampleFabricX:
+        <<: *ChannelDefaults
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *Org1
+                    - *Org2
+        Orderer:
+            <<: *OrdererDefaults
+            OrdererType: arma
+            Arma:
+                Path: path/to/shared_config.binpb
+            Organizations:
+                - <<: *Org1
+                  OrdererEndpoints:
+                      - id=0,broadcast,localhost:7050
+                      - id=0,deliver,localhost:7060
+                - <<: *Org2
+                  OrdererEndpoints:
+                      - id=1,broadcast,localhost:7051
+                      - id=1,deliver,localhost:7061
+
+        Application:
+            <<: *ApplicationDefaults
+            MetaNamespaceVerificationKeyPath: path/to/MetaNamespaceVerification.key
+            Organizations:
+                - <<: *Org1
+                - <<: *Org2
+

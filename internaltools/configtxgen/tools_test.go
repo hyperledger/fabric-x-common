@@ -159,12 +159,32 @@ func TestBftOrdererTypeWithV3CapabilitiesShouldNotRaiseAnError(t *testing.T) {
 func TestFabricXGenesisBlock(t *testing.T) {
 	blockDest := filepath.Join(t.TempDir(), "block")
 
-	config := genesisconfig.Load(genesisconfig.SampleFabricX, configtest.GetDevConfigDir())
-	addTlsCertToConsenters(config)
-	keyPath := filepath.Join(configtest.GetDevConfigDir(), "msp", "signcerts", "peer.pem")
-	config.Application.MetaNamespaceVerificationKeyPath = keyPath
-	armaPath := filepath.Join(configtest.GetDevConfigDir(), "arma_shared_config.pbbin")
-	config.Orderer.Arma.Path = armaPath
+	testCases := []struct {
+		profile string
+		keyPath string
+	}{
+		{
+			profile: genesisconfig.SampleFabricX,
+			keyPath: filepath.Join(configtest.GetDevConfigDir(), "msp", "signcerts", "peer.pem"),
+		},
+		{
+			profile: genesisconfig.TwoOrgsSampleFabricX,
+			keyPath: filepath.Join(configtest.GetDevConfigDir(), "crypto/Org1/peers/peer0.Org1/msp",
+				"signcerts", "peer0.Org1-cert.pem"),
+		},
+		{
+			profile: genesisconfig.TwoOrgsSampleFabricX,
+			keyPath: filepath.Join(configtest.GetDevConfigDir(), "crypto/Org2/peers/peer0.Org2/msp",
+				"signcerts", "peer0.Org2-cert.pem"),
+		},
+	}
 
-	require.NoError(t, DoOutputBlock(config, "foo", blockDest))
+	for _, tt := range testCases {
+		config := genesisconfig.Load(tt.profile, configtest.GetDevConfigDir())
+		addTlsCertToConsenters(config)
+		config.Application.MetaNamespaceVerificationKeyPath = tt.keyPath
+		armaPath := filepath.Join(configtest.GetDevConfigDir(), "arma_shared_config.pbbin")
+		config.Orderer.Arma.Path = armaPath
+		require.NoError(t, DoOutputBlock(config, "foo", blockDest))
+	}
 }
