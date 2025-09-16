@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"go.uber.org/zap/zapcore"
@@ -24,7 +25,7 @@ var cauthdslLogger = util.MustGetLogger("cauthdsl")
 // passing them to this function for evaluation
 func compile(policy *cb.SignaturePolicy, identities []*mb.MSPPrincipal) (func([]msp.Identity, []bool) bool, error) {
 	if policy == nil {
-		return nil, fmt.Errorf("empty policy element")
+		return nil, errors.New("empty policy element")
 	}
 
 	switch t := policy.Type.(type) {

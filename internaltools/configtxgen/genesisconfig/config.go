@@ -69,6 +69,10 @@ const (
 	// testing the arma-based ordering service and the scalable committer.
 	SampleFabricX = "SampleFabricX"
 
+	// TwoOrgsSampleFabricX references the sample two organizations profile used for
+	// testing the arma-based ordering service and the scalable committer.
+	TwoOrgsSampleFabricX = "TwoOrgsSampleFabricX"
+
 	// SampleConsortiumName is the sample consortium from the
 	// sample configtx.yaml
 	SampleConsortiumName = "SampleConsortium"

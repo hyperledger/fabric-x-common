@@ -12,6 +12,7 @@ import (
 
 	"github.com/cockroachdb/errors"
 	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+
 	"github.com/hyperledger/fabric-x-common/msp"
 )
 
@@ -24,7 +25,9 @@ type MockIdentityDeserializer struct {
 }
 
 // DeserializeIdentity deserializes an identity.
-func (md *MockIdentityDeserializer) DeserializeIdentity(serializedIdentity []byte) (msp.Identity, error) { //nolint:ireturn
+func (md *MockIdentityDeserializer) DeserializeIdentity( //nolint:ireturn
+	serializedIdentity []byte,
+) (msp.Identity, error) {
 	if md.Fail != nil {
 		return nil, md.Fail
 	}
@@ -41,7 +44,7 @@ type MockIdentity struct {
 	IDBytes []byte
 }
 
-// Anonymous returns true if this is an anonymous identity, false otherwise
+// Anonymous returns true if this is an anonymous identity, false otherwise.
 func (*MockIdentity) Anonymous() bool {
 	panic("implement me")
 }
@@ -60,12 +63,12 @@ func (id *MockIdentity) SatisfiesPrincipal(p *mb.MSPPrincipal) error {
 	return nil
 }
 
-// GetIdentifier returns the identifier of that identity
+// GetIdentifier returns the identifier of that identity.
 func (id *MockIdentity) GetIdentifier() *msp.IdentityIdentifier {
 	return &msp.IdentityIdentifier{Mspid: "Mock", Id: string(id.IDBytes)}
 }
 
-// GetMSPIdentifier returns the MSP Id for this instance
+// GetMSPIdentifier returns the MSP Id for this instance.
 func (*MockIdentity) GetMSPIdentifier() string {
 	return "Mock"
 }
@@ -82,7 +85,7 @@ func (*MockIdentity) GetOrganizationalUnits() []*msp.OUIdentifier {
 	return nil
 }
 
-// Verify a signature over some message using this identity as reference
+// Verify a signature over some message using this identity as reference.
 func (*MockIdentity) Verify(_, sig []byte) error {
 	if bytes.Equal(sig, InvalidSignature) {
 		return errors.New("Invalid signature")
@@ -90,7 +93,7 @@ func (*MockIdentity) Verify(_, sig []byte) error {
 	return nil
 }
 
-// Serialize converts an identity to bytes
+// Serialize converts an identity to bytes.
 func (id *MockIdentity) Serialize() ([]byte, error) {
 	return id.IDBytes, nil
 }
