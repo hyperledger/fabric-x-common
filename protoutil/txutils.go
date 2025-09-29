@@ -102,15 +102,21 @@ func CreateSignedEnvelopeWithTLSBinding(
 		return nil, errors.Wrap(err, "error marshaling")
 	}
 
+	return CreateEnvelope(signer, MakePayloadHeader(payloadChannelHeader, payloadSignatureHeader), data)
+}
+
+// CreateEnvelope creates a signed envelope from the passed header and data.
+func CreateEnvelope(signer Signer, hdr *common.Header, data []byte) (*common.Envelope, error) {
 	paylBytes := MarshalOrPanic(
 		&common.Payload{
-			Header: MakePayloadHeader(payloadChannelHeader, payloadSignatureHeader),
+			Header: hdr,
 			Data:   data,
 		},
 	)
 
 	var sig []byte
 	if signer != nil {
+		var err error
 		sig, err = signer.Sign(paylBytes)
 		if err != nil {
 			return nil, err
