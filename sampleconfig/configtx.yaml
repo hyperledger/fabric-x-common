@@ -46,7 +46,6 @@ Organizations:
 
         # MSPDir is the filesystem path which contains the MSP configuration.
         MSPDir: msp
-        # MSPDir: msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -77,7 +76,7 @@ Organizations:
         Name: Org1
         SkipAsForeign: false
         ID: Org1
-        MSPDir: crypto/Org1/peers/peer0.Org1/msp
+        MSPDir: crypto/Org1/msp
         Policies: &Org1Policies
             Readers:
                 Type: Signature
@@ -98,7 +97,7 @@ Organizations:
         Name: Org2
         SkipAsForeign: false
         ID: Org2
-        MSPDir: crypto/Org2/peers/peer0.Org2/msp
+        MSPDir: crypto/Org2/msp
         Policies: &Org2Policies
             Readers:
                 Type: Signature

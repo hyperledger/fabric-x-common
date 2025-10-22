@@ -38,7 +38,7 @@ func marshalOrPanic(msg proto.Message) []byte {
 	return data
 }
 
-func makePolicySource(policyResult bool) *cb.Policy { //nolint:revive
+func makePolicySource(policyResult bool) *cb.Policy { //nolint:revive // policyResult is not a control flag.
 	var policyData *cb.SignaturePolicyEnvelope
 	if policyResult {
 		policyData = policydsl.AcceptAllPolicy

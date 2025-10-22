@@ -89,6 +89,6 @@ func compile(policy *cb.SignaturePolicy, identities []*mb.MSPPrincipal) (func([]
 			return false
 		}, nil
 	default:
-		return nil, fmt.Errorf("unknown type: %T:%v", t, t)
+		return nil, errors.Newf("unknown type: %T:%v", t, t)
 	}
 }
