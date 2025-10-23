@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
@@ -27,10 +26,6 @@ import (
 )
 
 var genesisBlock = protoutil.NewBlock(0, nil)
-
-func init() {
-	flogging.ActivateSpec("common.ledger.blockledger.file=DEBUG")
-}
 
 type testEnv struct {
 	t        *testing.T
