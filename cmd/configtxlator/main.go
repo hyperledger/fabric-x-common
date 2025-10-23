@@ -14,6 +14,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/gorilla/handlers"
 	"github.com/hyperledger/fabric-config/protolator"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -25,7 +26,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxlator/metadata"
