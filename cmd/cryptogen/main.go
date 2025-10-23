@@ -18,7 +18,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/metadata"
 	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/msp"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 	"gopkg.in/yaml.v2"
 )
 
