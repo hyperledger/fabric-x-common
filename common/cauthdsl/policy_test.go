@@ -1,5 +1,5 @@
 /*
-Copyright IBM Corp. 2016 All Rights Reserved.
+Copyright IBM Corp. All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 */
@@ -33,12 +33,12 @@ func init() {
 func marshalOrPanic(msg proto.Message) []byte {
 	data, err := proto.Marshal(msg)
 	if err != nil {
-		panic(fmt.Errorf("Error marshaling messages: %s, %s", msg, err))
+		panic(fmt.Errorf("Error marshaling messages: %s, %w", msg, err))
 	}
 	return data
 }
 
-func makePolicySource(policyResult bool) *cb.Policy {
+func makePolicySource(policyResult bool) *cb.Policy { //nolint:revive // policyResult is not a control flag.
 	var policyData *cb.SignaturePolicyEnvelope
 	if policyResult {
 		policyData = policydsl.AcceptAllPolicy
@@ -53,11 +53,12 @@ func makePolicySource(policyResult bool) *cb.Policy {
 
 func providerMap() map[int32]policies.Provider {
 	r := make(map[int32]policies.Provider)
-	r[int32(cb.Policy_SIGNATURE)] = NewPolicyProvider(&mockDeserializer{})
+	r[int32(cb.Policy_SIGNATURE)] = NewPolicyProvider(&MockIdentityDeserializer{})
 	return r
 }
 
 func TestAccept(t *testing.T) {
+	t.Parallel()
 	policyID := "policyID"
 	m, err := policies.NewManagerImpl("test", providerMap(), &cb.ConfigGroup{
 		Policies: map[string]*cb.ConfigPolicy{
@@ -69,11 +70,14 @@ func TestAccept(t *testing.T) {
 
 	policy, ok := m.GetPolicy(policyID)
 	require.True(t, ok, "Should have found policy which was just added, but did not")
-	err = policy.EvaluateSignedData([]*protoutil.SignedData{{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")}})
+	err = policy.EvaluateSignedData([]*protoutil.SignedData{
+		{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")},
+	})
 	require.NoError(t, err, "Should not have errored evaluating an acceptAll policy")
 }
 
 func TestReject(t *testing.T) {
+	t.Parallel()
 	policyID := "policyID"
 	m, err := policies.NewManagerImpl("test", providerMap(), &cb.ConfigGroup{
 		Policies: map[string]*cb.ConfigPolicy{
@@ -84,39 +88,45 @@ func TestReject(t *testing.T) {
 	require.NotNil(t, m)
 	policy, ok := m.GetPolicy(policyID)
 	require.True(t, ok, "Should have found policy which was just added, but did not")
-	err = policy.EvaluateSignedData([]*protoutil.SignedData{{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")}})
+	err = policy.EvaluateSignedData([]*protoutil.SignedData{
+		{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")},
+	})
 	require.Error(t, err, "Should have errored evaluating an rejectAll policy")
 }
 
 func TestRejectOnUnknown(t *testing.T) {
+	t.Parallel()
 	m, err := policies.NewManagerImpl("test", providerMap(), &cb.ConfigGroup{})
 	require.NoError(t, err)
 	require.NotNil(t, m)
 	policy, ok := m.GetPolicy("FakePolicyID")
 	require.False(t, ok, "Should not have found policy which was never added, but did")
-	err = policy.EvaluateSignedData([]*protoutil.SignedData{{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")}})
+	err = policy.EvaluateSignedData([]*protoutil.SignedData{
+		{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")},
+	})
 	require.Error(t, err, "Should have errored evaluating the default policy")
 }
 
 func TestNewPolicyErrorCase(t *testing.T) {
+	t.Parallel()
 	provider := NewPolicyProvider(nil)
 
 	pol1, msg1, err1 := provider.NewPolicy([]byte{0})
 	require.Nil(t, pol1)
 	require.Nil(t, msg1)
-	require.ErrorContains(t, err1, "Error unmarshalling to SignaturePolicy")
+	require.ErrorContains(t, err1, "error unmarshalling to SignaturePolicy")
 
 	sigPolicy2 := &cb.SignaturePolicyEnvelope{Version: -1}
 	data2 := marshalOrPanic(sigPolicy2)
 	pol2, msg2, err2 := provider.NewPolicy(data2)
 	require.Nil(t, pol2)
 	require.Nil(t, msg2)
-	require.EqualError(t, err2, "This evaluator only understands messages of version 0, but version was -1")
+	require.EqualError(t, err2, "this evaluator only understands messages of version 0, but version was -1")
 
 	pol3, msg3, err3 := provider.NewPolicy([]byte{})
 	require.Nil(t, pol3)
 	require.Nil(t, msg3)
-	require.EqualError(t, err3, "Empty policy element")
+	require.EqualError(t, err3, "empty policy element")
 
 	var pol4 *policy
 	err4 := pol4.EvaluateSignedData([]*protoutil.SignedData{})
@@ -124,14 +134,15 @@ func TestNewPolicyErrorCase(t *testing.T) {
 }
 
 func TestEnvelopeBasedPolicyProvider(t *testing.T) {
-	pp := &EnvelopeBasedPolicyProvider{Deserializer: &mockDeserializer{}}
+	t.Parallel()
+	pp := &EnvelopeBasedPolicyProvider{Deserializer: &MockIdentityDeserializer{}}
 	p, err := pp.NewPolicy(nil)
 	require.Nil(t, p)
 	require.Error(t, err, "invalid arguments")
 
 	p, err = pp.NewPolicy(&cb.SignaturePolicyEnvelope{})
 	require.Nil(t, p)
-	require.Error(t, err, "Empty policy element")
+	require.Error(t, err, "empty policy element")
 
 	p, err = pp.NewPolicy(policydsl.SignedByMspPeer("primus inter pares"))
 	require.NotNil(t, p)
@@ -139,6 +150,7 @@ func TestEnvelopeBasedPolicyProvider(t *testing.T) {
 }
 
 func TestConverter(t *testing.T) {
+	t.Parallel()
 	p := policy{}
 
 	cp, err := p.Convert()
