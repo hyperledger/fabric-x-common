@@ -159,12 +159,14 @@ func TestBftOrdererTypeWithV3CapabilitiesShouldNotRaiseAnError(t *testing.T) {
 func TestFabricXGenesisBlock(t *testing.T) {
 	blockDest := filepath.Join(t.TempDir(), "block")
 
-	config := genesisconfig.Load(genesisconfig.SampleFabricX, configtest.GetDevConfigDir())
-	addTlsCertToConsenters(config)
 	keyPath := filepath.Join(configtest.GetDevConfigDir(), "msp", "signcerts", "peer.pem")
-	config.Application.MetaNamespaceVerificationKeyPath = keyPath
-	armaPath := filepath.Join(configtest.GetDevConfigDir(), "arma_shared_config.pbbin")
-	config.Orderer.Arma.Path = armaPath
 
-	require.NoError(t, DoOutputBlock(config, "foo", blockDest))
+	for _, p := range []string{genesisconfig.SampleFabricX, genesisconfig.TwoOrgsSampleFabricX} {
+		config := genesisconfig.Load(p, configtest.GetDevConfigDir())
+		addTlsCertToConsenters(config)
+		config.Application.MetaNamespaceVerificationKeyPath = keyPath
+		armaPath := filepath.Join(configtest.GetDevConfigDir(), "arma_shared_config.pbbin")
+		config.Orderer.Arma.Path = armaPath
+		require.NoError(t, DoOutputBlock(config, "foo", blockDest))
+	}
 }
