@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/pkg/errors"
@@ -26,8 +25,6 @@ import (
 )
 
 func TestNewBFTCensorshipMonitor_New(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	s := newMonitorTestSetup(t, 5)
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, 0, blocksprovider.TimeoutConfig{})
 	require.NotNil(t, mon)
@@ -37,8 +34,6 @@ func TestNewBFTCensorshipMonitor_New(t *testing.T) {
 // - start the monitor, with a single source
 // - stop the monitor without reading from error channel
 func TestBFTCensorshipMonitor_Stop(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	s := newMonitorTestSetup(t, 1)
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, 0, blocksprovider.TimeoutConfig{})
 	require.NotNil(t, mon)
@@ -59,8 +54,6 @@ func TestBFTCensorshipMonitor_Stop(t *testing.T) {
 // - start the monitor, with a single source
 // - stop the monitor, ensure error channel contains an error
 func TestBFTCensorshipMonitor_StopWithErrors(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	s := newMonitorTestSetup(t, 1)
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, 0, blocksprovider.TimeoutConfig{})
 	require.NotNil(t, mon)
@@ -88,8 +81,6 @@ func TestBFTCensorshipMonitor_StopWithErrors(t *testing.T) {
 // - start the monitor, with no sources
 // - monitor exits, ensure error channel contains an error
 func TestBFTCensorshipMonitor_NoSources(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	s := newMonitorTestSetup(t, 0)
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, 0, blocksprovider.TimeoutConfig{})
 	require.NotNil(t, mon)
@@ -119,8 +110,6 @@ func TestBFTCensorshipMonitor_NoSources(t *testing.T) {
 // - no blocks, no headers, block progress is called repeatedly, returns zero value
 // - headers are seeked from 0
 func TestBFTCensorshipMonitor_NoHeadersNoBlocks(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	numOrderers := 4
 	blockSource := 1
 	tConfig := blocksprovider.TimeoutConfig{
@@ -193,8 +182,6 @@ func TestBFTCensorshipMonitor_NoHeadersNoBlocks(t *testing.T) {
 // - one header returns {8}
 // - suspicion raised, after timeout, censorship detected
 func TestBFTCensorshipMonitor_CensorshipDetected(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	numOrderers := 4
 	blockSource := 0
 	tConfig := blocksprovider.TimeoutConfig{
@@ -279,8 +266,6 @@ func TestBFTCensorshipMonitor_CensorshipDetected(t *testing.T) {
 // - suspicion raised, block advances to 8, then 9,
 // - after timeout, censorship detected on 10
 func TestBFTCensorshipMonitor_SuspicionsRemovedCensorshipDetected(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	numOrderers := 4
 	blockSource := 0
 	tConfig := blocksprovider.TimeoutConfig{
@@ -389,8 +374,6 @@ func TestBFTCensorshipMonitor_SuspicionsRemovedCensorshipDetected(t *testing.T) 
 // - before timeout, new block (n+1) arrives, suspicion removed
 //   - repeat the above x7, each time the header is coming from a different source
 func TestBFTCensorshipMonitor_SuspicionRemoved(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	numOrderers := 4
 	blockSource := 0
 	tConfig := blocksprovider.TimeoutConfig{
@@ -492,8 +475,6 @@ func TestBFTCensorshipMonitor_SuspicionRemoved(t *testing.T) {
 // - before timeout, new block (n+1) arrives, suspicion removed
 //   - repeat the above x7, each time the header is coming from a different source
 func TestBFTCensorshipMonitor_FaultySourceIgnored(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	numOrderers := 7
 	blockSource := 0
 	tConfig := blocksprovider.TimeoutConfig{
@@ -608,8 +589,6 @@ func TestBFTCensorshipMonitor_FaultySourceIgnored(t *testing.T) {
 // - before timeout, new block (n+1) arrives, suspicion removed
 //   - repeat the above x7, each time the header is coming from a different recovered source
 func TestBFTCensorshipMonitor_FaultySourceRecovery(t *testing.T) {
-	flogging.ActivateSpec("debug")
-
 	numOrderers := 4
 	blockSource := 0
 	tConfig := blocksprovider.TimeoutConfig{

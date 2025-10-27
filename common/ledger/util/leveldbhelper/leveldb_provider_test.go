@@ -15,12 +15,10 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/dataformat"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMain(m *testing.M) {
-	flogging.ActivateSpec("leveldbhelper=debug")
 	os.Exit(m.Run())
 }
 

@@ -12,7 +12,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -24,7 +23,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	flogging.ActivateSpec("blkstorage=debug")
 	os.Exit(m.Run())
 }
 
