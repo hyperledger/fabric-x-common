@@ -11,6 +11,7 @@ require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
+	github.com/cockroachdb/errors v1.12.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -31,10 +32,8 @@ require (
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.10
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
-
-require github.com/cockroachdb/errors v1.12.0
 
 require (
 	github.com/IBM/idemix/bccsp/schemes/aries v0.0.0-20240913182345-72941a5f41cd // indirect
@@ -82,6 +81,5 @@ require (
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )

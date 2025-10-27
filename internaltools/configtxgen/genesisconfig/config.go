@@ -13,10 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hyperledger-labs/SmartBFT/pkg/types"
+	smartbfttypes "github.com/hyperledger-labs/SmartBFT/pkg/types"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 
+	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
 	cf "github.com/hyperledger/fabric-x-common/core/config"
@@ -139,8 +140,8 @@ type Organization struct {
 	// Note: Viper deserialization does not seem to care for
 	// embedding of types, so we use one organization struct
 	// for both orderers and applications.
-	AnchorPeers      []*AnchorPeer `yaml:"AnchorPeers"`
-	OrdererEndpoints []string      `yaml:"OrdererEndpoints"`
+	AnchorPeers      []*AnchorPeer            `yaml:"AnchorPeers"`
+	OrdererEndpoints []*types.OrdererEndpoint `yaml:"OrdererEndpoints"`
 
 	// AdminPrincipal is deprecated and may be removed in a future release
 	// it was used for modifying the default policy generation, but policies
@@ -214,21 +215,21 @@ var genesisDefaults = TopLevel{
 			},
 		},
 		SmartBFT: &smartbft.Options{
-			RequestBatchMaxCount:      types.DefaultConfig.RequestBatchMaxCount,
-			RequestBatchMaxBytes:      types.DefaultConfig.RequestBatchMaxBytes,
-			RequestBatchMaxInterval:   types.DefaultConfig.RequestBatchMaxInterval.String(),
-			IncomingMessageBufferSize: types.DefaultConfig.IncomingMessageBufferSize,
-			RequestPoolSize:           types.DefaultConfig.RequestPoolSize,
-			RequestForwardTimeout:     types.DefaultConfig.RequestForwardTimeout.String(),
-			RequestComplainTimeout:    types.DefaultConfig.RequestComplainTimeout.String(),
-			RequestAutoRemoveTimeout:  types.DefaultConfig.RequestAutoRemoveTimeout.String(),
-			ViewChangeResendInterval:  types.DefaultConfig.ViewChangeResendInterval.String(),
-			ViewChangeTimeout:         types.DefaultConfig.ViewChangeTimeout.String(),
-			LeaderHeartbeatTimeout:    types.DefaultConfig.LeaderHeartbeatTimeout.String(),
-			LeaderHeartbeatCount:      types.DefaultConfig.LeaderHeartbeatCount,
-			CollectTimeout:            types.DefaultConfig.CollectTimeout.String(),
-			SyncOnStart:               types.DefaultConfig.SyncOnStart,
-			SpeedUpViewChange:         types.DefaultConfig.SpeedUpViewChange,
+			RequestBatchMaxCount:      smartbfttypes.DefaultConfig.RequestBatchMaxCount,
+			RequestBatchMaxBytes:      smartbfttypes.DefaultConfig.RequestBatchMaxBytes,
+			RequestBatchMaxInterval:   smartbfttypes.DefaultConfig.RequestBatchMaxInterval.String(),
+			IncomingMessageBufferSize: smartbfttypes.DefaultConfig.IncomingMessageBufferSize,
+			RequestPoolSize:           smartbfttypes.DefaultConfig.RequestPoolSize,
+			RequestForwardTimeout:     smartbfttypes.DefaultConfig.RequestForwardTimeout.String(),
+			RequestComplainTimeout:    smartbfttypes.DefaultConfig.RequestComplainTimeout.String(),
+			RequestAutoRemoveTimeout:  smartbfttypes.DefaultConfig.RequestAutoRemoveTimeout.String(),
+			ViewChangeResendInterval:  smartbfttypes.DefaultConfig.ViewChangeResendInterval.String(),
+			ViewChangeTimeout:         smartbfttypes.DefaultConfig.ViewChangeTimeout.String(),
+			LeaderHeartbeatTimeout:    smartbfttypes.DefaultConfig.LeaderHeartbeatTimeout.String(),
+			LeaderHeartbeatCount:      smartbfttypes.DefaultConfig.LeaderHeartbeatCount,
+			CollectTimeout:            smartbfttypes.DefaultConfig.CollectTimeout.String(),
+			SyncOnStart:               smartbfttypes.DefaultConfig.SyncOnStart,
+			SpeedUpViewChange:         smartbfttypes.DefaultConfig.SpeedUpViewChange,
 		},
 		Arma: &ConsensusMetadata{},
 	},

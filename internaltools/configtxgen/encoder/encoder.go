@@ -349,7 +349,11 @@ func NewOrdererOrgGroup(conf *genesisconfig.Organization, channelCapabilities ma
 	addValue(ordererOrgGroup, channelconfig.MSPValue(mspConfig), channelconfig.AdminsPolicyKey)
 
 	if len(conf.OrdererEndpoints) > 0 {
-		addValue(ordererOrgGroup, channelconfig.EndpointsValue(conf.OrdererEndpoints), channelconfig.AdminsPolicyKey)
+		endpoints := make([]string, len(conf.OrdererEndpoints))
+		for i, e := range conf.OrdererEndpoints {
+			endpoints[i] = e.String()
+		}
+		addValue(ordererOrgGroup, channelconfig.EndpointsValue(endpoints), channelconfig.AdminsPolicyKey)
 	} else if channelCapabilities["V3_0"] {
 		return nil, errors.Errorf("orderer endpoints for organization %s are missing and must be configured when capability V3_0 is enabled", conf.Name)
 	}
