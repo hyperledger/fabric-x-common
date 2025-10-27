@@ -9,8 +9,10 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestInspectMissing(t *testing.T) {
@@ -168,5 +170,16 @@ func TestFabricXGenesisBlock(t *testing.T) {
 		armaPath := filepath.Join(configtest.GetDevConfigDir(), "arma_shared_config.pbbin")
 		config.Orderer.Arma.Path = armaPath
 		require.NoError(t, DoOutputBlock(config, "foo", blockDest))
+
+		configBlock, err := ReadBlock(blockDest)
+		require.NoError(t, err)
+		require.NotNil(t, configBlock)
+
+		envelope, err := protoutil.ExtractEnvelope(configBlock, 0)
+		require.NoError(t, err)
+		require.NotNil(t, envelope)
+		bundle, err := channelconfig.NewBundleFromEnvelope(envelope, factory.GetDefault())
+		require.NoError(t, err)
+		require.NotNil(t, bundle)
 	}
 }
