@@ -11,6 +11,7 @@ require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
+	github.com/cockroachdb/errors v1.12.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -34,13 +35,11 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require github.com/cockroachdb/errors v1.12.0
-
 require (
 	github.com/IBM/idemix/bccsp/schemes/aries v0.0.0-20240913182345-72941a5f41cd // indirect
 	github.com/IBM/idemix/bccsp/schemes/weak-bb v0.0.0-20240913182345-72941a5f41cd // indirect
 	github.com/IBM/idemix/bccsp/types v0.0.0-20240913182345-72941a5f41cd // indirect
-	github.com/IBM/mathlib v0.0.3-0.20231011094432-44ee0eb539da // indirect
+	github.com/IBM/mathlib v0.0.3-0.20250709075152-a138079496c3 // indirect
 	github.com/alecthomas/units v0.0.0-20240626203959-61d1e3462e30 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
