@@ -15,18 +15,17 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/genesis"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
-	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
-	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 )
 
 var logger = util.MustGetLogger("common.configtx.test")
 
 // MakeGenesisBlock creates a genesis block using the test templates for the given channelID
 func MakeGenesisBlock(channelID string) (*cb.Block, error) {
-	profile := genesisconfig.Load(genesisconfig.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
-	channelGroup, err := encoder.NewChannelGroup(profile)
+	profile := configtxgen.Load(configtxgen.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
+	channelGroup, err := configtxgen.NewChannelGroup(profile)
 	if err != nil {
 		logger.Panicf("Error creating channel config: %s", err)
 	}
@@ -43,8 +42,8 @@ func MakeGenesisBlock(channelID string) (*cb.Block, error) {
 }
 
 func MakeChannelConfig(channelID string) (*cb.Config, error) {
-	profile := genesisconfig.Load(genesisconfig.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
-	channelGroup, err := encoder.NewChannelGroup(profile)
+	profile := configtxgen.Load(configtxgen.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
+	channelGroup, err := configtxgen.NewChannelGroup(profile)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +52,9 @@ func MakeChannelConfig(channelID string) (*cb.Config, error) {
 
 // MakeGenesisBlockFromMSPs creates a genesis block using the MSPs provided for the given channelID
 func MakeGenesisBlockFromMSPs(channelID string, appMSPConf, ordererMSPConf *mspproto.MSPConfig, appOrgID, ordererOrgID string) (*cb.Block, error) {
-	profile := genesisconfig.Load(genesisconfig.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
+	profile := configtxgen.Load(configtxgen.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
 
-	channelGroup, err := encoder.NewChannelGroup(profile)
+	channelGroup, err := configtxgen.NewChannelGroup(profile)
 	if err != nil {
 		logger.Panicf("Error creating channel config: %s", err)
 	}

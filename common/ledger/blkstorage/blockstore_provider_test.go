@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 )
 
 func TestIndexConfig(t *testing.T) {

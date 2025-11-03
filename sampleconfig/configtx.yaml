@@ -45,7 +45,7 @@ Organizations:
         ID: SampleOrg
 
         # MSPDir is the filesystem path which contains the MSP configuration.
-        MSPDir: msp
+        MSPDir: crypto/SampleOrg/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -53,66 +53,66 @@ Organizations:
         Policies: &SampleOrgPolicies
             Readers:
                 Type: Signature
-                Rule: "OR('SampleOrg.member')"
+                Rule: OR('SampleOrg.member')
                 # If your MSP is configured with the new NodeOUs, you might
                 # want to use a more specific rule like the following:
                 # Rule: "OR('SampleOrg.admin', 'SampleOrg.peer', 'SampleOrg.client')"
             Writers:
                 Type: Signature
-                Rule: "OR('SampleOrg.member')"
+                Rule: OR('SampleOrg.member')
                 # If your MSP is configured with the new NodeOUs, you might
                 # want to use a more specific rule like the following:
                 # Rule: "OR('SampleOrg.admin', 'SampleOrg.client')"
             Admins:
                 Type: Signature
-                Rule: "OR('SampleOrg.admin')"
+                Rule: OR('SampleOrg.admin')
             Endorsement:
                 Type: Signature
-                Rule: "OR('SampleOrg.member')"
+                Rule: OR('SampleOrg.member')
         OrdererEndpoints:
-            - "127.0.0.1:7050"
+            - localhost:7050
 
     - &Org1
         Name: Org1
         SkipAsForeign: false
         ID: Org1
         MSPDir: crypto/Org1/msp
-        Policies: &Org1Policies
+        Policies:
             Readers:
                 Type: Signature
-                Rule: "OR('Org1.member')"
+                Rule: OR('Org1.member')
             Writers:
                 Type: Signature
-                Rule: "OR('Org1.member')"
+                Rule: OR('Org1.member')
             Admins:
                 Type: Signature
-                Rule: "OR('Org1.admin')"
+                Rule: OR('Org1.admin')
             Endorsement:
                 Type: Signature
-                Rule: "OR('Org1.member')"
+                Rule: OR('Org1.member')
         OrdererEndpoints:
-            - "127.0.0.1:7050"
+            - localhost:7050
 
     - &Org2
         Name: Org2
         SkipAsForeign: false
         ID: Org2
         MSPDir: crypto/Org2/msp
-        Policies: &Org2Policies
+        Policies:
             Readers:
                 Type: Signature
-                Rule: "OR('Org2.member')"
+                Rule: OR('Org2.member')
             Writers:
                 Type: Signature
-                Rule: "OR('Org2.member')"
+                Rule: OR('Org2.member')
             Admins:
                 Type: Signature
-                Rule: "OR('Org2.admin')"
+                Rule: OR('Org2.admin')
             Endorsement:
                 Type: Signature
-                Rule: "OR('Org2.member')"
+                Rule: OR('Org2.member')
         OrdererEndpoints:
-            - "127.0.0.1:7050"
+            - localhost:7050
 
 ################################################################################
 #
@@ -262,22 +262,22 @@ Application: &ApplicationDefaults
     # Policies defines the set of policies at this level of the config tree
     # For Application policies, their canonical path is
     #   /Channel/Application/<PolicyName>
-    Policies: &ApplicationDefaultPolicies
+    Policies:
         LifecycleEndorsement:
             Type: ImplicitMeta
-            Rule: "MAJORITY Endorsement"
+            Rule: MAJORITY Endorsement
         Endorsement:
             Type: ImplicitMeta
-            Rule: "MAJORITY Endorsement"
+            Rule: MAJORITY Endorsement
         Readers:
             Type: ImplicitMeta
-            Rule: "ANY Readers"
+            Rule: ANY Readers
         Writers:
             Type: ImplicitMeta
-            Rule: "ANY Writers"
+            Rule: ANY Writers
         Admins:
             Type: ImplicitMeta
-            Rule: "MAJORITY Admins"
+            Rule: MAJORITY Admins
 
     # Capabilities describes the application level capabilities, see the
     # dedicated Capabilities section elsewhere in this file for a full
@@ -360,30 +360,16 @@ Orderer: &OrdererDefaults
       Host: bft0.example.com
       Port: 7050
       MSPID: OrdererOrg1
-      Identity: /path/to/identity
-      ClientTLSCert: path/to/ClientTLSCert0
-      ServerTLSCert: path/to/ServerTLSCert0
+      Identity: &Org1ID crypto/Org1/msp/admincerts/Admin@Org1-cert.pem
+      ClientTLSCert: *Org1ID
+      ServerTLSCert: *Org1ID
     - ID: 2
       Host: bft1.example.com
       Port: 7050
       MSPID: OrdererOrg2
-      Identity: /path/to/identity
-      ClientTLSCert: path/to/ClientTLSCert1
-      ServerTLSCert: path/to/ServerTLSCert1
-    - ID: 3
-      Host: bft2.example.com
-      Port: 7050
-      MSPID: OrdererOrg3
-      Identity: /path/to/identity
-      ClientTLSCert: path/to/ClientTLSCert2
-      ServerTLSCert: path/to/ServerTLSCert2
-    - ID: 4
-      Host: bft3.example.com
-      Port: 7050
-      MSPID: OrdererOrg4
-      Identity: /path/to/identity
-      ClientTLSCert: path/to/ClientTLSCert3
-      ServerTLSCert: path/to/ServerTLSCert3
+      Identity: &Org2ID crypto/Org2/msp/admincerts/Admin@Org2-cert.pem
+      ClientTLSCert: *Org2ID
+      ServerTLSCert: *Org2ID
 
     # EtcdRaft defines configuration which must be set when the "etcdraft"
     # orderertype is chosen.
@@ -395,16 +381,12 @@ Orderer: &OrdererDefaults
         Consenters:
             - Host: raft0.example.com
               Port: 7050
-              ClientTLSCert: path/to/ClientTLSCert0
-              ServerTLSCert: path/to/ServerTLSCert0
+              ClientTLSCert: *Org1ID
+              ServerTLSCert: *Org1ID
             - Host: raft1.example.com
               Port: 7050
-              ClientTLSCert: path/to/ClientTLSCert1
-              ServerTLSCert: path/to/ServerTLSCert1
-            - Host: raft2.example.com
-              Port: 7050
-              ClientTLSCert: path/to/ClientTLSCert2
-              ServerTLSCert: path/to/ServerTLSCert2
+              ClientTLSCert: *Org2ID
+              ServerTLSCert: *Org2ID
 
         # Options to be specified for all the etcd/raft nodes. The values here
         # are the defaults for all new channels and can be modified on a
@@ -432,6 +414,26 @@ Orderer: &OrdererDefaults
             # SnapshotIntervalSize defines number of bytes per which a snapshot is taken
             SnapshotIntervalSize: 16 MB
 
+    SmartBFT:
+        # This includes the Smart BFT shared config information.
+        # It is only used if the orderer type is "BFT".
+        RequestBatchMaxInterval: 200ms
+        RequestForwardTimeout: 5s
+        RequestComplainTimeout: 20s
+        RequestAutoRemoveTimeout: 3m0s
+        ViewChangeResendInterval: 5s
+        ViewChangeTimeout: 20s
+        LeaderHeartbeatTimeout: 1m0s
+        CollectTimeout: 1s
+        IncomingMessageBufferSize: 200
+        RequestPoolSize: 100000
+        LeaderHeartbeatCount: 10
+
+    Arma:
+        # This includes the ARMA shared config data.
+        # It is only used if the orderer type is "arma".
+        Path: arma_shared_config.binpb
+
     # Organizations lists the orgs participating on the orderer side of the
     # network.
     Organizations:
@@ -442,18 +444,18 @@ Orderer: &OrdererDefaults
     Policies:
         Readers:
             Type: ImplicitMeta
-            Rule: "ANY Readers"
+            Rule: ANY Readers
         Writers:
             Type: ImplicitMeta
-            Rule: "ANY Writers"
+            Rule: ANY Writers
         Admins:
             Type: ImplicitMeta
-            Rule: "MAJORITY Admins"
+            Rule: MAJORITY Admins
         # BlockValidation specifies what signatures must be included in the block
         # from the orderer for the peer to validate it.
         BlockValidation:
             Type: ImplicitMeta
-            Rule: "ANY Writers"
+            Rule: ANY Writers
 
     # Capabilities describes the orderer level capabilities, see the
     # dedicated Capabilities section elsewhere in this file for a full
@@ -477,15 +479,15 @@ Channel: &ChannelDefaults
         # Who may invoke the 'Deliver' API
         Readers:
             Type: ImplicitMeta
-            Rule: "ANY Readers"
+            Rule: ANY Readers
         # Who may invoke the 'Broadcast' API
         Writers:
             Type: ImplicitMeta
-            Rule: "ANY Writers"
+            Rule: ANY Writers
         # By default, who may modify elements at this config level
         Admins:
             Type: ImplicitMeta
-            Rule: "MAJORITY Admins"
+            Rule: MAJORITY Admins
 
 
     # Capabilities describes the channel level capabilities, see the
@@ -576,7 +578,7 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
         Application:
             <<: *ApplicationDefaults
             Organizations:
@@ -585,7 +587,7 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
         Consortiums:
             SampleConsortium:
                 Organizations:
@@ -594,7 +596,7 @@ Profiles:
                           <<: *SampleOrgPolicies
                           Admins:
                               Type: Signature
-                              Rule: "OR('SampleOrg.member')"
+                              Rule: OR('SampleOrg.member')
 
     # SampleDevModeKafka defines a configuration that differs from the
     # SampleDevModeSolo one only in that it uses the Kafka-based orderer.
@@ -609,7 +611,7 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
         Application:
             <<: *ApplicationDefaults
             Organizations:
@@ -618,7 +620,7 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
         Consortiums:
             SampleConsortium:
                 Organizations:
@@ -627,7 +629,7 @@ Profiles:
                           <<: *SampleOrgPolicies
                           Admins:
                               Type: Signature
-                              Rule: "OR('SampleOrg.member')"
+                              Rule: OR('SampleOrg.member')
 
     # SampleSingleMSPChannel defines a channel with only the sample org as a
     # member. It is designed to be used in conjunction with SampleSingleMSPSolo
@@ -654,7 +656,7 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
         Application:
             <<: *ApplicationDefaults
             Organizations:
@@ -663,7 +665,7 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
         Consortiums:
             SampleConsortium:
                 Organizations:
@@ -672,7 +674,7 @@ Profiles:
                           <<: *SampleOrgPolicies
                           Admins:
                               Type: Signature
-                              Rule: "OR('SampleOrg.member')"
+                              Rule: OR('SampleOrg.member')
 
     # SampleAppChannelInsecureSolo defines an application channel configuration
     # which uses the Solo orderer and contains no MSP definitions.
@@ -696,11 +698,11 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
                   OrdererEndpoints:
-                    - "127.0.0.1:7050"
-                    - "127.0.0.1:7051"
-                    - "127.0.0.1:7052"
+                    - 127.0.0.1:7050
+                    - 127.0.0.1:7051
+                    - 127.0.0.1:7052
         Application:
             <<: *ApplicationDefaults
             Organizations:
@@ -709,7 +711,7 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
 
     # SampleAppChannelSmartBft defines an application channel configuration
     # that uses the Smart BFT orderer.
@@ -722,25 +724,13 @@ Profiles:
             BatchSize:
                 MaxMessageCount: 5000
                 AbsoluteMaxBytes: 10 MB
-            SmartBFT:
-                RequestBatchMaxInterval: 200ms
-                RequestForwardTimeout: 5s
-                RequestComplainTimeout: 20s
-                RequestAutoRemoveTimeout: 3m0s
-                ViewChangeResendInterval: 5s
-                ViewChangeTimeout: 20s
-                LeaderHeartbeatTimeout: 1m0s
-                CollectTimeout: 1s
-                IncomingMessageBufferSize: 200
-                RequestPoolSize: 100000
-                LeaderHeartbeatCount: 10
             Organizations:
                 - <<: *SampleOrg
                   Policies:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
         Application:
             <<: *ApplicationDefaults
             Organizations:
@@ -749,16 +739,13 @@ Profiles:
                       <<: *SampleOrgPolicies
                       Admins:
                           Type: Signature
-                          Rule: "OR('SampleOrg.member')"
+                          Rule: OR('SampleOrg.member')
 
     SampleFabricX:
         <<: *ChannelDefaults
-        Consortium: SampleConsortium
         Orderer:
             <<: *OrdererDefaults
             OrdererType: arma
-            Arma:
-                Path: path/to/shared_config.binpb
             Organizations:
                 - <<: *SampleOrg
                   OrdererEndpoints:
@@ -812,24 +799,20 @@ Profiles:
                         port: 7050
                       - {id: 2, host: "orderer-3", port: 7050}
 
-        Application:
+        Application: &FabricXApplicationDefaults
             <<: *ApplicationDefaults
-            MetaNamespaceVerificationKeyPath: path/to/MetaNamespaceVerification.key
+            # This certificate is used to validate meta-namespace transactions.
+            # This is a temporary solution (fabric-x). It will be removed once the committer will support MSP policies.
+            # The matching private key can be found under crypto/SampleOrg/msp/keystore/key.pem
+            MetaNamespaceVerificationKeyPath: crypto/SampleOrg/msp/admincerts/admincert.pem
             Organizations:
                 - <<: *SampleOrg
 
     TwoOrgsSampleFabricX:
         <<: *ChannelDefaults
-        Consortiums:
-            SampleConsortium:
-                Organizations:
-                    - *Org1
-                    - *Org2
         Orderer:
             <<: *OrdererDefaults
             OrdererType: arma
-            Arma:
-                Path: path/to/shared_config.binpb
             Organizations:
                 - <<: *Org1
                   OrdererEndpoints:
@@ -841,8 +824,7 @@ Profiles:
                       - id=1,deliver,localhost:7061
 
         Application:
-            <<: *ApplicationDefaults
-            MetaNamespaceVerificationKeyPath: path/to/MetaNamespaceVerification.key
+            <<: *FabricXApplicationDefaults
             Organizations:
                 - <<: *Org1
                 - <<: *Org2

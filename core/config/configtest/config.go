@@ -110,7 +110,7 @@ func goModDevConfigDir() ([]string, error) {
 // context.
 func GetDevMspDir() string {
 	devDir := GetDevConfigDir()
-	return filepath.Join(devDir, "msp")
+	return filepath.Join(devDir, "crypto", "SampleOrg", "msp")
 }
 
 func SetDevFabricConfigPath(t *testing.T) {
