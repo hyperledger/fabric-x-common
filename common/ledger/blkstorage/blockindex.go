@@ -21,7 +21,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
 	"github.com/hyperledger/fabric-x-common/common/ledger/util"
 	"github.com/hyperledger/fabric-x-common/common/ledger/util/leveldbhelper"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 )
 
 const (

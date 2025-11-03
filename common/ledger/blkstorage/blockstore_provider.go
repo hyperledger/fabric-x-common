@@ -15,7 +15,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/ledger/dataformat"
 	"github.com/hyperledger/fabric-x-common/common/ledger/util/leveldbhelper"
 	"github.com/hyperledger/fabric-x-common/common/util"
-	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
+	"github.com/hyperledger/fabric-x-common/tools/fileutil"
 )
 
 var logger = util.MustGetLogger("blkstorage")

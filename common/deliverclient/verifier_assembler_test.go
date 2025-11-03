@@ -19,17 +19,16 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
-	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
-	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
+	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 )
 
 func TestBlockVerifierAssembler(t *testing.T) {
 	certDir := t.TempDir()
 	tlsCA, err := tlsgen.NewCA()
 	require.NoError(t, err)
-	config := genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+	config := configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 	generateCertificatesSmartBFT(t, config, tlsCA, certDir)
-	group, err := encoder.NewChannelGroup(config)
+	group, err := configtxgen.NewChannelGroup(config)
 	require.NoError(t, err)
 	require.NotNil(t, group)
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
@@ -56,7 +55,8 @@ func TestBlockVerifierAssembler(t *testing.T) {
 	})
 }
 
-func generateCertificatesSmartBFT(t *testing.T, confAppSmartBFT *genesisconfig.Profile, tlsCA tlsgen.CA, certDir string) {
+func generateCertificatesSmartBFT(t *testing.T, confAppSmartBFT *configtxgen.Profile, tlsCA tlsgen.CA, certDir string) {
+	t.Helper()
 	for i, c := range confAppSmartBFT.Orderer.ConsenterMapping {
 		t.Logf("BFT Consenter: %+v", c)
 		srvC, err := tlsCA.NewServerCertKeyPair(c.Host)

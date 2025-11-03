@@ -18,9 +18,9 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/core/aclmgmt/mocks"
 	"github.com/hyperledger/fabric-x-common/core/policy"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
 	msptesttools "github.com/hyperledger/fabric-x-common/msp/mgmt/testtools"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/identity"
 )
 
 func newPolicyProvider(pEvaluator policyEvaluator) aclmgmtPolicyProvider {

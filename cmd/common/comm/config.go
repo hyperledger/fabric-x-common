@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/comm"
 )
 
 type genTLSCertFunc func() (*tlsgen.CertKeyPair, error)

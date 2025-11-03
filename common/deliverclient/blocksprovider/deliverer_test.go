@@ -17,8 +17,8 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
@@ -29,15 +29,14 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
-	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
-	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
-	. "github.com/hyperledger/fabric-x-common/internaltools/test"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
+	"github.com/hyperledger/fabric-x-common/tools/test"
 )
 
 const eventuallyTO = 20 * time.Second
 
-var _ = Describe("CFT-Deliverer", func() {
+var _ = ginkgo.Describe("CFT-Deliverer", func() {
 	var (
 		d                                  *blocksprovider.Deliverer
 		ccs                                []*grpc.ClientConn
@@ -61,10 +60,10 @@ var _ = Describe("CFT-Deliverer", func() {
 		channelConfig                      *common.Config
 	)
 
-	BeforeEach(func() {
+	ginkgo.BeforeEach(func() {
 		var err error
 		tempDir, err = os.MkdirTemp("", "deliverer")
-		Expect(err).NotTo(HaveOccurred())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 		doneC = make(chan struct{})
 		recvStep = make(chan struct{})
@@ -80,8 +79,8 @@ var _ = Describe("CFT-Deliverer", func() {
 			defer mutex.Unlock()
 			cc, err := grpc.Dial("localhost:6006", grpc.WithTransportCredentials(insecure.NewCredentials()))
 			ccs = append(ccs, cc)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cc.GetState()).NotTo(Equal(connectivity.Shutdown))
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+			gomega.Expect(cc.GetState()).NotTo(gomega.Equal(connectivity.Shutdown))
 			return cc, nil
 		}
 
@@ -125,7 +124,7 @@ var _ = Describe("CFT-Deliverer", func() {
 		fakeDurationExceededHandler.DurationExceededHandlerReturns(false)
 
 		channelConfig, fakeCryptoProvider, err = testSetup(tempDir, "CFT")
-		Expect(err).NotTo(HaveOccurred())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 		d = &blocksprovider.Deliverer{
 			ChannelID:                       "channel-id",
@@ -150,7 +149,7 @@ var _ = Describe("CFT-Deliverer", func() {
 		blocksprovider.SetSleeper(d, fakeSleeper)
 	})
 
-	JustBeforeEach(func() {
+	ginkgo.JustBeforeEach(func() {
 		endC = make(chan struct{})
 		go func() {
 			d.DeliverBlocks()
@@ -158,7 +157,7 @@ var _ = Describe("CFT-Deliverer", func() {
 		}()
 	})
 
-	AfterEach(func() {
+	ginkgo.AfterEach(func() {
 		d.Stop()
 		close(doneC)
 		<-endC
@@ -166,66 +165,66 @@ var _ = Describe("CFT-Deliverer", func() {
 		_ = os.RemoveAll(tempDir)
 	})
 
-	It("waits patiently for new blocks from the orderer", func() {
-		Consistently(endC).ShouldNot(BeClosed())
+	ginkgo.It("waits patiently for new blocks from the orderer", func() {
+		gomega.Consistently(endC).ShouldNot(gomega.BeClosed())
 		mutex.Lock()
 		defer mutex.Unlock()
-		Expect(ccs[0].GetState()).NotTo(Equal(connectivity.Shutdown))
+		gomega.Expect(ccs[0].GetState()).NotTo(gomega.Equal(connectivity.Shutdown))
 	})
 
-	It("checks the ledger height", func() {
-		Eventually(fakeLedgerInfo.LedgerHeightCallCount, eventuallyTO).Should(Equal(1))
+	ginkgo.It("checks the ledger height", func() {
+		gomega.Eventually(fakeLedgerInfo.LedgerHeightCallCount, eventuallyTO).Should(gomega.Equal(1))
 	})
 
-	When("the ledger returns an error", func() {
-		BeforeEach(func() {
+	ginkgo.When("the ledger returns an error", func() {
+		ginkgo.BeforeEach(func() {
 			fakeLedgerInfo.LedgerHeightReturns(0, fmt.Errorf("fake-ledger-error"))
 		})
 
-		It("exits the loop", func() {
-			Eventually(endC, eventuallyTO).Should(BeClosed())
+		ginkgo.It("exits the loop", func() {
+			gomega.Eventually(endC, eventuallyTO).Should(gomega.BeClosed())
 		})
 	})
 
-	It("signs the seek info request", func() {
-		Eventually(fakeSigner.SignCallCount, eventuallyTO).Should(Equal(1))
+	ginkgo.It("signs the seek info request", func() {
+		gomega.Eventually(fakeSigner.SignCallCount, eventuallyTO).Should(gomega.Equal(1))
 		// Note, the signer is used inside a util method
 		// which has its own set of tests, so checking the args
 		// in this test is unnecessary
 	})
 
-	When("the signer returns an error", func() {
-		BeforeEach(func() {
+	ginkgo.When("the signer returns an error", func() {
+		ginkgo.BeforeEach(func() {
 			fakeSigner.SignReturns(nil, fmt.Errorf("fake-signer-error"))
 		})
 
-		It("exits the loop", func() {
-			Eventually(endC, eventuallyTO).Should(BeClosed())
+		ginkgo.It("exits the loop", func() {
+			gomega.Eventually(endC, eventuallyTO).Should(gomega.BeClosed())
 		})
 	})
 
-	It("gets a random endpoint to connect to from the orderer connection source", func() {
-		Eventually(fakeOrdererConnectionSource.RandomEndpointCallCount,
-			eventuallyTO).Should(Equal(1))
+	ginkgo.It("gets a random endpoint to connect to from the orderer connection source", func() {
+		gomega.Eventually(fakeOrdererConnectionSource.RandomEndpointCallCount,
+			eventuallyTO).Should(gomega.Equal(1))
 	})
 
-	When("the orderer connection source returns an error", func() {
-		BeforeEach(func() {
+	ginkgo.When("the orderer connection source returns an error", func() {
+		ginkgo.BeforeEach(func() {
 			fakeOrdererConnectionSource.RandomEndpointReturnsOnCall(0, nil, fmt.Errorf("fake-endpoint-error"))
 			fakeOrdererConnectionSource.RandomEndpointReturnsOnCall(1, &orderers.Endpoint{
 				Address: "orderer-address",
 			}, nil)
 		})
 
-		It("sleeps and retries until a valid endpoint is selected", func() {
-			Eventually(fakeOrdererConnectionSource.RandomEndpointCallCount, eventuallyTO).Should(Equal(2))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(1))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
+		ginkgo.It("sleeps and retries until a valid endpoint is selected", func() {
+			gomega.Eventually(fakeOrdererConnectionSource.RandomEndpointCallCount, eventuallyTO).Should(gomega.Equal(2))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(1))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
 		})
 	})
 
-	When("the orderer connect is refreshed", func() {
-		BeforeEach(func() {
+	ginkgo.When("the orderer connect is refreshed", func() {
+		ginkgo.BeforeEach(func() {
 			refreshedC := make(chan struct{})
 			close(refreshedC)
 			fakeOrdererConnectionSource.RandomEndpointReturnsOnCall(0, &orderers.Endpoint{
@@ -237,89 +236,93 @@ var _ = Describe("CFT-Deliverer", func() {
 			}, nil)
 		})
 
-		It("does not sleep, but disconnects and immediately tries to reconnect", func() {
-			Eventually(fakeOrdererConnectionSource.RandomEndpointCallCount, eventuallyTO).Should(Equal(2))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(0))
+		ginkgo.It("does not sleep, but disconnects and immediately tries to reconnect", func() {
+			gomega.Eventually(fakeOrdererConnectionSource.RandomEndpointCallCount, eventuallyTO).Should(gomega.Equal(2))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(0))
 		})
 	})
 
-	It("dials the random endpoint", func() {
-		Eventually(fakeDialer.DialCallCount, eventuallyTO).Should(Equal(1))
+	ginkgo.It("dials the random endpoint", func() {
+		gomega.Eventually(fakeDialer.DialCallCount, eventuallyTO).Should(gomega.Equal(1))
 		addr, tlsCerts := fakeDialer.DialArgsForCall(0)
-		Expect(addr).To(Equal("orderer-address"))
-		Expect(tlsCerts).To(BeNil()) // TODO
+		gomega.Expect(addr).To(gomega.Equal("orderer-address"))
+		gomega.Expect(tlsCerts).To(gomega.BeNil()) // TODO
 	})
 
-	When("the dialer returns an error", func() {
-		BeforeEach(func() {
+	ginkgo.When("the dialer returns an error", func() {
+		ginkgo.BeforeEach(func() {
 			fakeDialer.DialReturnsOnCall(0, nil, fmt.Errorf("fake-dial-error"))
 			cc, err := grpc.Dial("localhost:6006", grpc.WithTransportCredentials(insecure.NewCredentials()))
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			fakeDialer.DialReturnsOnCall(1, cc, nil)
 		})
 
-		It("sleeps and retries until dial is successful", func() {
-			Eventually(fakeDialer.DialCallCount, eventuallyTO).Should(Equal(2))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(1))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
+		ginkgo.It("sleeps and retries until dial is successful", func() {
+			gomega.Eventually(fakeDialer.DialCallCount, eventuallyTO).Should(gomega.Equal(2))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(1))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
 		})
 	})
 
-	It("constructs a deliver client", func() {
-		Eventually(fakeDeliverStreamer.DeliverCallCount, eventuallyTO).Should(Equal(1))
+	ginkgo.It("constructs a deliver client", func() {
+		gomega.Eventually(fakeDeliverStreamer.DeliverCallCount, eventuallyTO).Should(gomega.Equal(1))
 	})
 
-	When("the deliver client cannot be created", func() {
-		BeforeEach(func() {
+	ginkgo.When("the deliver client cannot be created", func() {
+		ginkgo.BeforeEach(func() {
 			fakeDeliverStreamer.DeliverReturnsOnCall(0, nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(1, fakeDeliverClient, nil)
 		})
 
-		It("closes the grpc connection, sleeps, and tries again", func() {
-			Eventually(fakeDeliverStreamer.DeliverCallCount, eventuallyTO).Should(Equal(2))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(1))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
+		ginkgo.It("closes the grpc connection, sleeps, and tries again", func() {
+			gomega.Eventually(fakeDeliverStreamer.DeliverCallCount, eventuallyTO).Should(gomega.Equal(2))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(1))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
 		})
 	})
 
-	When("there are consecutive errors", func() {
-		BeforeEach(func() {
+	//nolint:dupl // 425-440 lines are duplicate of 285-300.
+	ginkgo.When("there are consecutive errors", func() {
+		ginkgo.BeforeEach(func() {
 			fakeDeliverStreamer.DeliverReturnsOnCall(0, nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(1, nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(2, nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(3, fakeDeliverClient, nil)
 		})
 
-		It("sleeps in an exponential fashion and retries until dial is successful", func() {
-			Eventually(fakeDeliverStreamer.DeliverCallCount, eventuallyTO).Should(Equal(4))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(3))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(1)).To(Equal(120 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(2)).To(Equal(144 * time.Millisecond))
+		ginkgo.It("sleeps in an exponential fashion and retries until dial is successful", func() {
+			gomega.Eventually(fakeDeliverStreamer.DeliverCallCount, eventuallyTO).Should(gomega.Equal(4))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(3))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(1)).To(gomega.Equal(120 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(2)).To(gomega.Equal(144 * time.Millisecond))
 		})
 	})
 
-	When("the consecutive errors are unbounded and the peer is not a static leader", func() {
-		BeforeEach(func() {
+	ginkgo.When("the consecutive errors are unbounded and the peer is not a static leader", func() {
+		ginkgo.BeforeEach(func() {
 			fakeDurationExceededHandler.DurationExceededHandlerReturns(true)
 			fakeDeliverStreamer.DeliverReturns(nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(500, fakeDeliverClient, nil)
 		})
 
-		It("hits the maximum sleep time value in an exponential fashion and retries until exceeding the max retry duration", func() {
-			Eventually(fakeDurationExceededHandler.DurationExceededHandlerCallCount, eventuallyTO).Should(BeNumerically(">", 0))
-			Eventually(endC, eventuallyTO).Should(BeClosed())
-			Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(Equal(380))
-			Expect(fakeSleeper.SleepArgsForCall(25)).To(Equal(9539 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(26)).To(Equal(10 * time.Second))
-			Expect(fakeSleeper.SleepArgsForCall(27)).To(Equal(10 * time.Second))
-			Expect(fakeSleeper.SleepArgsForCall(379)).To(Equal(10 * time.Second))
-			Expect(fakeDurationExceededHandler.DurationExceededHandlerCallCount()).Should(Equal(1))
+		ginkgo.It("hits the maximum sleep time value in an exponential fashion and retries until exceeding "+
+			"the max retry duration", func() {
+			gomega.Eventually(fakeDurationExceededHandler.DurationExceededHandlerCallCount, eventuallyTO).Should(
+				gomega.BeNumerically(">", 0),
+			)
+			gomega.Eventually(endC, eventuallyTO).Should(gomega.BeClosed())
+			gomega.Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(gomega.Equal(380))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(25)).To(gomega.Equal(9539 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(26)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(27)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(379)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeDurationExceededHandler.DurationExceededHandlerCallCount()).Should(gomega.Equal(1))
 		})
 	})
 
-	When("the consecutive errors are coming in short bursts and the peer is not a static leader", func() {
-		BeforeEach(func() {
+	ginkgo.When("the consecutive errors are coming in short bursts and the peer is not a static leader", func() {
+		ginkgo.BeforeEach(func() {
 			// appease the race detector
 			doneC := doneC
 			recvStep := recvStep
@@ -383,87 +386,91 @@ var _ = Describe("CFT-Deliverer", func() {
 			fakeDurationExceededHandler.DurationExceededHandlerReturns(true)
 		})
 
-		It("hits the maximum sleep time value in an exponential fashion and retries but does not exceed the max retry duration", func() {
-			Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(Equal(897))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(25)).To(Equal(9539 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(26)).To(Equal(10 * time.Second))
-			Expect(fakeSleeper.SleepArgsForCall(27)).To(Equal(10 * time.Second))
-			Expect(fakeSleeper.SleepArgsForCall(298)).To(Equal(10 * time.Second))
-			Expect(fakeSleeper.SleepArgsForCall(299)).To(Equal(100 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(2*299 - 1)).To(Equal(10 * time.Second))
-			Expect(fakeSleeper.SleepArgsForCall(2 * 299)).To(Equal(100 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(3*299 - 1)).To(Equal(10 * time.Second))
+		ginkgo.It("hits the maximum sleep time value in an exponential fashion and retries but does not "+
+			"exceed the max retry duration", func() {
+			gomega.Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(gomega.Equal(897))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(25)).To(gomega.Equal(9539 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(26)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(27)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(298)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(299)).To(gomega.Equal(100 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(2*299 - 1)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(2 * 299)).To(gomega.Equal(100 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(3*299 - 1)).To(gomega.Equal(10 * time.Second))
 
-			Expect(fakeDurationExceededHandler.DurationExceededHandlerCallCount()).Should(Equal(0))
+			gomega.Expect(fakeDurationExceededHandler.DurationExceededHandlerCallCount()).Should(gomega.Equal(0))
 		})
 	})
 
-	When("the consecutive errors are unbounded and the peer is static leader", func() {
-		BeforeEach(func() {
+	ginkgo.When("the consecutive errors are unbounded and the peer is static leader", func() {
+		ginkgo.BeforeEach(func() {
 			fakeDeliverStreamer.DeliverReturns(nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(500, fakeDeliverClient, nil)
 		})
 
-		It("hits the maximum sleep time value in an exponential fashion and retries indefinitely", func() {
-			Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(Equal(500))
-			Expect(fakeSleeper.SleepArgsForCall(25)).To(Equal(9539 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(26)).To(Equal(10 * time.Second))
-			Expect(fakeSleeper.SleepArgsForCall(27)).To(Equal(10 * time.Second))
-			Expect(fakeSleeper.SleepArgsForCall(499)).To(Equal(10 * time.Second))
-			Eventually(fakeDurationExceededHandler.DurationExceededHandlerCallCount, eventuallyTO).Should(Equal(120))
+		ginkgo.It("hits the maximum sleep time value in an exponential fashion and retries indefinitely", func() {
+			gomega.Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(gomega.Equal(500))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(25)).To(gomega.Equal(9539 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(26)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(27)).To(gomega.Equal(10 * time.Second))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(499)).To(gomega.Equal(10 * time.Second))
+			gomega.Eventually(fakeDurationExceededHandler.DurationExceededHandlerCallCount, eventuallyTO).Should(
+				gomega.Equal(120),
+			)
 		})
 	})
 
-	When("an error occurs, then a block is successfully delivered", func() {
-		BeforeEach(func() {
+	//nolint:dupl // 425-440 lines are duplicate of 285-300.
+	ginkgo.When("an error occurs, then a block is successfully delivered", func() {
+		ginkgo.BeforeEach(func() {
 			fakeDeliverStreamer.DeliverReturnsOnCall(0, nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(1, nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(2, nil, fmt.Errorf("deliver-error"))
 			fakeDeliverStreamer.DeliverReturnsOnCall(3, fakeDeliverClient, nil)
 		})
 
-		It("sleeps in an exponential fashion and retries until dial is successful", func() {
-			Eventually(fakeDeliverStreamer.DeliverCallCount, eventuallyTO).Should(Equal(4))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(3))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(1)).To(Equal(120 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(2)).To(Equal(144 * time.Millisecond))
+		ginkgo.It("sleeps in an exponential fashion and retries until dial is successful", func() {
+			gomega.Eventually(fakeDeliverStreamer.DeliverCallCount, eventuallyTO).Should(gomega.Equal(4))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(3))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(1)).To(gomega.Equal(120 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(2)).To(gomega.Equal(144 * time.Millisecond))
 		})
 	})
 
-	It("sends a request to the deliver client for new blocks", func() {
-		Eventually(fakeDeliverClient.SendCallCount, eventuallyTO).Should(Equal(1))
+	ginkgo.It("sends a request to the deliver client for new blocks", func() {
+		gomega.Eventually(fakeDeliverClient.SendCallCount, eventuallyTO).Should(gomega.Equal(1))
 		mutex.Lock()
 		defer mutex.Unlock()
-		Expect(len(ccs)).To(Equal(1))
+		gomega.Expect(ccs).To(gomega.HaveLen(1))
 	})
 
-	When("the send fails", func() {
-		BeforeEach(func() {
+	ginkgo.When("the send fails", func() {
+		ginkgo.BeforeEach(func() {
 			fakeDeliverClient.SendReturnsOnCall(0, fmt.Errorf("fake-send-error"))
 			fakeDeliverClient.SendReturnsOnCall(1, nil)
 			fakeDeliverClient.CloseSendStub = nil
 		})
 
-		It("disconnects, sleeps and retries until the send is successful", func() {
-			Eventually(fakeDeliverClient.SendCallCount, eventuallyTO).Should(Equal(2))
-			Expect(fakeDeliverClient.CloseSendCallCount()).To(Equal(1))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(1))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
+		ginkgo.It("disconnects, sleeps and retries until the send is successful", func() {
+			gomega.Eventually(fakeDeliverClient.SendCallCount, eventuallyTO).Should(gomega.Equal(2))
+			gomega.Expect(fakeDeliverClient.CloseSendCallCount()).To(gomega.Equal(1))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(1))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
 			mutex.Lock()
 			defer mutex.Unlock()
-			Expect(len(ccs)).To(Equal(2))
-			Eventually(ccs[0].GetState, eventuallyTO).Should(Equal(connectivity.Shutdown))
+			gomega.Expect(ccs).To(gomega.HaveLen(2))
+			gomega.Eventually(ccs[0].GetState, eventuallyTO).Should(gomega.Equal(connectivity.Shutdown))
 		})
 	})
 
-	It("attempts to read blocks from the deliver stream", func() {
-		Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(Equal(1))
+	ginkgo.It("attempts to read blocks from the deliver stream", func() {
+		gomega.Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(gomega.Equal(1))
 	})
 
-	When("reading blocks from the deliver stream fails", func() {
-		BeforeEach(func() {
+	ginkgo.When("reading blocks from the deliver stream fails", func() {
+		ginkgo.BeforeEach(func() {
 			// appease the race detector
 			doneC := doneC
 			recvStep := recvStep
@@ -483,15 +490,15 @@ var _ = Describe("CFT-Deliverer", func() {
 			}
 		})
 
-		It("disconnects, sleeps, and retries until the recv is successful", func() {
-			Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(Equal(2))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(1))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
+		ginkgo.It("disconnects, sleeps, and retries until the recv is successful", func() {
+			gomega.Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(gomega.Equal(2))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(1))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
 		})
 	})
 
-	When("reading blocks from the deliver stream fails and then recovers", func() {
-		BeforeEach(func() {
+	ginkgo.When("reading blocks from the deliver stream fails and then recovers", func() {
+		ginkgo.BeforeEach(func() {
 			// appease the race detector
 			doneC := doneC
 			recvStep := recvStep
@@ -531,17 +538,17 @@ var _ = Describe("CFT-Deliverer", func() {
 			}
 		})
 
-		It("disconnects, sleeps, and retries until the recv is successful and resets the failure count", func() {
-			Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(Equal(5))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(3))
-			Expect(fakeSleeper.SleepArgsForCall(0)).To(Equal(100 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(1)).To(Equal(120 * time.Millisecond))
-			Expect(fakeSleeper.SleepArgsForCall(2)).To(Equal(100 * time.Millisecond))
+		ginkgo.It("disconnects, sleeps, and retries until the recv is successful and resets the failure count", func() {
+			gomega.Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(gomega.Equal(5))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(3))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(0)).To(gomega.Equal(100 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(1)).To(gomega.Equal(120 * time.Millisecond))
+			gomega.Expect(fakeSleeper.SleepArgsForCall(2)).To(gomega.Equal(100 * time.Millisecond))
 		})
 	})
 
-	When("the deliver client returns a block", func() {
-		BeforeEach(func() {
+	ginkgo.When("the deliver client returns a block", func() {
+		ginkgo.BeforeEach(func() {
 			// appease the race detector
 			doneC := doneC
 			recvStep := recvStep
@@ -568,41 +575,41 @@ var _ = Describe("CFT-Deliverer", func() {
 			}
 		})
 
-		It("receives the block and loops, not sleeping", func() {
-			Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(Equal(2))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(0))
+		ginkgo.It("receives the block and loops, not sleeping", func() {
+			gomega.Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(gomega.Equal(2))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(0))
 		})
 
-		It("checks the validity of the block", func() {
-			Eventually(fakeUpdatableBlockVerifier.VerifyBlockCallCount, eventuallyTO).Should(Equal(1))
+		ginkgo.It("checks the validity of the block", func() {
+			gomega.Eventually(fakeUpdatableBlockVerifier.VerifyBlockCallCount, eventuallyTO).Should(gomega.Equal(1))
 			block := fakeUpdatableBlockVerifier.VerifyBlockArgsForCall(0)
-			Expect(block).To(ProtoEqual(&common.Block{
+			gomega.Expect(block).To(test.ProtoEqual(&common.Block{
 				Header: &common.BlockHeader{
 					Number: 8,
 				},
 			}))
 		})
 
-		When("the block is invalid", func() {
-			BeforeEach(func() {
+		ginkgo.When("the block is invalid", func() {
+			ginkgo.BeforeEach(func() {
 				fakeUpdatableBlockVerifier.VerifyBlockReturns(fmt.Errorf("fake-verify-error"))
 			})
 
-			It("disconnects, sleeps, and tries again", func() {
-				Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(Equal(1))
-				Expect(fakeDeliverClient.CloseSendCallCount()).To(Equal(1))
+			ginkgo.It("disconnects, sleeps, and tries again", func() {
+				gomega.Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(gomega.Equal(1))
+				gomega.Expect(fakeDeliverClient.CloseSendCallCount()).To(gomega.Equal(1))
 				mutex.Lock()
 				defer mutex.Unlock()
-				Expect(len(ccs)).To(Equal(2))
+				gomega.Expect(ccs).To(gomega.HaveLen(2))
 			})
 		})
 
-		When("the block is valid", func() {
-			It("handle the block", func() {
-				Eventually(fakeBlockHandler.HandleBlockCallCount, eventuallyTO).Should(Equal(1))
+		ginkgo.When("the block is valid", func() {
+			ginkgo.It("handle the block", func() {
+				gomega.Eventually(fakeBlockHandler.HandleBlockCallCount, eventuallyTO).Should(gomega.Equal(1))
 				channelID, block := fakeBlockHandler.HandleBlockArgsForCall(0)
-				Expect(channelID).To(Equal("channel-id"))
-				Expect(block).To(Equal(&common.Block{
+				gomega.Expect(channelID).To(gomega.Equal("channel-id"))
+				gomega.Expect(block).To(gomega.Equal(&common.Block{
 					Header: &common.BlockHeader{
 						Number: 8,
 					},
@@ -611,25 +618,25 @@ var _ = Describe("CFT-Deliverer", func() {
 			})
 		})
 
-		When("handling the block fails", func() {
-			BeforeEach(func() {
+		ginkgo.When("handling the block fails", func() {
+			ginkgo.BeforeEach(func() {
 				fakeBlockHandler.HandleBlockReturns(fmt.Errorf("payload-error"))
 			})
 
-			It("disconnects, sleeps, and tries again", func() {
-				Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(Equal(1))
-				Expect(fakeDeliverClient.CloseSendCallCount()).To(Equal(1))
+			ginkgo.It("disconnects, sleeps, and tries again", func() {
+				gomega.Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(gomega.Equal(1))
+				gomega.Expect(fakeDeliverClient.CloseSendCallCount()).To(gomega.Equal(1))
 				mutex.Lock()
 				defer mutex.Unlock()
-				Expect(len(ccs)).To(Equal(2))
+				gomega.Expect(ccs).To(gomega.HaveLen(2))
 			})
 		})
 	})
 
-	When("the deliver client returns a config block", func() {
+	ginkgo.When("the deliver client returns a config block", func() {
 		var env *common.Envelope
 
-		BeforeEach(func() {
+		ginkgo.BeforeEach(func() {
 			// appease the race detector
 			doneC := doneC
 			recvStep := recvStep
@@ -672,15 +679,15 @@ var _ = Describe("CFT-Deliverer", func() {
 			}
 		})
 
-		It("receives the block and loops, not sleeping", func() {
-			Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(Equal(2))
-			Expect(fakeSleeper.SleepCallCount()).To(Equal(0))
+		ginkgo.It("receives the block and loops, not sleeping", func() {
+			gomega.Eventually(fakeDeliverClient.RecvCallCount, eventuallyTO).Should(gomega.Equal(2))
+			gomega.Expect(fakeSleeper.SleepCallCount()).To(gomega.Equal(0))
 		})
 
-		It("checks the validity of the block", func() {
-			Eventually(fakeUpdatableBlockVerifier.VerifyBlockCallCount, eventuallyTO).Should(Equal(1))
+		ginkgo.It("checks the validity of the block", func() {
+			gomega.Eventually(fakeUpdatableBlockVerifier.VerifyBlockCallCount, eventuallyTO).Should(gomega.Equal(1))
 			block := fakeUpdatableBlockVerifier.VerifyBlockArgsForCall(0)
-			Expect(block).To(ProtoEqual(&common.Block{
+			gomega.Expect(block).To(test.ProtoEqual(&common.Block{
 				Header: &common.BlockHeader{Number: 8},
 				Data: &common.BlockData{
 					Data: [][]byte{protoutil.MarshalOrPanic(env)},
@@ -688,37 +695,39 @@ var _ = Describe("CFT-Deliverer", func() {
 			}))
 		})
 
-		It("handle the block and updates the verifier config", func() {
-			Eventually(fakeBlockHandler.HandleBlockCallCount, eventuallyTO).Should(Equal(1))
+		ginkgo.It("handle the block and updates the verifier config", func() {
+			gomega.Eventually(fakeBlockHandler.HandleBlockCallCount, eventuallyTO).Should(gomega.Equal(1))
 			channelID, block := fakeBlockHandler.HandleBlockArgsForCall(0)
-			Expect(channelID).To(Equal("channel-id"))
-			Expect(block).To(ProtoEqual(&common.Block{
+			gomega.Expect(channelID).To(gomega.Equal("channel-id"))
+			gomega.Expect(block).To(test.ProtoEqual(&common.Block{
 				Header: &common.BlockHeader{Number: 8},
 				Data: &common.BlockData{
 					Data: [][]byte{protoutil.MarshalOrPanic(env)},
 				},
 			},
 			))
-			Eventually(fakeUpdatableBlockVerifier.VerifyBlockCallCount, eventuallyTO).Should(Equal(1))
+			gomega.Eventually(fakeUpdatableBlockVerifier.VerifyBlockCallCount, eventuallyTO).Should(gomega.Equal(1))
 		})
 
-		It("updates the orderer connection source", func() {
-			Eventually(fakeOrdererConnectionSource.UpdateCallCount, eventuallyTO).Should(Equal(1))
+		ginkgo.It("updates the orderer connection source", func() {
+			gomega.Eventually(fakeOrdererConnectionSource.UpdateCallCount, eventuallyTO).Should(gomega.Equal(1))
 			globalAddresses, orgsAddresses := fakeOrdererConnectionSource.UpdateArgsForCall(0)
-			Expect(globalAddresses).To(BeNil())
-			Expect(orgsAddresses).ToNot(BeNil())
-			Expect(len(orgsAddresses)).To(Equal(1))
+			gomega.Expect(globalAddresses).To(gomega.BeNil())
+			gomega.Expect(orgsAddresses).ToNot(gomega.BeNil())
+			gomega.Expect(orgsAddresses).To(gomega.HaveLen(1))
 			orgAddr, ok := orgsAddresses["SampleOrg"]
-			Expect(ok).To(BeTrue())
-			Expect(orgAddr.Addresses).To(Equal([]string{"127.0.0.1:7050", "127.0.0.1:7051", "127.0.0.1:7052"}))
-			Expect(len(orgAddr.RootCerts)).To(Equal(2))
+			gomega.Expect(ok).To(gomega.BeTrue())
+			gomega.Expect(orgAddr.Addresses).To(gomega.Equal([]string{
+				"127.0.0.1:7050", "127.0.0.1:7051", "127.0.0.1:7052",
+			}))
+			gomega.Expect(orgAddr.RootCerts).To(gomega.HaveLen(2))
 		})
 	})
 
-	When("the deliver client returns a status", func() {
+	ginkgo.When("the deliver client returns a status", func() {
 		var status common.Status
 
-		BeforeEach(func() {
+		ginkgo.BeforeEach(func() {
 			// appease the race detector
 			doneC := doneC
 			recvStep := recvStep
@@ -742,24 +751,25 @@ var _ = Describe("CFT-Deliverer", func() {
 			}
 		})
 
-		It("disconnects with an error, and sleeps because the block request is infinite and should never complete", func() {
-			Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(Equal(1))
+		ginkgo.It("disconnects with an error, and sleeps because the block request is infinite and "+
+			"should never complete", func() {
+			gomega.Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(gomega.Equal(1))
 		})
 
-		When("the status is not successful", func() {
-			BeforeEach(func() {
+		ginkgo.When("the status is not successful", func() {
+			ginkgo.BeforeEach(func() {
 				status = common.Status_FORBIDDEN
 			})
 
-			It("still disconnects with an error", func() {
-				Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(Equal(1))
+			ginkgo.It("still disconnects with an error", func() {
+				gomega.Eventually(fakeSleeper.SleepCallCount, eventuallyTO).Should(gomega.Equal(1))
 			})
 		})
 	})
 })
 
 func testSetup(certDir string, consensusClass string) (*common.Config, bccsp.BCCSP, error) {
-	var configProfile *genesisconfig.Profile
+	var configProfile *configtxgen.Profile
 	tlsCA, err := tlsgen.NewCA()
 	if err != nil {
 		return nil, nil, err
@@ -767,10 +777,10 @@ func testSetup(certDir string, consensusClass string) (*common.Config, bccsp.BCC
 
 	switch consensusClass {
 	case "CFT":
-		configProfile = genesisconfig.Load(genesisconfig.SampleAppChannelEtcdRaftProfile, configtest.GetDevConfigDir())
+		configProfile = configtxgen.Load(configtxgen.SampleAppChannelEtcdRaftProfile, configtest.GetDevConfigDir())
 		err = generateCertificates(configProfile, tlsCA, certDir)
 	case "BFT":
-		configProfile = genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+		configProfile = configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 		err = generateCertificatesSmartBFT(configProfile, tlsCA, certDir)
 	default:
 		err = fmt.Errorf("expected CFT or BFT")
@@ -780,7 +790,7 @@ func testSetup(certDir string, consensusClass string) (*common.Config, bccsp.BCC
 		return nil, nil, err
 	}
 
-	bootstrapper, err := encoder.NewBootstrapper(configProfile)
+	bootstrapper, err := configtxgen.NewBootstrapper(configProfile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -795,7 +805,7 @@ func testSetup(certDir string, consensusClass string) (*common.Config, bccsp.BCC
 
 // TODO this pattern repeats itself in several places. Make it common in the 'genesisconfig' package to easily create
 // Raft genesis blocks
-func generateCertificates(confAppRaft *genesisconfig.Profile, tlsCA tlsgen.CA, certDir string) error {
+func generateCertificates(confAppRaft *configtxgen.Profile, tlsCA tlsgen.CA, certDir string) error {
 	for i, c := range confAppRaft.Orderer.EtcdRaft.Consenters {
 		srvC, err := tlsCA.NewServerCertKeyPair(c.Host)
 		if err != nil {
@@ -824,7 +834,7 @@ func generateCertificates(confAppRaft *genesisconfig.Profile, tlsCA tlsgen.CA, c
 	return nil
 }
 
-func generateCertificatesSmartBFT(confAppSmartBFT *genesisconfig.Profile, tlsCA tlsgen.CA, certDir string) error {
+func generateCertificatesSmartBFT(confAppSmartBFT *configtxgen.Profile, tlsCA tlsgen.CA, certDir string) error {
 	for i, c := range confAppSmartBFT.Orderer.ConsenterMapping {
 		srvC, err := tlsCA.NewServerCertKeyPair(c.Host)
 		if err != nil {

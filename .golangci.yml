@@ -143,6 +143,9 @@ linters:
           arguments:
             - fmt.Printf
             - fmt.Println
+            - strings.Builder.WriteString
+            - strings.Builder.WriteByte
+            - strings.Builder.Write
         - name: confusing-naming
           disabled: true
         - name: comment-spacings
@@ -226,3 +229,7 @@ formatters:
         - github.com/hyperledger/fabric-x-common
   exclusions:
     generated: lax
+sort-order:
+  - file # filepath, line, and column.
+  - severity
+  - linter

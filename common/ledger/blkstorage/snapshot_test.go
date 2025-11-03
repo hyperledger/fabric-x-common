@@ -19,8 +19,8 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 )
 
 type testBlockDetails struct {

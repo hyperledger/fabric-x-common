@@ -21,18 +21,17 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
-	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/encoder"
-	"github.com/hyperledger/fabric-x-common/internaltools/configtxgen/genesisconfig"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 )
 
 func TestNewBlockVerificationAssistantFromConfig(t *testing.T) {
 	certDir := t.TempDir()
 	tlsCA, err := tlsgen.NewCA()
 	require.NoError(t, err)
-	configProfile := genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+	configProfile := configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 	generateCertificatesSmartBFT(t, configProfile, tlsCA, certDir)
-	group, err := encoder.NewChannelGroup(configProfile)
+	group, err := configtxgen.NewChannelGroup(configProfile)
 	require.NoError(t, err)
 	require.NotNil(t, group)
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
@@ -78,9 +77,9 @@ func TestNewBlockVerificationAssistantFromConfigBlock(t *testing.T) {
 	certDir := t.TempDir()
 	tlsCA, err := tlsgen.NewCA()
 	require.NoError(t, err)
-	configProfile := genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+	configProfile := configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 	generateCertificatesSmartBFT(t, configProfile, tlsCA, certDir)
-	group, err := encoder.NewChannelGroup(configProfile)
+	group, err := configtxgen.NewChannelGroup(configProfile)
 	require.NoError(t, err)
 	require.NotNil(t, group)
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
@@ -145,9 +144,9 @@ func TestBlockVerificationAssistant_VerifyBlock(t *testing.T) {
 	certDir := t.TempDir()
 	tlsCA, err := tlsgen.NewCA()
 	require.NoError(t, err)
-	configProfile := genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+	configProfile := configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 	generateCertificatesSmartBFT(t, configProfile, tlsCA, certDir)
-	group, err := encoder.NewChannelGroup(configProfile)
+	group, err := configtxgen.NewChannelGroup(configProfile)
 	require.NoError(t, err)
 	require.NotNil(t, group)
 	config := &common.Config{ChannelGroup: group}
@@ -350,9 +349,9 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 	certDir := t.TempDir()
 	tlsCA, err := tlsgen.NewCA()
 	require.NoError(t, err)
-	configProfile := genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+	configProfile := configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 	generateCertificatesSmartBFT(t, configProfile, tlsCA, certDir)
-	group, err := encoder.NewChannelGroup(configProfile)
+	group, err := configtxgen.NewChannelGroup(configProfile)
 	require.NoError(t, err)
 	require.NotNil(t, group)
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
@@ -450,9 +449,9 @@ func TestBlockVerificationAssistant_UpdateBlockHeader(t *testing.T) {
 	certDir := t.TempDir()
 	tlsCA, err := tlsgen.NewCA()
 	require.NoError(t, err)
-	configProfile := genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+	configProfile := configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 	generateCertificatesSmartBFT(t, configProfile, tlsCA, certDir)
-	group, err := encoder.NewChannelGroup(configProfile)
+	group, err := configtxgen.NewChannelGroup(configProfile)
 	require.NoError(t, err)
 	require.NotNil(t, group)
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
@@ -475,9 +474,9 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 	certDir := t.TempDir()
 	tlsCA, err := tlsgen.NewCA()
 	require.NoError(t, err)
-	configProfile := genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+	configProfile := configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 	generateCertificatesSmartBFT(t, configProfile, tlsCA, certDir)
-	group, err := encoder.NewChannelGroup(configProfile)
+	group, err := configtxgen.NewChannelGroup(configProfile)
 	require.NoError(t, err)
 	require.NotNil(t, group)
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
@@ -552,9 +551,9 @@ func TestBlockVerificationAssistant_Clone(t *testing.T) {
 	certDir := t.TempDir()
 	tlsCA, err := tlsgen.NewCA()
 	require.NoError(t, err)
-	configProfile := genesisconfig.Load(genesisconfig.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
+	configProfile := configtxgen.Load(configtxgen.SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 	generateCertificatesSmartBFT(t, configProfile, tlsCA, certDir)
-	group, err := encoder.NewChannelGroup(configProfile)
+	group, err := configtxgen.NewChannelGroup(configProfile)
 	require.NoError(t, err)
 	require.NotNil(t, group)
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
@@ -576,7 +575,8 @@ func TestBlockVerificationAssistant_Clone(t *testing.T) {
 	require.Equal(t, assistant.logger, cloned.logger)
 }
 
-func generateCertificatesSmartBFT(t *testing.T, confAppSmartBFT *genesisconfig.Profile, tlsCA tlsgen.CA, certDir string) {
+func generateCertificatesSmartBFT(t *testing.T, confAppSmartBFT *configtxgen.Profile, tlsCA tlsgen.CA, certDir string) {
+	t.Helper()
 	for i, c := range confAppSmartBFT.Orderer.ConsenterMapping {
 		t.Logf("BFT Consenter: %+v", c)
 		srvC, err := tlsCA.NewServerCertKeyPair(c.Host)
