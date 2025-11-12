@@ -21,8 +21,8 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
 	commonledgerutil "github.com/hyperledger/fabric-x-common/common/ledger/util"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 )
 
 var testNewHashFunc = func() (hash.Hash, error) {

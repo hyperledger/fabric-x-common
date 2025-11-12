@@ -14,7 +14,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric-x-common/common/util"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/comm"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/comm"
 )
 
 const defaultTimeout = time.Second * 5

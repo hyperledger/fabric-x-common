@@ -17,7 +17,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/common/configtx/test"
 	"github.com/hyperledger/fabric-x-common/common/crypto"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/txflags"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 
 	"github.com/stretchr/testify/require"
 
