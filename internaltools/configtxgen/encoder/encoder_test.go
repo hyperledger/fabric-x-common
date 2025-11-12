@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/hyperledger/fabric-x-common/api/types"
 	. "github.com/hyperledger/fabric-x-common/internaltools/test"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -353,12 +354,15 @@ var _ = Describe("Encoder", func() {
 				OrdererType: "solo",
 				Organizations: []*genesisconfig.Organization{
 					{
-						MSPDir:           "../../../sampleconfig/msp",
-						ID:               "SampleMSP",
-						MSPType:          "bccsp",
-						Name:             "SampleOrg",
-						Policies:         CreateStandardPolicies(),
-						OrdererEndpoints: []string{"foo:7050", "bar:8050"},
+						MSPDir:   "../../../sampleconfig/msp",
+						ID:       "SampleMSP",
+						MSPType:  "bccsp",
+						Name:     "SampleOrg",
+						Policies: CreateStandardPolicies(),
+						OrdererEndpoints: []*types.OrdererEndpoint{
+							{Host: "foo", Port: 7050},
+							{Host: "bar", Port: 8050},
+						},
 					},
 				},
 				Policies: CreateStandardOrdererPolicies(),
@@ -670,9 +674,9 @@ var _ = Describe("Encoder", func() {
 				MSPType:  "bccsp",
 				Name:     "SampleOrg",
 				Policies: CreateStandardPolicies(),
-				OrdererEndpoints: []string{
-					"foo:7050",
-					"bar:8050",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{Host: "foo", Port: 7050},
+					{Host: "bar", Port: 8050},
 				},
 			}
 		})
@@ -715,7 +719,7 @@ var _ = Describe("Encoder", func() {
 
 		Context("when there are no ordering endpoints", func() {
 			BeforeEach(func() {
-				conf.OrdererEndpoints = []string{}
+				conf.OrdererEndpoints = []*types.OrdererEndpoint{}
 			})
 
 			It("does not include the endpoints in the config group with v2_0", func() {

@@ -15,6 +15,8 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/stretchr/testify/require"
+
+	"github.com/hyperledger/fabric-x-common/api/types"
 )
 
 const (
@@ -23,37 +25,26 @@ const (
 )
 
 func TestEnvSlice(t *testing.T) {
-	type testSlice struct {
-		Inner struct {
-			Slice []string
-		}
-	}
-
-	envVar := testEnvPrefix + "_INNER_SLICE"
+	envVar := testEnvPrefix + "_SLICE"
 	t.Setenv(envVar, "[a, b, c]")
 
-	data := "---\nInner:\n    Slice: [d,e,f]"
+	data := "---\nSlice: [d,e,f]"
 
 	config := New()
 	config.SetConfigName(testConfigName)
 	err := config.ReadConfig(strings.NewReader(data))
 	require.NoError(t, err, "error reading %s plugin config", testConfigName)
 
-	var uconf testSlice
-	err = config.EnhancedExactUnmarshal(&uconf)
+	var conf struct{ Slice []string }
+	err = config.EnhancedExactUnmarshal(&conf)
 	require.NoError(t, err, "failed to unmarshal")
 
 	expected := []string{"a", "b", "c"}
-	require.Exactly(t, expected, uconf.Inner.Slice, "did not get the expected slice")
-}
-
-type testByteSize struct {
-	Inner struct {
-		ByteSize uint32
-	}
+	require.Exactly(t, expected, conf.Slice, "did not get the expected slice")
 }
 
 func TestByteSize(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		data     string
 		expected uint32
@@ -79,34 +70,61 @@ func TestByteSize(t *testing.T) {
 		{"3 G", 3 * 1024 * 1024 * 1024},
 		{"3 GB", 3 * 1024 * 1024 * 1024},
 	}
-
 	for _, tc := range testCases {
 		t.Run(tc.data, func(t *testing.T) {
-			data := fmt.Sprintf("---\nInner:\n    ByteSize: %s", tc.data)
+			t.Parallel()
+			data := fmt.Sprintf("---\nByteSize: %s", tc.data)
 
 			config := New()
 			err := config.ReadConfig(strings.NewReader(data))
 			require.NoError(t, err, "error reading config")
 
-			var uconf testByteSize
-			err = config.EnhancedExactUnmarshal(&uconf)
+			var conf struct{ ByteSize uint32 }
+			err = config.EnhancedExactUnmarshal(&conf)
 			require.NoError(t, err, "failed to unmarshal")
-			require.Exactly(t, tc.expected, uconf.Inner.ByteSize, "incorrect byte size")
+			require.Exactly(t, tc.expected, conf.ByteSize, "incorrect byte size")
+		})
+	}
+}
+
+func TestByteSize64(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		data     string
+		expected uint64
+	}{
+		{"8 GB", 8 * 1024 * 1024 * 1024},
+		{"128 GB", 128 * 1024 * 1024 * 1024},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.data, func(t *testing.T) {
+			t.Parallel()
+			data := fmt.Sprintf("---\nByteSize: %s", tc.data)
+
+			config := New()
+			err := config.ReadConfig(strings.NewReader(data))
+			require.NoError(t, err, "error reading config")
+
+			var conf struct{ ByteSize uint64 }
+			err = config.EnhancedExactUnmarshal(&conf)
+			require.NoError(t, err, "failed to unmarshal")
+			require.Exactly(t, tc.expected, conf.ByteSize, "incorrect byte size")
 		})
 	}
 }
 
 func TestByteSizeOverflow(t *testing.T) {
-	data := "---\nInner:\n    ByteSize: 4GB"
+	t.Parallel()
+	data := "---\nByteSize: 4GB"
 
 	config := New()
 	err := config.ReadConfig(strings.NewReader(data))
 	require.NoError(t, err, "error reading config")
 
-	var uconf testByteSize
-	err = config.EnhancedExactUnmarshal(&uconf)
+	var conf struct{ ByteSize uint32 }
+	err = config.EnhancedExactUnmarshal(&conf)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Inner.ByteSize")
+	require.Contains(t, err.Error(), "ByteSize")
 	require.Contains(t, err.Error(), "value '4GB' overflows uint32")
 }
 
@@ -118,6 +136,7 @@ type stringFromFileConfig struct {
 }
 
 func TestStringNotFromFile(t *testing.T) {
+	t.Parallel()
 	yaml := "---\nInner:\n  Single: expected_value\n"
 
 	config := New()
@@ -131,9 +150,9 @@ func TestStringNotFromFile(t *testing.T) {
 }
 
 func TestStringFromFile(t *testing.T) {
-	file, err := os.CreateTemp(os.TempDir(), "test")
+	t.Parallel()
+	file, err := os.CreateTemp(t.TempDir(), "test")
 	require.NoError(t, err, "failed to create temp file")
-	defer os.Remove(file.Name())
 
 	expectedValue := "this is the text in the file"
 
@@ -153,12 +172,12 @@ func TestStringFromFile(t *testing.T) {
 }
 
 func TestPEMBlocksFromFile(t *testing.T) {
-	file, err := os.CreateTemp(os.TempDir(), "test")
+	t.Parallel()
+	file, err := os.CreateTemp(t.TempDir(), "test")
 	require.NoError(t, err, "failed to create temp file")
-	defer os.Remove(file.Name())
 
 	var pems []byte
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		publicKeyCert, _, _ := generateMockPublicPrivateKeyPairPEM(true)
 		pems = append(pems, publicKeyCert...)
 	}
@@ -179,12 +198,11 @@ func TestPEMBlocksFromFile(t *testing.T) {
 }
 
 func TestPEMBlocksFromFileEnv(t *testing.T) {
-	file, err := os.CreateTemp(os.TempDir(), "test")
+	file, err := os.CreateTemp(t.TempDir(), "test")
 	require.NoError(t, err, "failed to create temp file")
-	defer os.Remove(file.Name())
 
 	var pems []byte
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		publicKeyCert, _, _ := generateMockPublicPrivateKeyPairPEM(true)
 		pems = append(pems, publicKeyCert...)
 	}
@@ -205,6 +223,7 @@ func TestPEMBlocksFromFileEnv(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			config := New()
 			config.SetConfigName(testConfigName)
 
@@ -220,6 +239,7 @@ func TestPEMBlocksFromFileEnv(t *testing.T) {
 }
 
 func TestStringFromFileNotSpecified(t *testing.T) {
+	t.Parallel()
 	yaml := "---\nInner:\n  Single:\n    File:\n"
 
 	config := New()
@@ -234,9 +254,8 @@ func TestStringFromFileNotSpecified(t *testing.T) {
 func TestStringFromFileEnv(t *testing.T) {
 	expectedValue := "this is the text in the file"
 
-	file, err := os.CreateTemp(os.TempDir(), "test")
+	file, err := os.CreateTemp(t.TempDir(), "test")
 	require.NoError(t, err, "failed to create temp file")
-	defer os.Remove(file.Name())
 
 	err = os.WriteFile(file.Name(), []byte(expectedValue), 0o644)
 	require.NoError(t, err, "failed to write temp file")
@@ -269,6 +288,7 @@ func TestStringFromFileEnv(t *testing.T) {
 }
 
 func TestDecodeOpaqueField(t *testing.T) {
+	t.Parallel()
 	yaml := "---\nFoo: bar\nHello:\n  World: 42\n"
 
 	config := New()
@@ -307,6 +327,7 @@ func TestBCCSPDecodeHookOverride(t *testing.T) {
 }
 
 func TestDurationDecode(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    string
 		expected time.Duration
@@ -320,6 +341,7 @@ func TestDurationDecode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.expected.String(), func(t *testing.T) {
+			t.Parallel()
 			yaml := fmt.Sprintf("---\nDuration: %s\n", tt.input)
 
 			config := New()
@@ -331,6 +353,54 @@ func TestDurationDecode(t *testing.T) {
 			err = config.EnhancedExactUnmarshal(&conf)
 			require.NoError(t, err, "failed to unmarshal")
 			require.Equal(t, tt.expected, conf.Duration)
+		})
+	}
+}
+
+func TestOrdererEndpointDecoder(t *testing.T) {
+	t.Parallel()
+	expected := &types.OrdererEndpoint{
+		ID:    5,
+		MspID: "org",
+		API:   []string{"broadcast", "deliver"},
+		Host:  "localhost",
+		Port:  5050,
+	}
+	tests := []struct {
+		input    string
+		expected *types.OrdererEndpoint
+	}{
+		{"", nil},
+		{"Endpoint: ", nil},
+		{"Endpoint: localhost:5050", &types.OrdererEndpoint{ID: types.NoID, Host: expected.Host, Port: expected.Port}},
+		{"Endpoint: id=5,msp-id=org,broadcast,deliver,localhost:5050", expected},
+		{`Endpoint: {"id":5,"msp-id":"org","api":["broadcast","deliver"],"host":"localhost","port":5050}`, expected},
+		{`
+Endpoint:
+  id: 5
+  msp-id: org
+  api:
+    - broadcast
+    - deliver
+  host: localhost
+  port: 5050
+`, expected},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			t.Parallel()
+			yaml := fmt.Sprintf("---\n%s\n", tt.input)
+			t.Log(yaml)
+
+			config := New()
+			config.SetConfigName(testConfigName)
+			err := config.ReadConfig(strings.NewReader(yaml))
+			require.NoError(t, err, "error reading config")
+
+			var conf struct{ Endpoint *types.OrdererEndpoint }
+			err = config.EnhancedExactUnmarshal(&conf)
+			require.NoError(t, err, "failed to unmarshal")
+			require.Equal(t, tt.expected, conf.Endpoint)
 		})
 	}
 }

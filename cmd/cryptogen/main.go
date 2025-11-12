@@ -19,7 +19,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/internaltools/cryptogen/msp"
 
 	"github.com/alecthomas/kingpin/v2"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 const (
