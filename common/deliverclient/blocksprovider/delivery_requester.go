@@ -15,8 +15,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
-	"github.com/hyperledger/fabric-x-common/internaltools/pkg/identity"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/identity"
 )
 
 // DeliveryRequester is used to connect to an orderer and request the delivery of various types of block delivery

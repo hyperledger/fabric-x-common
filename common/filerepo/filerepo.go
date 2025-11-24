@@ -14,7 +14,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
+	"github.com/hyperledger/fabric-x-common/tools/fileutil"
 )
 
 const (

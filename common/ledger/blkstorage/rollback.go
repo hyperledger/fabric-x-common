@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/util/leveldbhelper"
-	"github.com/hyperledger/fabric-x-common/internaltools/fileutil"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/fileutil"
 )
 
 type rollbackMgr struct {

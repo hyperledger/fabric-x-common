@@ -10,17 +10,17 @@ import (
 	"time"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/deliver"
 	"github.com/hyperledger/fabric-x-common/common/deliver/mock"
-	. "github.com/hyperledger/fabric-x-common/internaltools/test"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/test"
 )
 
-var _ = Describe("SessionAccessControl", func() {
+var _ = ginkgo.Describe("SessionAccessControl", func() {
 	var (
 		fakeChain         *mock.Chain
 		envelope          *cb.Envelope
@@ -28,7 +28,7 @@ var _ = Describe("SessionAccessControl", func() {
 		expiresAt         deliver.ExpiresAtFunc
 	)
 
-	BeforeEach(func() {
+	ginkgo.BeforeEach(func() {
 		envelope = &cb.Envelope{
 			Payload: protoutil.MarshalOrPanic(&cb.Payload{
 				Header: &cb.Header{},
@@ -40,99 +40,101 @@ var _ = Describe("SessionAccessControl", func() {
 		expiresAt = func([]byte) time.Time { return time.Time{} }
 	})
 
-	It("evaluates the policy", func() {
+	ginkgo.It("evaluates the policy", func() {
 		sac, err := deliver.NewSessionAC(fakeChain, envelope, fakePolicyChecker, "chain-id", expiresAt)
-		Expect(err).NotTo(HaveOccurred())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 		err = sac.Evaluate()
-		Expect(err).NotTo(HaveOccurred())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-		Expect(fakePolicyChecker.CheckPolicyCallCount()).To(Equal(1))
+		gomega.Expect(fakePolicyChecker.CheckPolicyCallCount()).To(gomega.Equal(1))
 		env, cid := fakePolicyChecker.CheckPolicyArgsForCall(0)
-		Expect(env).To(ProtoEqual(envelope))
-		Expect(cid).To(Equal("chain-id"))
+		gomega.Expect(env).To(test.ProtoEqual(envelope))
+		gomega.Expect(cid).To(gomega.Equal("chain-id"))
 	})
 
-	Context("when policy evaluation returns an error", func() {
-		BeforeEach(func() {
+	ginkgo.Context("when policy evaluation returns an error", func() {
+		ginkgo.BeforeEach(func() {
 			fakePolicyChecker.CheckPolicyReturns(errors.New("no-access-for-you"))
 		})
 
-		It("returns the evaluation error", func() {
+		ginkgo.It("returns the evaluation error", func() {
 			sac, err := deliver.NewSessionAC(fakeChain, envelope, fakePolicyChecker, "chain-id", expiresAt)
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 			err = sac.Evaluate()
-			Expect(err).To(MatchError("no-access-for-you"))
+			gomega.Expect(err).To(gomega.MatchError("no-access-for-you"))
 		})
 	})
 
-	It("caches positive policy evaluation", func() {
+	ginkgo.It("caches positive policy evaluation", func() {
 		sac, err := deliver.NewSessionAC(fakeChain, envelope, fakePolicyChecker, "chain-id", expiresAt)
-		Expect(err).NotTo(HaveOccurred())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 		for i := 0; i < 5; i++ {
 			err = sac.Evaluate()
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		}
-		Expect(fakePolicyChecker.CheckPolicyCallCount()).To(Equal(1))
+		gomega.Expect(fakePolicyChecker.CheckPolicyCallCount()).To(gomega.Equal(1))
 	})
 
-	Context("when the config sequence changes", func() {
-		BeforeEach(func() {
+	ginkgo.Context("when the config sequence changes", func() {
+		ginkgo.BeforeEach(func() {
 			fakePolicyChecker.CheckPolicyReturnsOnCall(2, errors.New("access-now-denied"))
 		})
 
-		It("re-evaluates the policy", func() {
+		ginkgo.It("re-evaluates the policy", func() {
 			sac, err := deliver.NewSessionAC(fakeChain, envelope, fakePolicyChecker, "chain-id", expiresAt)
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			Expect(sac.Evaluate()).To(Succeed())
-			Expect(fakePolicyChecker.CheckPolicyCallCount()).To(Equal(1))
-			Expect(sac.Evaluate()).To(Succeed())
-			Expect(fakePolicyChecker.CheckPolicyCallCount()).To(Equal(1))
+			gomega.Expect(sac.Evaluate()).To(gomega.Succeed())
+			gomega.Expect(fakePolicyChecker.CheckPolicyCallCount()).To(gomega.Equal(1))
+			gomega.Expect(sac.Evaluate()).To(gomega.Succeed())
+			gomega.Expect(fakePolicyChecker.CheckPolicyCallCount()).To(gomega.Equal(1))
 
 			fakeChain.SequenceReturns(2)
-			Expect(sac.Evaluate()).To(Succeed())
-			Expect(fakePolicyChecker.CheckPolicyCallCount()).To(Equal(2))
-			Expect(sac.Evaluate()).To(Succeed())
-			Expect(fakePolicyChecker.CheckPolicyCallCount()).To(Equal(2))
+			gomega.Expect(sac.Evaluate()).To(gomega.Succeed())
+			gomega.Expect(fakePolicyChecker.CheckPolicyCallCount()).To(gomega.Equal(2))
+			gomega.Expect(sac.Evaluate()).To(gomega.Succeed())
+			gomega.Expect(fakePolicyChecker.CheckPolicyCallCount()).To(gomega.Equal(2))
 
 			fakeChain.SequenceReturns(3)
-			Expect(sac.Evaluate()).To(MatchError("access-now-denied"))
-			Expect(fakePolicyChecker.CheckPolicyCallCount()).To(Equal(3))
+			gomega.Expect(sac.Evaluate()).To(gomega.MatchError("access-now-denied"))
+			gomega.Expect(fakePolicyChecker.CheckPolicyCallCount()).To(gomega.Equal(3))
 		})
 	})
 
-	Context("when an identity expires", func() {
-		BeforeEach(func() {
+	ginkgo.Context("when an identity expires", func() {
+		ginkgo.BeforeEach(func() {
 			expiresAt = func([]byte) time.Time {
 				return time.Now().Add(250 * time.Millisecond)
 			}
 		})
 
-		It("returns an identity expired error", func() {
+		ginkgo.It("returns an identity expired error", func() {
 			sac, err := deliver.NewSessionAC(fakeChain, envelope, fakePolicyChecker, "chain-id", expiresAt)
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 			err = sac.Evaluate()
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			Eventually(sac.Evaluate).Should(MatchError(ContainSubstring("deliver client identity expired")))
+			gomega.Eventually(sac.Evaluate).Should(
+				gomega.MatchError(gomega.ContainSubstring("deliver client identity expired")),
+			)
 		})
 	})
 
-	Context("when the envelope cannot be represented as signed data", func() {
-		BeforeEach(func() {
+	ginkgo.Context("when the envelope cannot be represented as signed data", func() {
+		ginkgo.BeforeEach(func() {
 			envelope = &cb.Envelope{}
 		})
 
-		It("returns an error", func() {
+		ginkgo.It("returns an error", func() {
 			_, expectedError := protoutil.EnvelopeAsSignedData(envelope)
-			Expect(expectedError).To(HaveOccurred())
+			gomega.Expect(expectedError).To(gomega.HaveOccurred())
 
 			_, err := deliver.NewSessionAC(fakeChain, envelope, fakePolicyChecker, "chain-id", expiresAt)
-			Expect(err).To(Equal(expectedError))
+			gomega.Expect(err).To(gomega.Equal(expectedError))
 		})
 	})
 })
