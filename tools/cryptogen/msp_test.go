@@ -55,9 +55,9 @@ func TestGenerateLocalMSP(t *testing.T) {
 				t.Parallel()
 				testDir := t.TempDir()
 				// generate local MSP for nodeType=NodeTypePeer
-				tree := NewMspTree(testDir)
+				tree := newMspTree(testDir)
 
-				err := tree.GenerateLocalMSP(newMSPParameters(t, testDir, PeerOU, nodeOUs))
+				err := tree.generateLocalMSP(newMSPParameters(t, testDir, PeerOU, nodeOUs))
 				require.NoError(t, err, "Failed to generate local MSP. Tree")
 				test.RequireTree(t, testDir, expectedFiles("server"), expectedDirs)
 				localMsp, err := msp.LoadLocalMspDir(msp.DirLoadParameters{MspDir: tree.MSP})
@@ -69,8 +69,8 @@ func TestGenerateLocalMSP(t *testing.T) {
 				t.Parallel()
 				testDir := t.TempDir()
 				// generate local MSP for nodeType=NodeTypeClient
-				tree := NewMspTree(testDir)
-				err := tree.GenerateLocalMSP(newMSPParameters(t, testDir, ClientOU, nodeOUs))
+				tree := newMspTree(testDir)
+				err := tree.generateLocalMSP(newMSPParameters(t, testDir, ClientOU, nodeOUs))
 				require.NoError(t, err, "Failed to generate local MSP")
 				test.RequireTree(t, testDir, expectedFiles("client"), expectedDirs)
 				localMsp, err := msp.LoadLocalMspDir(msp.DirLoadParameters{MspDir: tree.MSP})
@@ -83,8 +83,8 @@ func TestGenerateLocalMSP(t *testing.T) {
 				testDir := t.TempDir()
 				p := newMSPParameters(t, testDir, ClientOU, nodeOUs)
 				p.TLSCa.Name = mspFailedName
-				tree := NewMspTree(testDir)
-				err := tree.GenerateLocalMSP(p)
+				tree := newMspTree(testDir)
+				err := tree.generateLocalMSP(p)
 				require.Error(t, err, "Should have failed with CA name 'test/fail'")
 			})
 
@@ -93,8 +93,8 @@ func TestGenerateLocalMSP(t *testing.T) {
 				testDir := t.TempDir()
 				p := newMSPParameters(t, testDir, OrdererOU, nodeOUs)
 				p.SignCa.Name = mspFailedName
-				tree := NewMspTree(testDir)
-				err := tree.GenerateLocalMSP(p)
+				tree := newMspTree(testDir)
+				err := tree.generateLocalMSP(p)
 				require.Error(t, err, "Should have failed with CA name 'test/fail'")
 			})
 		})
@@ -108,9 +108,9 @@ func TestGenerateVerifyingMSP(t *testing.T) {
 			t.Run("valid", func(t *testing.T) {
 				t.Parallel()
 				testDir := t.TempDir()
-				tree := NewMspTree(testDir)
+				tree := newMspTree(testDir)
 				newMSPParameters(t, testDir, AdminOU, nodeOUs)
-				err := tree.GenerateVerifyingMSP(newMSPParameters(t, testDir, AdminOU, nodeOUs))
+				err := tree.generateVerifyingMSP(newMSPParameters(t, testDir, AdminOU, nodeOUs))
 				require.NoError(t, err, "Failed to generate verifying MSP")
 
 				// check to see that the right files were generated/saved
@@ -136,9 +136,9 @@ func TestGenerateVerifyingMSP(t *testing.T) {
 				testDir := t.TempDir()
 				p := newMSPParameters(t, testDir, AdminOU, nodeOUs)
 				p.TLSCa.Name = mspFailedName
-				tree := NewMspTree(testDir)
-				err := tree.GenerateVerifyingMSP(p)
-				require.Error(t, err, "Should have failed with CA name 'test/fail'")
+				tree := newMspTree(testDir)
+				err := tree.generateVerifyingMSP(p)
+				require.Error(t, err, "Should have failed with ca name 'test/fail'")
 			})
 
 			t.Run("bad sign CA name", func(t *testing.T) {
@@ -146,9 +146,9 @@ func TestGenerateVerifyingMSP(t *testing.T) {
 				testDir := t.TempDir()
 				p := newMSPParameters(t, testDir, AdminOU, nodeOUs)
 				p.SignCa.Name = mspFailedName
-				tree := NewMspTree(testDir)
-				err := tree.GenerateVerifyingMSP(p)
-				require.Error(t, err, "Should have failed with CA name 'test/fail'")
+				tree := newMspTree(testDir)
+				err := tree.generateVerifyingMSP(p)
+				require.Error(t, err, "Should have failed with ca name 'test/fail'")
 			})
 		})
 	}
@@ -180,11 +180,11 @@ func TestExportConfig(t *testing.T) {
 	require.Equal(t, OrdererOU, config.NodeOUs.OrdererOUIdentifier.OrganizationalUnitIdentifier)
 }
 
-func newMSPParameters(t *testing.T, rootDir, nodeOU string, enableNodeOUs bool) NodeParameters {
+func newMSPParameters(t *testing.T, rootDir, nodeOU string, enableNodeOUs bool) nodeParameters {
 	t.Helper()
 	signCA := defaultCA(t, mspTestCAName, path.Join(rootDir, "ca"))
 	tlsCA := defaultCA(t, mspTestCAName, path.Join(rootDir, "tlsca"))
-	return NodeParameters{
+	return nodeParameters{
 		Name:      mspTestName,
 		OU:        nodeOU,
 		KeyAlg:    ECDSA,

@@ -20,8 +20,8 @@ import (
 	fabricmsp "github.com/hyperledger/fabric-x-common/msp"
 )
 
-// MspTree represents the MSP tree structure.
-type MspTree struct {
+// mspTree represents the MSP tree structure.
+type mspTree struct {
 	Root       string
 	MSP        string
 	TLS        string
@@ -32,10 +32,10 @@ type MspTree struct {
 	SignCerts  string
 }
 
-// NodeParameters are used as parameters for the generating methods.
-type NodeParameters struct {
-	SignCa    *CA
-	TLSCa     *CA
+// nodeParameters are used as parameters for the generating methods.
+type nodeParameters struct {
+	SignCa    *caParams
+	TLSCa     *caParams
 	TLSSans   []string
 	Name      string
 	OU        string
@@ -70,10 +70,10 @@ const (
 	PeerOU    = "peer"
 )
 
-// NewMspTree creates a new MSP tree structure.
-func NewMspTree(root string) *MspTree {
+// newMspTree creates a new MSP tree structure.
+func newMspTree(root string) *mspTree {
 	mspDir := path.Join(root, MSPDir)
-	return &MspTree{
+	return &mspTree{
 		Root:       root,
 		MSP:        mspDir,
 		TLS:        path.Join(root, TLSDir),
@@ -85,14 +85,14 @@ func NewMspTree(root string) *MspTree {
 	}
 }
 
-// IsExist returns true if the root directory already exists.
-func (t *MspTree) IsExist() bool {
+// isExist returns true if the root directory already exists.
+func (t *mspTree) isExist() bool {
 	_, err := os.Stat(t.Root)
 	return !os.IsNotExist(err)
 }
 
-// GenerateLocalMSP generates a local MSP.
-func (t *MspTree) GenerateLocalMSP(p NodeParameters) error {
+// generateLocalMSP generates a local MSP.
+func (t *mspTree) generateLocalMSP(p nodeParameters) error {
 	err := t.generateMsp(p)
 	if err != nil {
 		return err
@@ -100,8 +100,8 @@ func (t *MspTree) GenerateLocalMSP(p NodeParameters) error {
 	return t.generateTLS(p)
 }
 
-// GenerateVerifyingMSP generates a verifying MSP.
-func (t *MspTree) GenerateVerifyingMSP(p NodeParameters) error {
+// generateVerifyingMSP generates a verifying MSP.
+func (t *mspTree) generateVerifyingMSP(p nodeParameters) error {
 	defer func() {
 		// We remove the local MSP folders.
 		for _, dir := range []string{t.KeyStore, t.SignCerts} {
@@ -113,7 +113,7 @@ func (t *MspTree) GenerateVerifyingMSP(p NodeParameters) error {
 }
 
 // generateMsp generates a generic MSP.
-func (t *MspTree) generateMsp(p NodeParameters) error {
+func (t *mspTree) generateMsp(p nodeParameters) error {
 	err := createAllFolders([]string{t.CaCerts, t.TLSCaCerts, t.AdminCerts, t.KeyStore, t.SignCerts})
 	if err != nil {
 		return err
@@ -131,13 +131,13 @@ func (t *MspTree) generateMsp(p NodeParameters) error {
 	}
 
 	// generate private key.
-	priv, err := GeneratePrivateKey(t.KeyStore, p.KeyAlg)
+	priv, err := generatePrivateKey(t.KeyStore, p.KeyAlg)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate private key")
 	}
 
 	// generate X509 certificate using signing CA.
-	cert, err := p.SignCa.SignCertificate(t.SignCerts, p.Name, SignCertParams{
+	cert, err := p.SignCa.signCertificate(t.SignCerts, p.Name, signCertParams{
 		OrgUnits:    []string{p.OU},
 		KeyUsage:    x509.KeyUsageDigitalSignature,
 		ExtKeyUsage: []x509.ExtKeyUsage{},
@@ -171,20 +171,20 @@ func (t *MspTree) generateMsp(p NodeParameters) error {
 }
 
 // generateTLS generates the TLS artifacts in the TLS folder.
-func (t *MspTree) generateTLS(p NodeParameters) error {
+func (t *mspTree) generateTLS(p nodeParameters) error {
 	err := createAllFolders([]string{t.TLS})
 	if err != nil {
 		return err
 	}
 
 	// generate private key.
-	tlsPrivKey, err := GeneratePrivateKey(t.TLS, p.KeyAlg)
+	tlsPrivKey, err := generatePrivateKey(t.TLS, p.KeyAlg)
 	if err != nil {
 		return err
 	}
 
 	// generate X509 certificate using TLS CA.
-	_, err = p.TLSCa.SignCertificate(t.TLS, p.Name, SignCertParams{
+	_, err = p.TLSCa.signCertificate(t.TLS, p.Name, signCertParams{
 		AlternateNames: p.TLSSans,
 		KeyUsage:       x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage: []x509.ExtKeyUsage{

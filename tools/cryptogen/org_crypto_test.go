@@ -26,11 +26,10 @@ func TestGenerate(t *testing.T) { //nolint:gocognit // cognitive complexity 30.
 		t.Run(fmt.Sprintf("nodeOUs=%t", nodeOUs), func(t *testing.T) {
 			t.Parallel()
 			testDir := t.TempDir()
-			ret, err := Generate(testDir, defaultConfig(nodeOUs))
+			err := Generate(testDir, defaultConfig(nodeOUs))
 			actualTree := test.GetTree(t, testDir)
 			t.Logf("Actual tree: %s", actualTree)
 			require.NoError(t, err)
-			require.NotEmpty(t, ret)
 
 			dirs := []string{"ordererOrganizations", "peerOrganizations", "organizations"}
 			test.RequireTree(t, testDir, nil, dirs)

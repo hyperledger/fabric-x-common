@@ -39,9 +39,9 @@ const (
 	CertSuffix       = "-cert" + CertFileExt
 )
 
-// GeneratePrivateKey creates an ecdsa private key using a P-256 curve or an ed25519 key
+// generatePrivateKey creates an ecdsa private key using a P-256 curve or an ed25519 key
 // and stores it in keystorePath.
-func GeneratePrivateKey(keystorePath, keyAlg string) (priv crypto.PrivateKey, err error) {
+func generatePrivateKey(keystorePath, keyAlg string) (priv crypto.PrivateKey, err error) {
 	switch keyAlg {
 	case ECDSA:
 		priv, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -63,9 +63,9 @@ func GeneratePrivateKey(keystorePath, keyAlg string) (priv crypto.PrivateKey, er
 	return priv, writePEM(keyFile, PrivateKeyType, pkcs8Encoded)
 }
 
-// LoadPrivateKey loads a private key from a file in keystorePath.  It looks
+// loadPrivateKey loads a private key from a file in keystorePath.  It looks
 // for a file ending in "_sk" and expects a PEM-encoded PKCS8 EC private key.
-func LoadPrivateKey(keystorePath string) (crypto.PrivateKey, error) {
+func loadPrivateKey(keystorePath string) (crypto.PrivateKey, error) {
 	keyPath, block, err := findAndDecodePem(keystorePath, PrivateKeySuffix, PrivateKeyType)
 	if err != nil {
 		return nil, err
@@ -84,8 +84,8 @@ func LoadPrivateKey(keystorePath string) (crypto.PrivateKey, error) {
 	return key, nil
 }
 
-// LoadCertificate load an ECDSA cert from a file in cert path.
-func LoadCertificate(certPath string) (*x509.Certificate, error) {
+// loadCertificate load an ECDSA cert from a file in cert path.
+func loadCertificate(certPath string) (*x509.Certificate, error) {
 	var cert *x509.Certificate
 	certPath, block, err := findAndDecodePem(certPath, CertFileExt, CertType)
 	if err != nil {

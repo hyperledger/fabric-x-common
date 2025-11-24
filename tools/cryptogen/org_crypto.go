@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package cryptogen
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -14,11 +15,12 @@ import (
 	"slices"
 
 	"github.com/cockroachdb/errors"
+	"golang.org/x/sync/errgroup"
 )
 
-// OrgCryptoTree represents a cryptogen's organization tree structure.
-type OrgCryptoTree struct {
-	*MspTree
+// orgCryptoTree represents a cryptogen's organization tree structure.
+type orgCryptoTree struct {
+	*mspTree
 	OrgSpec       *OrgSpec
 	CA            string
 	Users         string
@@ -27,11 +29,11 @@ type OrgCryptoTree struct {
 	PeerNodes     string
 }
 
-// Crypto collects all the generated crypto material.
-type Crypto struct {
-	OrdererOrgs []*OrgCryptoTree
-	PeerOrgs    []*OrgCryptoTree
-	GenericOrgs []*OrgCryptoTree
+// cryptoTree collects all the generated crypto material.
+type cryptoTree struct {
+	OrdererOrgs []*orgCryptoTree
+	PeerOrgs    []*orgCryptoTree
+	GenericOrgs []*orgCryptoTree
 }
 
 const (
@@ -58,40 +60,40 @@ const (
 )
 
 // Generate generates crypto in the given directory using the given config.
-func Generate(rootDir string, config *Config) (*Crypto, error) {
+func Generate(rootDir string, config *Config) error {
 	c, err := prepareAllCryptoSpecs(rootDir, config)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	wg, _ := errgroup.WithContext(context.Background())
 	for _, c := range allTrees(c) {
-		err = c.GenerateOrg()
-		if err != nil {
-			return nil, err
-		}
+		wg.Go(func() error {
+			return c.generateOrg()
+		})
 	}
-	return c, nil
+	return wg.Wait()
 }
 
 // Extend extends a crypto in the given directory using the given config.
-func Extend(rootDir string, config *Config) (*Crypto, error) {
+func Extend(rootDir string, config *Config) error {
 	c, err := prepareAllCryptoSpecs(rootDir, config)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	wg, _ := errgroup.WithContext(context.Background())
 	for _, c := range allTrees(c) {
-		err = c.ExtendOrg()
-		if err != nil {
-			return nil, err
-		}
+		wg.Go(func() error {
+			return c.extendOrg()
+		})
 	}
-	return c, nil
+	return wg.Wait()
 }
 
-func prepareAllCryptoSpecs(rootDir string, config *Config) (*Crypto, error) {
-	c := &Crypto{
-		OrdererOrgs: make([]*OrgCryptoTree, len(config.OrdererOrgs)),
-		PeerOrgs:    make([]*OrgCryptoTree, len(config.PeerOrgs)),
-		GenericOrgs: make([]*OrgCryptoTree, len(config.GenericOrgs)),
+func prepareAllCryptoSpecs(rootDir string, config *Config) (*cryptoTree, error) {
+	c := &cryptoTree{
+		OrdererOrgs: make([]*orgCryptoTree, len(config.OrdererOrgs)),
+		PeerOrgs:    make([]*orgCryptoTree, len(config.PeerOrgs)),
+		GenericOrgs: make([]*orgCryptoTree, len(config.GenericOrgs)),
 	}
 	for i := range config.OrdererOrgs {
 		s := &config.OrdererOrgs[i]
@@ -99,7 +101,7 @@ func prepareAllCryptoSpecs(rootDir string, config *Config) (*Crypto, error) {
 		if err != nil {
 			return nil, err
 		}
-		c.OrdererOrgs[i] = NewOrgCryptoTree(path.Join(rootDir, OrdererOrganizationsDir), s)
+		c.OrdererOrgs[i] = newOrgCryptoTree(path.Join(rootDir, OrdererOrganizationsDir), s)
 	}
 	for i := range config.PeerOrgs {
 		s := &config.PeerOrgs[i]
@@ -107,7 +109,7 @@ func prepareAllCryptoSpecs(rootDir string, config *Config) (*Crypto, error) {
 		if err != nil {
 			return nil, err
 		}
-		c.PeerOrgs[i] = NewOrgCryptoTree(path.Join(rootDir, PeerOrganizationsDir), &config.PeerOrgs[i])
+		c.PeerOrgs[i] = newOrgCryptoTree(path.Join(rootDir, PeerOrganizationsDir), &config.PeerOrgs[i])
 	}
 	for i := range config.GenericOrgs {
 		s := &config.GenericOrgs[i]
@@ -116,20 +118,20 @@ func prepareAllCryptoSpecs(rootDir string, config *Config) (*Crypto, error) {
 		if err != nil {
 			return nil, err
 		}
-		c.GenericOrgs[i] = NewOrgCryptoTree(path.Join(rootDir, GenericOrganizationsDir), s)
+		c.GenericOrgs[i] = newOrgCryptoTree(path.Join(rootDir, GenericOrganizationsDir), s)
 	}
 	return c, nil
 }
 
-func allTrees(c *Crypto) []*OrgCryptoTree {
+func allTrees(c *cryptoTree) []*orgCryptoTree {
 	return slices.Concat(c.OrdererOrgs, c.PeerOrgs, c.GenericOrgs)
 }
 
-// NewOrgCryptoTree creates a new organization tree.
-func NewOrgCryptoTree(root string, org *OrgSpec) *OrgCryptoTree {
+// newOrgCryptoTree creates a new organization tree.
+func newOrgCryptoTree(root string, org *OrgSpec) *orgCryptoTree {
 	root = filepath.Join(root, org.Name)
-	return &OrgCryptoTree{
-		MspTree:       NewMspTree(root),
+	return &orgCryptoTree{
+		mspTree:       newMspTree(root),
 		OrgSpec:       org,
 		CA:            filepath.Join(root, CaDir),
 		Users:         filepath.Join(root, UsersDir),
@@ -139,13 +141,13 @@ func NewOrgCryptoTree(root string, org *OrgSpec) *OrgCryptoTree {
 	}
 }
 
-// SubUser returns a sub MSP tree of a specific user.
-func (c *OrgCryptoTree) SubUser(name string) *MspTree {
-	return NewMspTree(filepath.Join(c.Users, name))
+// subUser returns a sub MSP tree of a specific user.
+func (c *orgCryptoTree) subUser(name string) *mspTree {
+	return newMspTree(filepath.Join(c.Users, name))
 }
 
-// SubNode returns a sub MSP tree of a specific node.
-func (c *OrgCryptoTree) SubNode(party, name, nodeOU string) *MspTree {
+// subNode returns a sub MSP tree of a specific node.
+func (c *orgCryptoTree) subNode(party, name, nodeOU string) *mspTree {
 	var nodeDir string
 	switch nodeOU {
 	case OrdererOU:
@@ -155,54 +157,37 @@ func (c *OrgCryptoTree) SubNode(party, name, nodeOU string) *MspTree {
 	default: // AdminOU, ClientOU
 		nodeDir = c.Users
 	}
-	return NewMspTree(filepath.Join(nodeDir, party, name))
+	return newMspTree(filepath.Join(nodeDir, party, name))
 }
 
-// SubNodeFromSpec returns a sub MSP tree of a specific node.
-func (c *OrgCryptoTree) SubNodeFromSpec(s *NodeSpec) *MspTree {
-	return c.SubNode(s.Party, s.CommonName, s.OrganizationalUnit)
+// subNodeFromSpec returns a sub MSP tree of a specific node.
+func (c *orgCryptoTree) subNodeFromSpec(s *NodeSpec) *mspTree {
+	return c.subNode(s.Party, s.CommonName, s.OrganizationalUnit)
 }
 
-func caFromSpec(orgName string, s *NodeSpec) *CA {
-	return &CA{
-		Organization:       orgName,
-		Name:               s.CommonName,
-		Country:            s.Country,
-		Province:           s.Province,
-		Locality:           s.Locality,
-		OrganizationalUnit: s.OrganizationalUnit,
-		StreetAddress:      s.StreetAddress,
-		PostalCode:         s.PostalCode,
-		KeyAlgorithm:       s.PublicKeyAlgorithm,
-	}
-}
-
-// GenerateOrg generate the organization's crypto.
-func (c *OrgCryptoTree) GenerateOrg() error {
+// generateOrg generate the organization's crypto.
+func (c *orgCryptoTree) generateOrg() error {
 	s := c.OrgSpec
 	orgName := s.Domain
 
 	// generate signing CA
-	signCA := caFromSpec(orgName, &s.CA)
-	err := BuildCA(c.CA, signCA)
+	signCA, err := caFromSpec(c.CA, orgName, "", &s.CA)
 	if err != nil {
 		return err
 	}
 	// generate TLS CA
-	tlsCA := caFromSpec(orgName, &s.CA)
-	tlsCA.Name = TLSCaPrefix + s.CA.CommonName
-	err = BuildCA(c.TLSCa, tlsCA)
+	tlsCA, err := caFromSpec(c.TLSCa, orgName, TLSCaPrefix, &s.CA)
 	if err != nil {
 		return err
 	}
 
-	p := NodeParameters{
+	p := nodeParameters{
 		SignCa:    signCA,
 		TLSCa:     tlsCA,
 		EnableOUs: s.EnableNodeOUs,
 		KeyAlg:    s.CA.PublicKeyAlgorithm,
 	}
-	err = c.GenerateVerifyingMSP(p)
+	err = c.generateVerifyingMSP(p)
 	if err != nil {
 		return err
 	}
@@ -235,24 +220,24 @@ func (c *OrgCryptoTree) GenerateOrg() error {
 	return nil
 }
 
-// ExtendOrg extends the organization's crypto.
-func (c *OrgCryptoTree) ExtendOrg() error {
-	if !c.IsExist() {
-		return c.GenerateOrg()
+// extendOrg extends the organization's crypto.
+func (c *orgCryptoTree) extendOrg() error {
+	if !c.isExist() {
+		return c.generateOrg()
 	}
 
 	s := c.OrgSpec
 	orgName := s.Domain
-	signCA, err := getCA(c.CA, s, s.CA.CommonName)
+	signCA, err := loadCA(c.CA, s, s.CA.CommonName)
 	if err != nil {
 		return err
 	}
-	tlsCA, err := getCA(c.TLSCa, s, TLSCaPrefix+s.CA.CommonName)
+	tlsCA, err := loadCA(c.TLSCa, s, TLSCaPrefix+s.CA.CommonName)
 	if err != nil {
 		return err
 	}
 
-	p := NodeParameters{
+	p := nodeParameters{
 		SignCa:    signCA,
 		TLSCa:     tlsCA,
 		EnableOUs: s.EnableNodeOUs,
@@ -272,7 +257,7 @@ func (c *OrgCryptoTree) ExtendOrg() error {
 	return c.generateNodes(c.generateUsers(), p)
 }
 
-func (c *OrgCryptoTree) generateUsers() []NodeSpec {
+func (c *orgCryptoTree) generateUsers() []NodeSpec {
 	s := c.OrgSpec
 	orgName := s.Domain
 	users := make([]NodeSpec, 0, len(s.Users.Specs)+s.Users.Count)
@@ -295,9 +280,9 @@ func (c *OrgCryptoTree) generateUsers() []NodeSpec {
 }
 
 // copyAllAdminCert copy the admin cert to each of the org's MSP admincerts.
-func (c *OrgCryptoTree) copyAllAdminCert(orgAdminUserName string) error {
+func (c *orgCryptoTree) copyAllAdminCert(orgAdminUserName string) error {
 	for _, spec := range c.OrgSpec.Specs {
-		err := c.copyAdminCert(c.SubNodeFromSpec(&spec).AdminCerts, orgAdminUserName)
+		err := c.copyAdminCert(c.subNodeFromSpec(&spec).AdminCerts, orgAdminUserName)
 		if err != nil {
 			return err
 		}
@@ -305,7 +290,7 @@ func (c *OrgCryptoTree) copyAllAdminCert(orgAdminUserName string) error {
 	return nil
 }
 
-func (c *OrgCryptoTree) copyAdminCert(adminCertsDir, adminUserName string) error {
+func (c *orgCryptoTree) copyAdminCert(adminCertsDir, adminUserName string) error {
 	adminCertPath := filepath.Join(adminCertsDir, adminUserName+"-cert.pem")
 	if _, err := os.Stat(adminCertPath); !os.IsNotExist(err) {
 		return nil
@@ -320,15 +305,15 @@ func (c *OrgCryptoTree) copyAdminCert(adminCertsDir, adminUserName string) error
 	if err != nil {
 		return errors.Wrapf(err, "error creating admin cert directory %s", adminCertsDir)
 	}
-	src := filepath.Join(c.SubUser(adminUserName).SignCerts, adminUserName+"-cert.pem")
+	src := filepath.Join(c.subUser(adminUserName).SignCerts, adminUserName+"-cert.pem")
 	return copyFile(src, adminCertPath)
 }
 
-func (c *OrgCryptoTree) generateNodes(nodes []NodeSpec, p NodeParameters) error {
+func (c *orgCryptoTree) generateNodes(nodes []NodeSpec, p nodeParameters) error {
 	for i := range nodes {
 		node := &nodes[i]
-		tree := c.SubNodeFromSpec(node)
-		if tree.IsExist() {
+		tree := c.subNodeFromSpec(node)
+		if tree.isExist() {
 			continue
 		}
 		curParams := p
@@ -339,7 +324,7 @@ func (c *OrgCryptoTree) generateNodes(nodes []NodeSpec, p NodeParameters) error 
 		curParams.Name = node.CommonName
 		curParams.TLSSans = node.SANS
 		curParams.KeyAlg = node.PublicKeyAlgorithm
-		err := tree.GenerateLocalMSP(curParams)
+		err := tree.generateLocalMSP(curParams)
 		if err != nil {
 			return err
 		}
@@ -369,28 +354,6 @@ func adminUser(orgName string) NodeSpec {
 
 func adminUserName(orgName string) string {
 	return fmt.Sprintf("%s@%s", adminBaseName, orgName)
-}
-
-func getCA(caDir string, spec *OrgSpec, name string) (*CA, error) {
-	privateKey, err := LoadPrivateKey(caDir)
-	if err != nil {
-		return nil, err
-	}
-	cert, err := LoadCertificate(caDir)
-	if err != nil {
-		return nil, err
-	}
-	return &CA{
-		Name:               name,
-		Signer:             NewSignerFromPrivateKey(privateKey),
-		SignCert:           cert,
-		Country:            spec.CA.Country,
-		Province:           spec.CA.Province,
-		Locality:           spec.CA.Locality,
-		OrganizationalUnit: spec.CA.OrganizationalUnit,
-		StreetAddress:      spec.CA.StreetAddress,
-		PostalCode:         spec.CA.PostalCode,
-	}, nil
 }
 
 func getPublicKeyAlg(pubAlgFromConfig string) (publicKeyAlg string) {

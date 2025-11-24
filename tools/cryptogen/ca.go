@@ -23,8 +23,8 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-// CA describes a CA for crypto generation.
-type CA struct {
+// caParams describes a CA for crypto generation.
+type caParams struct {
 	Organization       string
 	Name               string
 	Country            string
@@ -35,13 +35,13 @@ type CA struct {
 	PostalCode         string
 	KeyAlgorithm       string
 
-	// These fields are filled by the BuildCA() method.
+	// These fields are filled by the buildCA() method.
 	Signer   crypto.Signer
 	SignCert *x509.Certificate
 }
 
-// SignCertParams describes the parameters for the SignCertificate() method.
-type SignCertParams struct {
+// signCertParams describes the parameters for the signCertificate() method.
+type signCertParams struct {
 	OrgUnits       []string
 	AlternateNames []string
 	KeyUsage       x509.KeyUsage
@@ -56,18 +56,35 @@ type certParams struct {
 	PrivateKey any
 }
 
-// BuildCA generates and saves the signing key pair in baseDir/name.
-func BuildCA(baseDir string, ca *CA) error {
+// caFromSpec creates a CA from a node spec, generates, and saves the signing key pair in baseDir/name.
+func caFromSpec(baseDir, orgName, namePrefix string, s *NodeSpec) (*caParams, error) {
+	newCA := &caParams{
+		Organization:       orgName,
+		Name:               namePrefix + s.CommonName,
+		Country:            s.Country,
+		Province:           s.Province,
+		Locality:           s.Locality,
+		OrganizationalUnit: s.OrganizationalUnit,
+		StreetAddress:      s.StreetAddress,
+		PostalCode:         s.PostalCode,
+		KeyAlgorithm:       s.PublicKeyAlgorithm,
+	}
+	err := buildCA(baseDir, newCA)
+	return newCA, err
+}
+
+// buildCA generates and saves the signing key pair in baseDir/name.
+func buildCA(baseDir string, ca *caParams) error {
 	err := os.MkdirAll(baseDir, 0o750)
 	if err != nil {
 		return errors.Wrapf(err, "cannot create directory %s", baseDir)
 	}
 
-	priv, err := GeneratePrivateKey(baseDir, ca.KeyAlgorithm)
+	priv, err := generatePrivateKey(baseDir, ca.KeyAlgorithm)
 	if err != nil {
 		return err
 	}
-	ca.Signer = NewSignerFromPrivateKey(priv)
+	ca.Signer = newSignerFromPrivateKey(priv)
 
 	template := x509Template()
 	// this is a CA
@@ -100,8 +117,30 @@ func BuildCA(baseDir string, ca *CA) error {
 	return err
 }
 
-// SignCertificate creates a signed certificate based on a built-in template and saves it in baseDir/name.
-func (ca *CA) SignCertificate(baseDir, name string, p SignCertParams) (*x509.Certificate, error) {
+func loadCA(caDir string, spec *OrgSpec, name string) (*caParams, error) {
+	privateKey, err := loadPrivateKey(caDir)
+	if err != nil {
+		return nil, err
+	}
+	cert, err := loadCertificate(caDir)
+	if err != nil {
+		return nil, err
+	}
+	return &caParams{
+		Name:               name,
+		Signer:             newSignerFromPrivateKey(privateKey),
+		SignCert:           cert,
+		Country:            spec.CA.Country,
+		Province:           spec.CA.Province,
+		Locality:           spec.CA.Locality,
+		OrganizationalUnit: spec.CA.OrganizationalUnit,
+		StreetAddress:      spec.CA.StreetAddress,
+		PostalCode:         spec.CA.PostalCode,
+	}, nil
+}
+
+// signCertificate creates a signed certificate based on a built-in template and saves it in baseDir/name.
+func (ca *caParams) signCertificate(baseDir, name string, p signCertParams) (*x509.Certificate, error) {
 	template := x509Template()
 	template.KeyUsage = p.KeyUsage
 	template.ExtKeyUsage = p.ExtKeyUsage
@@ -137,7 +176,8 @@ func computeSKI(privKey crypto.PrivateKey) ([]byte, error) {
 	// Marshall the public key
 	switch kk := privKey.(type) {
 	case *ecdsa.PrivateKey:
-		ecdhKey, err := kk.ECDH()
+		//nolint:errcheck,forcetypeassert // implementation always returns this type.
+		ecdhKey, err := kk.Public().(*ecdsa.PublicKey).ECDH()
 		if err != nil {
 			return nil, fmt.Errorf("private key transition failed: %w", err)
 		}
@@ -162,7 +202,7 @@ func subjectTemplate() pkix.Name {
 }
 
 // subjectTemplateAdditional additional for X509 subject.
-func subjectTemplateAdditional(ca *CA) pkix.Name {
+func subjectTemplateAdditional(ca *caParams) pkix.Name {
 	name := subjectTemplate()
 	if len(ca.Country) > 0 {
 		name.Country = []string{ca.Country}
@@ -221,8 +261,8 @@ func genCertificate(baseDir, name string, p certParams) (*x509.Certificate, erro
 	return x509Cert, writePEM(x509FilePath(baseDir, name), CertType, certBytes)
 }
 
-// NewSignerFromPrivateKey creates a signer from a private key.
-func NewSignerFromPrivateKey(priv crypto.PrivateKey) crypto.Signer {
+// newSignerFromPrivateKey creates a signer from a private key.
+func newSignerFromPrivateKey(priv crypto.PrivateKey) crypto.Signer {
 	switch kk := priv.(type) {
 	case *ecdsa.PrivateKey:
 		return &ECDSASigner{

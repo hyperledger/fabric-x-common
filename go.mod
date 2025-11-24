@@ -31,6 +31,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20210305035536-64b5b1c73954
 	go.uber.org/zap v1.27.0
 	go.yaml.in/yaml/v3 v3.0.4
+	golang.org/x/sync v0.18.0
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.10
 )

@@ -41,7 +41,7 @@ func TestLoadCertificateECDSA(t *testing.T) {
 	// generate private key
 	certDir := path.Join(testDir, "certs")
 	require.NoError(t, os.MkdirAll(certDir, 0o750))
-	privGeneric, err := GeneratePrivateKey(certDir, ECDSA)
+	privGeneric, err := generatePrivateKey(certDir, ECDSA)
 	require.NoError(t, err, "Failed to generate signed certificate")
 	priv, ok := privGeneric.(*ecdsa.PrivateKey)
 	require.True(t, ok)
@@ -50,7 +50,7 @@ func TestLoadCertificateECDSA(t *testing.T) {
 	caDir := path.Join(testDir, "ca")
 	rootCA := defaultCA(t, caTstCA3Name, caDir)
 
-	cert, err := rootCA.SignCertificate(certDir, caTestName3, SignCertParams{
+	cert, err := rootCA.signCertificate(certDir, caTestName3, signCertParams{
 		PublicKey:   &priv.PublicKey,
 		KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
@@ -60,7 +60,7 @@ func TestLoadCertificateECDSA(t *testing.T) {
 	require.Equal(t, x509.KeyUsageDigitalSignature|x509.KeyUsageKeyEncipherment, cert.KeyUsage)
 	require.Contains(t, cert.ExtKeyUsage, x509.ExtKeyUsageAny)
 
-	loadedCert, err := LoadCertificate(certDir)
+	loadedCert, err := loadCertificate(certDir)
 	require.NoError(t, err)
 	require.NotNil(t, loadedCert, "Should load cert")
 	require.Equal(t, cert.SerialNumber, loadedCert.SerialNumber, "Should have same serial number")
@@ -75,7 +75,7 @@ func TestLoadCertificateECDSA_wrongEncoding(t *testing.T) {
 	err := os.WriteFile(filename, []byte("wrong_encoding"), 0o644) // Wrong encoded cert
 	require.NoErrorf(t, err, "failed to create file %s", filename)
 
-	_, err = LoadCertificate(testDir)
+	_, err = loadCertificate(testDir)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "bytes are not PEM encoded")
 }
@@ -89,7 +89,7 @@ func TestLoadCertificateECDSA_empty_DER_cert(t *testing.T) {
 	err := os.WriteFile(filename, []byte(emptyCert), 0o644)
 	require.NoErrorf(t, err, "failed to create file %s", filename)
 
-	cert, err := LoadCertificate(testDir)
+	cert, err := loadCertificate(testDir)
 	require.Nil(t, cert)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "wrong DER encoding")
@@ -133,7 +133,7 @@ func TestGenerateSignCertificate(t *testing.T) {
 	// generate private key
 	certDir := path.Join(testDir, "certs")
 	require.NoError(t, os.MkdirAll(certDir, 0o750))
-	privGeneric, err := GeneratePrivateKey(certDir, ECDSA)
+	privGeneric, err := generatePrivateKey(certDir, ECDSA)
 	require.NoError(t, err, "Failed to generate signed certificate")
 	priv, ok := privGeneric.(*ecdsa.PrivateKey)
 	require.True(t, ok)
@@ -142,7 +142,7 @@ func TestGenerateSignCertificate(t *testing.T) {
 	caDir := filepath.Join(testDir, "ca")
 	rootCA := defaultCA(t, caTestCA2Name, caDir)
 
-	cert, err := rootCA.SignCertificate(certDir, caTestName, SignCertParams{
+	cert, err := rootCA.signCertificate(certDir, caTestName, signCertParams{
 		PublicKey:   &priv.PublicKey,
 		KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
@@ -153,7 +153,7 @@ func TestGenerateSignCertificate(t *testing.T) {
 		cert.KeyUsage)
 	require.Contains(t, cert.ExtKeyUsage, x509.ExtKeyUsageAny)
 
-	cert, err = rootCA.SignCertificate(certDir, caTestName, SignCertParams{
+	cert, err = rootCA.signCertificate(certDir, caTestName, signCertParams{
 		KeyUsage:    x509.KeyUsageDigitalSignature,
 		ExtKeyUsage: []x509.ExtKeyUsage{},
 		PublicKey:   &priv.PublicKey,
@@ -163,7 +163,7 @@ func TestGenerateSignCertificate(t *testing.T) {
 
 	// make sure ous are correctly set
 	ous := []string{"TestOU", "PeerOU"}
-	cert, err = rootCA.SignCertificate(certDir, caTestName, SignCertParams{
+	cert, err = rootCA.signCertificate(certDir, caTestName, signCertParams{
 		OrgUnits:  ous,
 		KeyUsage:  x509.KeyUsageDigitalSignature,
 		PublicKey: &priv.PublicKey,
@@ -174,7 +174,7 @@ func TestGenerateSignCertificate(t *testing.T) {
 
 	// make sure sans are correctly set
 	sans := []string{caTestName2, caTestName3, caTestIP}
-	cert, err = rootCA.SignCertificate(certDir, caTestName, SignCertParams{
+	cert, err = rootCA.signCertificate(certDir, caTestName, signCertParams{
 		AlternateNames: sans,
 		KeyUsage:       x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:    []x509.ExtKeyUsage{},
@@ -190,7 +190,7 @@ func TestGenerateSignCertificate(t *testing.T) {
 	pemFile := filepath.Join(certDir, caTestName+"-cert.pem")
 	require.FileExists(t, pemFile)
 
-	_, err = rootCA.SignCertificate(certDir, "empty/CA", SignCertParams{
+	_, err = rootCA.signCertificate(certDir, "empty/CA", signCertParams{
 		KeyUsage:    x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 		PublicKey:   &priv.PublicKey,
@@ -198,11 +198,11 @@ func TestGenerateSignCertificate(t *testing.T) {
 	require.Error(t, err, "Bad name should fail")
 
 	// use an empty CA to test error path
-	badCA := &CA{
+	badCA := &caParams{
 		Name:     "badCA",
 		SignCert: &x509.Certificate{},
 	}
-	_, err = badCA.SignCertificate(certDir, caTestName, SignCertParams{
+	_, err = badCA.signCertificate(certDir, caTestName, signCertParams{
 		KeyUsage:    x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 		PublicKey:   &ecdsa.PublicKey{},
@@ -210,9 +210,9 @@ func TestGenerateSignCertificate(t *testing.T) {
 	require.Error(t, err, "Empty CA should not be able to sign")
 }
 
-func defaultCA(t *testing.T, name, caDir string) *CA {
+func defaultCA(t *testing.T, name, caDir string) *caParams {
 	t.Helper()
-	rootCA := CA{
+	rootCA := caParams{
 		Organization:       name,
 		Name:               name,
 		Country:            caTestCountry,
@@ -223,7 +223,7 @@ func defaultCA(t *testing.T, name, caDir string) *CA {
 		PostalCode:         caTestPostalCode,
 		KeyAlgorithm:       ECDSA,
 	}
-	err := BuildCA(caDir, &rootCA)
+	err := buildCA(caDir, &rootCA)
 	require.NoError(t, err, "Error generating CA")
 	return &rootCA
 }

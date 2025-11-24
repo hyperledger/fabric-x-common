@@ -139,7 +139,7 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 		adminUserName(metaNamespaceOrg)+CertSuffix,
 	)
 
-	_, err = Generate(conf.TargetPath, cryptoConf)
+	err = Generate(conf.TargetPath, cryptoConf)
 	if err != nil {
 		return nil, err
 	}

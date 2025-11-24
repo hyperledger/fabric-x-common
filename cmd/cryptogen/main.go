@@ -67,8 +67,7 @@ func extend() error {
 	if err != nil {
 		return err
 	}
-	_, err = cryptogen.Extend(*inputDir, config)
-	return err
+	return cryptogen.Extend(*inputDir, config)
 }
 
 func generate() error {
@@ -76,8 +75,7 @@ func generate() error {
 	if err != nil {
 		return err
 	}
-	_, err = cryptogen.Generate(*outputDir, config)
-	return err
+	return cryptogen.Generate(*outputDir, config)
 }
 
 func getConfig() (*cryptogen.Config, error) {

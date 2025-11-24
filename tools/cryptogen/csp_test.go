@@ -26,11 +26,11 @@ import (
 func TestLoadPrivateKey(t *testing.T) {
 	t.Parallel()
 	testDir := t.TempDir()
-	priv, err := GeneratePrivateKey(testDir, ED25519)
+	priv, err := generatePrivateKey(testDir, ED25519)
 	require.NoError(t, err, "failed to generate private key")
 	pkFile := filepath.Join(testDir, "priv_sk")
 	require.FileExists(t, pkFile, "Expected to find private key file")
-	loadedPriv, err := LoadPrivateKey(testDir)
+	loadedPriv, err := loadPrivateKey(testDir)
 	require.NoError(t, err, "Failed to load private key")
 	require.NotNil(t, loadedPriv, "Should have returned an *ecdsa.PrivateKey")
 	require.Equal(t, priv, loadedPriv, "Expected private keys to match")
@@ -83,7 +83,7 @@ func TestLoadPrivateKey_BadPEM(t *testing.T) {
 			)
 			require.NoError(t, writeErr, "failed to write to wrong encoding file")
 
-			_, err = LoadPrivateKey(badPEMFile)
+			_, err = loadPrivateKey(badPEMFile)
 			require.ErrorContains(t, err, test.errMsg)
 		})
 	}
@@ -94,12 +94,12 @@ func TestGeneratePrivateKey(t *testing.T) {
 	testDir := t.TempDir()
 
 	expectedFile := filepath.Join(testDir, "priv_sk")
-	priv, err := GeneratePrivateKey(testDir, ECDSA)
+	priv, err := generatePrivateKey(testDir, ECDSA)
 	require.NoError(t, err, "Failed to generate private key")
 	require.NotNil(t, priv, "Should have returned an *ecdsa.Key")
 	require.FileExists(t, expectedFile, "Expected to find private key file")
 
-	_, err = GeneratePrivateKey("notExist", ECDSA)
+	_, err = generatePrivateKey("notExist", ECDSA)
 	require.Contains(t, err.Error(), "no such file or directory")
 }
 
