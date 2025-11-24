@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/msp"

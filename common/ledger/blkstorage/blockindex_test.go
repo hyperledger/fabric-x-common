@@ -15,7 +15,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
@@ -183,7 +183,7 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 		}
 
 		for _, block := range blocks {
-			flags := txflags.ValidationFlags(block.Metadata.Metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER])
+			flags := txflags.ValidationFlags(block.Metadata.Metadata[protocommon.BlockMetadataIndex_TRANSACTIONS_FILTER])
 
 			for idx, d := range block.Data.Data {
 				txid, err = protoutil.GetOrComputeTxIDFromEnvelope(d)

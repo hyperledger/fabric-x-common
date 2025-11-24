@@ -14,8 +14,8 @@ import (
 	"sync/atomic"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
@@ -146,13 +146,13 @@ func newBlockfileMgr(id string, conf *Conf, indexConfig *IndexConfig, indexStore
 		return nil, err
 	}
 
-	bcInfo := &common.BlockchainInfo{}
+	bcInfo := &protocommon.BlockchainInfo{}
 
 	if mgr.bootstrappingSnapshotInfo != nil {
 		bcInfo.Height = mgr.bootstrappingSnapshotInfo.LastBlockNum + 1
 		bcInfo.CurrentBlockHash = mgr.bootstrappingSnapshotInfo.LastBlockHash
 		bcInfo.PreviousBlockHash = mgr.bootstrappingSnapshotInfo.PreviousBlockHash
-		bcInfo.BootstrappingSnapshotInfo = &common.BootstrappingSnapshotInfo{}
+		bcInfo.BootstrappingSnapshotInfo = &protocommon.BootstrappingSnapshotInfo{}
 		bcInfo.BootstrappingSnapshotInfo.LastBlockInSnapshot = mgr.bootstrappingSnapshotInfo.LastBlockNum
 	}
 
@@ -280,7 +280,7 @@ func (mgr *blockfileMgr) moveToNextFile() {
 	mgr.updateBlockfilesInfo(blkfilesInfo)
 }
 
-func (mgr *blockfileMgr) addBlock(block *common.Block) error {
+func (mgr *blockfileMgr) addBlock(block *protocommon.Block) error {
 	bcInfo := mgr.getBlockchainInfo()
 	if block.Header.Number != bcInfo.Height {
 		return errors.Errorf(
@@ -485,8 +485,8 @@ func (mgr *blockfileMgr) syncIndex() error {
 	return nil
 }
 
-func (mgr *blockfileMgr) getBlockchainInfo() *common.BlockchainInfo {
-	return mgr.bcInfo.Load().(*common.BlockchainInfo)
+func (mgr *blockfileMgr) getBlockchainInfo() *protocommon.BlockchainInfo {
+	return mgr.bcInfo.Load().(*protocommon.BlockchainInfo)
 }
 
 func (mgr *blockfileMgr) updateBlockfilesInfo(blkfilesInfo *blockfilesInfo) {
@@ -497,9 +497,9 @@ func (mgr *blockfileMgr) updateBlockfilesInfo(blkfilesInfo *blockfilesInfo) {
 	mgr.blkfilesInfoCond.Broadcast()
 }
 
-func (mgr *blockfileMgr) updateBlockchainInfo(latestBlockHash []byte, latestBlock *common.Block) {
+func (mgr *blockfileMgr) updateBlockchainInfo(latestBlockHash []byte, latestBlock *protocommon.Block) {
 	currentBCInfo := mgr.getBlockchainInfo()
-	newBCInfo := &common.BlockchainInfo{
+	newBCInfo := &protocommon.BlockchainInfo{
 		Height:                    currentBCInfo.Height + 1,
 		CurrentBlockHash:          latestBlockHash,
 		PreviousBlockHash:         latestBlock.Header.PreviousHash,
@@ -509,7 +509,7 @@ func (mgr *blockfileMgr) updateBlockchainInfo(latestBlockHash []byte, latestBloc
 	mgr.bcInfo.Store(newBCInfo)
 }
 
-func (mgr *blockfileMgr) retrieveBlockByHash(blockHash []byte) (*common.Block, error) {
+func (mgr *blockfileMgr) retrieveBlockByHash(blockHash []byte) (*protocommon.Block, error) {
 	logger.Debugf("retrieveBlockByHash() - blockHash = [%#v]", blockHash)
 	loc, err := mgr.index.getBlockLocByHash(blockHash)
 	if err != nil {
@@ -518,7 +518,7 @@ func (mgr *blockfileMgr) retrieveBlockByHash(blockHash []byte) (*common.Block, e
 	return mgr.fetchBlock(loc)
 }
 
-func (mgr *blockfileMgr) retrieveBlockByNumber(blockNum uint64) (*common.Block, error) {
+func (mgr *blockfileMgr) retrieveBlockByNumber(blockNum uint64) (*protocommon.Block, error) {
 	logger.Debugf("retrieveBlockByNumber() - blockNum = [%d]", blockNum)
 
 	// interpret math.MaxUint64 as a request for last block
@@ -538,7 +538,7 @@ func (mgr *blockfileMgr) retrieveBlockByNumber(blockNum uint64) (*common.Block, 
 	return mgr.fetchBlock(loc)
 }
 
-func (mgr *blockfileMgr) retrieveBlockByTxID(txID string) (*common.Block, error) {
+func (mgr *blockfileMgr) retrieveBlockByTxID(txID string) (*protocommon.Block, error) {
 	logger.Debugf("retrieveBlockByTxID() - txID = [%s]", txID)
 	loc, err := mgr.index.getBlockLocByTxID(txID)
 	if err == errNilValue {
@@ -552,18 +552,18 @@ func (mgr *blockfileMgr) retrieveBlockByTxID(txID string) (*common.Block, error)
 	return mgr.fetchBlock(loc)
 }
 
-func (mgr *blockfileMgr) retrieveTxValidationCodeByTxID(txID string) (peer.TxValidationCode, uint64, error) {
+func (mgr *blockfileMgr) retrieveTxValidationCodeByTxID(txID string) (protopeer.TxValidationCode, uint64, error) {
 	logger.Debugf("retrieveTxValidationCodeByTxID() - txID = [%s]", txID)
 	validationCode, blkNum, err := mgr.index.getTxValidationCodeByTxID(txID)
 	if err == errNilValue {
-		return peer.TxValidationCode(-1), 0, errors.Errorf(
+		return protopeer.TxValidationCode(-1), 0, errors.Errorf(
 			"details for the TXID [%s] not available. Ledger bootstrapped from a snapshot. First available block = [%d]",
 			txID, mgr.firstPossibleBlockNumberInBlockFiles())
 	}
 	return validationCode, blkNum, err
 }
 
-func (mgr *blockfileMgr) retrieveBlockHeaderByNumber(blockNum uint64) (*common.BlockHeader, error) {
+func (mgr *blockfileMgr) retrieveBlockHeaderByNumber(blockNum uint64) (*protocommon.BlockHeader, error) {
 	logger.Debugf("retrieveBlockHeaderByNumber() - blockNum = [%d]", blockNum)
 	if blockNum < mgr.firstPossibleBlockNumberInBlockFiles() {
 		return nil, errors.Errorf(
@@ -600,7 +600,7 @@ func (mgr *blockfileMgr) txIDExists(txID string) (bool, error) {
 	return mgr.index.txIDExists(txID)
 }
 
-func (mgr *blockfileMgr) retrieveTransactionByID(txID string) (*common.Envelope, error) {
+func (mgr *blockfileMgr) retrieveTransactionByID(txID string) (*protocommon.Envelope, error) {
 	logger.Debugf("retrieveTransactionByID() - txId = [%s]", txID)
 	loc, err := mgr.index.getTxLoc(txID)
 	if err == errNilValue {
@@ -614,7 +614,7 @@ func (mgr *blockfileMgr) retrieveTransactionByID(txID string) (*common.Envelope,
 	return mgr.fetchTransactionEnvelope(loc)
 }
 
-func (mgr *blockfileMgr) retrieveTransactionByBlockNumTranNum(blockNum uint64, tranNum uint64) (*common.Envelope, error) {
+func (mgr *blockfileMgr) retrieveTransactionByBlockNumTranNum(blockNum uint64, tranNum uint64) (*protocommon.Envelope, error) {
 	logger.Debugf("retrieveTransactionByBlockNumTranNum() - blockNum = [%d], tranNum = [%d]", blockNum, tranNum)
 	if blockNum < mgr.firstPossibleBlockNumberInBlockFiles() {
 		return nil, errors.Errorf(
@@ -629,7 +629,7 @@ func (mgr *blockfileMgr) retrieveTransactionByBlockNumTranNum(blockNum uint64, t
 	return mgr.fetchTransactionEnvelope(loc)
 }
 
-func (mgr *blockfileMgr) fetchBlock(lp *fileLocPointer) (*common.Block, error) {
+func (mgr *blockfileMgr) fetchBlock(lp *fileLocPointer) (*protocommon.Block, error) {
 	blockBytes, err := mgr.fetchBlockBytes(lp)
 	if err != nil {
 		return nil, err
@@ -641,7 +641,7 @@ func (mgr *blockfileMgr) fetchBlock(lp *fileLocPointer) (*common.Block, error) {
 	return block, nil
 }
 
-func (mgr *blockfileMgr) fetchTransactionEnvelope(lp *fileLocPointer) (*common.Envelope, error) {
+func (mgr *blockfileMgr) fetchTransactionEnvelope(lp *fileLocPointer) (*protocommon.Envelope, error) {
 	logger.Debugf("Entering fetchTransactionEnvelope() %v\n", lp)
 	var err error
 	var txEnvelopeBytes []byte

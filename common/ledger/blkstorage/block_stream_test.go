@@ -9,7 +9,7 @@ package blkstorage
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protowire"
 
@@ -102,7 +102,7 @@ func testBlockStream(t *testing.T, numFiles int) {
 
 	numBlocksInEachFile := 10
 	bg, gb := testutil.NewBlockGenerator(t, ledgerID, false)
-	w.addBlocks([]*common.Block{gb})
+	w.addBlocks([]*protocommon.Block{gb})
 	for i := 0; i < numFiles; i++ {
 		numBlocks := numBlocksInEachFile
 		if i == 0 {

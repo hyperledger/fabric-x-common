@@ -10,8 +10,8 @@ import (
 	"context"
 	"math"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
@@ -51,7 +51,7 @@ func (dr *DeliveryRequester) SeekInfoBlocksFrom(ledgerHeight uint64) (*common.En
 		common.HeaderType_DELIVER_SEEK_INFO,
 		dr.channelID,
 		dr.signer,
-		seekInfoFrom(ledgerHeight, orderer.SeekInfo_BLOCK),
+		seekInfoFrom(ledgerHeight, protoorderer.SeekInfo_BLOCK),
 		int32(0),
 		uint64(0),
 		dr.tlsCertHash,
@@ -65,30 +65,30 @@ func (dr *DeliveryRequester) SeekInfoHeadersFrom(ledgerHeight uint64) (*common.E
 		common.HeaderType_DELIVER_SEEK_INFO,
 		dr.channelID,
 		dr.signer,
-		seekInfoFrom(ledgerHeight, orderer.SeekInfo_HEADER_WITH_SIG),
+		seekInfoFrom(ledgerHeight, protoorderer.SeekInfo_HEADER_WITH_SIG),
 		int32(0),
 		uint64(0),
 		dr.tlsCertHash,
 	)
 }
 
-func seekInfoFrom(height uint64, contentType orderer.SeekInfo_SeekContentType) *orderer.SeekInfo {
-	return &orderer.SeekInfo{
-		Start: &orderer.SeekPosition{
-			Type: &orderer.SeekPosition_Specified{
-				Specified: &orderer.SeekSpecified{
+func seekInfoFrom(height uint64, contentType protoorderer.SeekInfo_SeekContentType) *protoorderer.SeekInfo {
+	return &protoorderer.SeekInfo{
+		Start: &protoorderer.SeekPosition{
+			Type: &protoorderer.SeekPosition_Specified{
+				Specified: &protoorderer.SeekSpecified{
 					Number: height,
 				},
 			},
 		},
-		Stop: &orderer.SeekPosition{
-			Type: &orderer.SeekPosition_Specified{
-				Specified: &orderer.SeekSpecified{
+		Stop: &protoorderer.SeekPosition{
+			Type: &protoorderer.SeekPosition_Specified{
+				Specified: &protoorderer.SeekSpecified{
 					Number: math.MaxUint64,
 				},
 			},
 		},
-		Behavior:    orderer.SeekInfo_BLOCK_UNTIL_READY,
+		Behavior:    protoorderer.SeekInfo_BLOCK_UNTIL_READY,
 		ContentType: contentType,
 	}
 }
@@ -100,7 +100,7 @@ func (dr *DeliveryRequester) SeekInfoNewestHeader() (*common.Envelope, error) {
 	return nil, errors.New("not implemented yet")
 }
 
-func (dr *DeliveryRequester) Connect(seekInfoEnv *common.Envelope, endpoint *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
+func (dr *DeliveryRequester) Connect(seekInfoEnv *common.Envelope, endpoint *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error) {
 	conn, err := dr.dialer.Dial(endpoint.Address, endpoint.RootCerts)
 	if err != nil {
 		return nil, nil, errors.WithMessagef(err, "could not dial endpoint '%s'", endpoint.Address)

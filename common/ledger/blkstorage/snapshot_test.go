@@ -13,8 +13,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
@@ -25,14 +25,14 @@ import (
 
 type testBlockDetails struct {
 	txIDs           []string
-	validationCodes []peer.TxValidationCode
+	validationCodes []protopeer.TxValidationCode
 }
 
 func TestImportFromSnapshot(t *testing.T) {
 	var testDir string
 	var env *testEnv
 	var blocksDetailsBeforeSnapshot, blocksDetailsAfterSnapshot []*testBlockDetails
-	var blocksBeforeSnapshot, blocksAfterSnapshot []*common.Block
+	var blocksBeforeSnapshot, blocksAfterSnapshot []*protocommon.Block
 	var blocksGenerator *testutil.BlockGenerator
 
 	var snapshotDir string
@@ -66,7 +66,7 @@ func TestImportFromSnapshot(t *testing.T) {
 			},
 		}
 
-		blocksBeforeSnapshot = []*common.Block{
+		blocksBeforeSnapshot = []*protocommon.Block{
 			genesisBlock,
 			generateNextTestBlock(blocksGenerator, blocksDetailsBeforeSnapshot[1]),
 			generateNextTestBlock(blocksGenerator, blocksDetailsBeforeSnapshot[2]),
@@ -78,14 +78,14 @@ func TestImportFromSnapshot(t *testing.T) {
 			},
 			{
 				txIDs: []string{"txid9", "txid10", "txid11"},
-				validationCodes: []peer.TxValidationCode{
-					peer.TxValidationCode_BAD_CHANNEL_HEADER,
-					peer.TxValidationCode_BAD_CREATOR_SIGNATURE,
+				validationCodes: []protopeer.TxValidationCode{
+					protopeer.TxValidationCode_BAD_CHANNEL_HEADER,
+					protopeer.TxValidationCode_BAD_CREATOR_SIGNATURE,
 				},
 			},
 		}
 
-		blocksAfterSnapshot = []*common.Block{
+		blocksAfterSnapshot = []*protocommon.Block{
 			generateNextTestBlock(blocksGenerator, blocksDetailsAfterSnapshot[0]),
 			generateNextTestBlock(blocksGenerator, blocksDetailsAfterSnapshot[1]),
 		}
@@ -100,7 +100,7 @@ func TestImportFromSnapshot(t *testing.T) {
 		prevBlock := blocksBeforeSnapshot[len(blocksBeforeSnapshot)-2]
 		bcInfo, err := originalBlockStore.GetBlockchainInfo()
 		require.NoError(t, err)
-		require.Equal(t, &common.BlockchainInfo{
+		require.Equal(t, &protocommon.BlockchainInfo{
 			Height:            uint64(len(blocksBeforeSnapshot)),
 			CurrentBlockHash:  protoutil.BlockHeaderHash(lastBlock.Header),
 			PreviousBlockHash: protoutil.BlockHeaderHash(prevBlock.Header),
@@ -147,11 +147,11 @@ func TestImportFromSnapshot(t *testing.T) {
 		verifyQueriesOnBlocksPriorToSnapshot(
 			t,
 			bootstrappedBlockStore,
-			&common.BlockchainInfo{
+			&protocommon.BlockchainInfo{
 				Height:            snapshotInfo.LastBlockNum + 1,
 				CurrentBlockHash:  snapshotInfo.LastBlockHash,
 				PreviousBlockHash: snapshotInfo.PreviousBlockHash,
-				BootstrappingSnapshotInfo: &common.BootstrappingSnapshotInfo{
+				BootstrappingSnapshotInfo: &protocommon.BootstrappingSnapshotInfo{
 					LastBlockInSnapshot: snapshotInfo.LastBlockNum,
 				},
 			},
@@ -173,11 +173,11 @@ func TestImportFromSnapshot(t *testing.T) {
 			require.NoError(t, bootstrappedBlockStore.AddBlock(b))
 		}
 		finalBlock := blocksAfterSnapshot[len(blocksAfterSnapshot)-1]
-		expectedBCInfo := &common.BlockchainInfo{
+		expectedBCInfo := &protocommon.BlockchainInfo{
 			Height:            finalBlock.Header.Number + 1,
 			CurrentBlockHash:  protoutil.BlockHeaderHash(finalBlock.Header),
 			PreviousBlockHash: finalBlock.Header.PreviousHash,
-			BootstrappingSnapshotInfo: &common.BootstrappingSnapshotInfo{
+			BootstrappingSnapshotInfo: &protocommon.BootstrappingSnapshotInfo{
 				LastBlockInSnapshot: snapshotInfo.LastBlockNum,
 			},
 		}
@@ -203,11 +203,11 @@ func TestImportFromSnapshot(t *testing.T) {
 		require.NoError(t, reopenBlockStore())
 		verifyQueriesOnBlocksPriorToSnapshot(t,
 			bootstrappedBlockStore,
-			&common.BlockchainInfo{
+			&protocommon.BlockchainInfo{
 				Height:            snapshotInfo.LastBlockNum + 1,
 				CurrentBlockHash:  snapshotInfo.LastBlockHash,
 				PreviousBlockHash: snapshotInfo.PreviousBlockHash,
-				BootstrappingSnapshotInfo: &common.BootstrappingSnapshotInfo{
+				BootstrappingSnapshotInfo: &protocommon.BootstrappingSnapshotInfo{
 					LastBlockInSnapshot: snapshotInfo.LastBlockNum,
 				},
 			},
@@ -221,11 +221,11 @@ func TestImportFromSnapshot(t *testing.T) {
 		closeBlockStore()
 		require.NoError(t, reopenBlockStore())
 		finalBlock := blocksAfterSnapshot[len(blocksAfterSnapshot)-1]
-		expectedBCInfo := &common.BlockchainInfo{
+		expectedBCInfo := &protocommon.BlockchainInfo{
 			Height:            finalBlock.Header.Number + 1,
 			CurrentBlockHash:  protoutil.BlockHeaderHash(finalBlock.Header),
 			PreviousBlockHash: finalBlock.Header.PreviousHash,
-			BootstrappingSnapshotInfo: &common.BootstrappingSnapshotInfo{
+			BootstrappingSnapshotInfo: &protocommon.BootstrappingSnapshotInfo{
 				LastBlockInSnapshot: snapshotInfo.LastBlockNum,
 			},
 		}
@@ -270,7 +270,7 @@ func TestImportFromSnapshot(t *testing.T) {
 		defer cleanup()
 
 		blockDetails := []*testBlockDetails{}
-		blocks := []*common.Block{}
+		blocks := []*protocommon.Block{}
 		for i, blockDetail := range blocksDetailsAfterSnapshot {
 			block := blocksAfterSnapshot[i]
 			blockDetails = append(blockDetails, blockDetail)
@@ -295,11 +295,11 @@ func TestImportFromSnapshot(t *testing.T) {
 			verifyQueriesOnBlocksAddedAfterBootstrapping(
 				t,
 				bootstrappedBlockStore,
-				&common.BlockchainInfo{
+				&protocommon.BlockchainInfo{
 					Height:            finalBlock.Header.Number + 1,
 					CurrentBlockHash:  protoutil.BlockHeaderHash(finalBlock.Header),
 					PreviousBlockHash: finalBlock.Header.PreviousHash,
-					BootstrappingSnapshotInfo: &common.BootstrappingSnapshotInfo{
+					BootstrappingSnapshotInfo: &protocommon.BootstrappingSnapshotInfo{
 						LastBlockInSnapshot: snapshotInfo.LastBlockNum,
 					},
 				},
@@ -431,14 +431,14 @@ func TestBootstrapFromSnapshotErrorPaths(t *testing.T) {
 	})
 }
 
-func generateNextTestBlock(bg *testutil.BlockGenerator, d *testBlockDetails) *common.Block {
+func generateNextTestBlock(bg *testutil.BlockGenerator, d *testBlockDetails) *protocommon.Block {
 	txContents := [][]byte{}
 	for _, txID := range d.txIDs {
 		txContents = append(txContents, []byte("dummy content for txid = "+txID))
 	}
 	block := bg.NextBlockWithTxid(txContents, d.txIDs)
 	for i, validationCode := range d.validationCodes {
-		txflags.ValidationFlags(block.Metadata.Metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER]).SetFlag(i, validationCode)
+		txflags.ValidationFlags(block.Metadata.Metadata[protocommon.BlockMetadataIndex_TRANSACTIONS_FILTER]).SetFlag(i, validationCode)
 	}
 	return block
 }
@@ -446,9 +446,9 @@ func generateNextTestBlock(bg *testutil.BlockGenerator, d *testBlockDetails) *co
 func verifyQueriesOnBlocksPriorToSnapshot(
 	t *testing.T,
 	bootstrappedBlockStore *BlockStore,
-	expectedBCInfo *common.BlockchainInfo,
+	expectedBCInfo *protocommon.BlockchainInfo,
 	blocksDetailsBeforeSnapshot []*testBlockDetails,
-	blocksBeforeSnapshot []*common.Block,
+	blocksBeforeSnapshot []*protocommon.Block,
 ) {
 	bci, err := bootstrappedBlockStore.GetBlockchainInfo()
 	require.NoError(t, err)
@@ -500,9 +500,9 @@ func verifyQueriesOnBlocksPriorToSnapshot(
 
 func verifyQueriesOnBlocksAddedAfterBootstrapping(t *testing.T,
 	bootstrappedBlockStore *BlockStore,
-	expectedBCInfo *common.BlockchainInfo,
+	expectedBCInfo *protocommon.BlockchainInfo,
 	blocksDetailsAfterSnapshot []*testBlockDetails,
-	blocksAfterSnapshot []*common.Block,
+	blocksAfterSnapshot []*protocommon.Block,
 ) {
 	bci, err := bootstrappedBlockStore.GetBlockchainInfo()
 	require.NoError(t, err)

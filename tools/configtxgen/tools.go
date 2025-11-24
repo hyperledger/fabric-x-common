@@ -11,14 +11,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hyperledger/fabric-config/protolator"
-	"github.com/hyperledger/fabric-config/protolator/protoext/ordererext"
-	"github.com/hyperledger/fabric-config/protolator/protoext/peerext"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
+	"github.com/hyperledger/fabric-x-common/protolator/protoext/peerext"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
@@ -69,7 +69,7 @@ func DoOutputBlock(config *Profile, channelID, outputBlock string) error {
 func DoOutputChannelCreateTx(conf, baseProfile *Profile, channelID, outputChannelCreateTx string) error {
 	logger.Info("Generating new channel configtx")
 
-	var configtx *common.Envelope
+	var configtx *protocommon.Envelope
 	var err error
 	if baseProfile == nil {
 		configtx, err = MakeChannelCreationTransaction(channelID, nil, conf)

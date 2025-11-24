@@ -9,8 +9,8 @@ package aclmgmt
 import (
 	"fmt"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/core/aclmgmt/resources"
@@ -140,7 +140,7 @@ func (d *defaultACLProviderImpl) CheckACL(resName string, channelID string, idin
 	switch typedData := idinfo.(type) {
 	case *pb.SignedProposal:
 		return d.policyChecker.CheckPolicy(channelID, policy, typedData)
-	case *common.Envelope:
+	case *protocommon.Envelope:
 		sd, err := protoutil.EnvelopeAsSignedData(typedData)
 		if err != nil {
 			return err
@@ -167,7 +167,7 @@ func (d *defaultACLProviderImpl) CheckACLNoChannel(resName string, idinfo interf
 	switch typedData := idinfo.(type) {
 	case *pb.SignedProposal:
 		return d.policyChecker.CheckPolicyNoChannel(policy, typedData)
-	case *common.Envelope:
+	case *protocommon.Envelope:
 		sd, err := protoutil.EnvelopeAsSignedData(typedData)
 		if err != nil {
 			return err

@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
@@ -191,10 +191,10 @@ func TestSatisfiesPrincipalPeer(t *testing.T) {
 		// Check that id is a peer
 		mspID, err := thisMSP.GetIdentifier()
 		require.NoError(t, err)
-		principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_PEER, MspIdentifier: mspID})
+		principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_PEER, MspIdentifier: mspID})
 		require.NoError(t, err)
-		principal := &msp.MSPPrincipal{
-			PrincipalClassification: msp.MSPPrincipal_ROLE,
+		principal := &protomsp.MSPPrincipal{
+			PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 			Principal:               principalBytes,
 		}
 		err = id.SatisfiesPrincipal(principal)
@@ -205,10 +205,10 @@ func TestSatisfiesPrincipalPeer(t *testing.T) {
 		// Check that id is not a client
 		mspID, err := thisMSP.GetIdentifier()
 		require.NoError(t, err)
-		principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_CLIENT, MspIdentifier: mspID})
+		principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_CLIENT, MspIdentifier: mspID})
 		require.NoError(t, err)
-		principal := &msp.MSPPrincipal{
-			PrincipalClassification: msp.MSPPrincipal_ROLE,
+		principal := &protomsp.MSPPrincipal{
+			PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 			Principal:               principalBytes,
 		}
 		err = id.SatisfiesPrincipal(principal)
@@ -234,10 +234,10 @@ func TestSatisfiesPrincipalClient(t *testing.T) {
 	require.True(t, t.Run("Check that id is a client", func(t *testing.T) {
 		mspID, err := thisMSP.GetIdentifier()
 		require.NoError(t, err)
-		principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_CLIENT, MspIdentifier: mspID})
+		principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_CLIENT, MspIdentifier: mspID})
 		require.NoError(t, err)
-		principal := &msp.MSPPrincipal{
-			PrincipalClassification: msp.MSPPrincipal_ROLE,
+		principal := &protomsp.MSPPrincipal{
+			PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 			Principal:               principalBytes,
 		}
 		err = id.SatisfiesPrincipal(principal)
@@ -248,10 +248,10 @@ func TestSatisfiesPrincipalClient(t *testing.T) {
 		// Check that id is not a peer
 		mspID, err := thisMSP.GetIdentifier()
 		require.NoError(t, err)
-		principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_PEER, MspIdentifier: mspID})
+		principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_PEER, MspIdentifier: mspID})
 		require.NoError(t, err)
-		principal := &msp.MSPPrincipal{
-			PrincipalClassification: msp.MSPPrincipal_ROLE,
+		principal := &protomsp.MSPPrincipal{
+			PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 			Principal:               principalBytes,
 		}
 		err = id.SatisfiesPrincipal(principal)
@@ -272,10 +272,10 @@ func TestSatisfiesPrincipalAdmin(t *testing.T) {
 	id, _, err := thisMSP.(*bccspmsp).getIdentityFromConf(cert)
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 	err = id.SatisfiesPrincipal(principal)
@@ -335,10 +335,10 @@ func TestAdminInAdmincertsWith143MSP(t *testing.T) {
 			require.NotEqual(t, "admin", ou.OrganizationalUnitIdentifier)
 		}
 
-		principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
+		principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
 		require.NoError(t, err)
-		principal := &msp.MSPPrincipal{
-			PrincipalClassification: msp.MSPPrincipal_ROLE,
+		principal := &protomsp.MSPPrincipal{
+			PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 			Principal:               principalBytes,
 		}
 		err = id.SatisfiesPrincipal(principal)
@@ -355,10 +355,10 @@ func TestSatisfiesPrincipalOrderer(t *testing.T) {
 	id, err := thisMSP.(*bccspmsp).GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ORDERER, MspIdentifier: "SampleOrg"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ORDERER, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 	err = id.SatisfiesPrincipal(principal)
@@ -383,10 +383,10 @@ func TestLoad142MSPWithInvalidOrdererConfiguration(t *testing.T) {
 	id, err := thisMSP.(*bccspmsp).GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ORDERER, MspIdentifier: "SampleOrg"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ORDERER, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 	err = id.SatisfiesPrincipal(principal)
@@ -408,10 +408,10 @@ func TestLoad142MSPWithInvalidOrdererConfiguration(t *testing.T) {
 	id, err = thisMSP.(*bccspmsp).GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err = proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ORDERER, MspIdentifier: "SampleOrg"})
+	principalBytes, err = proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ORDERER, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
-	principal = &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal = &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 	err = id.SatisfiesPrincipal(principal)

@@ -12,17 +12,17 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	mspprotos "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoetcdraft"
+	mspprotos "github.com/hyperledger/fabric-x-common/api/protomsp"
+	ab "github.com/hyperledger/fabric-x-common/api/protoorderer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/capabilities"
+	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
@@ -313,8 +313,8 @@ func TestExtractMSPIDsForApplicationOrgs(t *testing.T) {
 }
 
 func TestMarshalEtcdRaftMetadata(t *testing.T) {
-	md := &etcdraft.ConfigMetadata{
-		Consenters: []*etcdraft.Consenter{
+	md := &protoetcdraft.ConfigMetadata{
+		Consenters: []*protoetcdraft.Consenter{
 			{
 				Host:          "node-1.example.com",
 				Port:          7050,
@@ -343,7 +343,7 @@ func TestMarshalEtcdRaftMetadata(t *testing.T) {
 	require.Nil(t, err, "marshalling should succeed a second time because we did not mutate ourselves")
 	require.NotNil(t, packed)
 
-	unpacked := &etcdraft.ConfigMetadata{}
+	unpacked := &protoetcdraft.ConfigMetadata{}
 	require.Nil(t, proto.Unmarshal(packed, unpacked), "unmarshalling should succeed")
 
 	var outputCerts, inputCerts [3][]byte

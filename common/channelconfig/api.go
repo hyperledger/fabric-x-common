@@ -9,9 +9,9 @@ package channelconfig
 import (
 	"time"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	ab "github.com/hyperledger/fabric-x-common/api/protoorderer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
 
 	"github.com/hyperledger/fabric-x-common/common/configtx"
 	"github.com/hyperledger/fabric-x-common/common/policies"

@@ -9,8 +9,7 @@ package policy
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -35,8 +34,8 @@ func TestComponentIntegrationSignaturePolicyEnv(t *testing.T) {
 	}
 
 	spenv := policydsl.SignedByMspMember("msp")
-	mspenv := protoutil.MarshalOrPanic(&peer.ApplicationPolicy{
-		Type: &peer.ApplicationPolicy_SignaturePolicy{
+	mspenv := protoutil.MarshalOrPanic(&protocommon.ApplicationPolicy{
+		Type: &protocommon.ApplicationPolicy_SignaturePolicy{
 			SignaturePolicy: spenv,
 		},
 	})
@@ -81,11 +80,11 @@ func TestEvaluator(t *testing.T) {
 
 	// SCENARIO: signature policy supplied - good and bad path
 
-	spenv := &common.SignaturePolicyEnvelope{}
-	spenvTmp, ok := proto.Clone(spenv).(*common.SignaturePolicyEnvelope)
+	spenv := &protocommon.SignaturePolicyEnvelope{}
+	spenvTmp, ok := proto.Clone(spenv).(*protocommon.SignaturePolicyEnvelope)
 	require.True(t, ok)
-	mspenv := protoutil.MarshalOrPanic(&peer.ApplicationPolicy{
-		Type: &peer.ApplicationPolicy_SignaturePolicy{
+	mspenv := protoutil.MarshalOrPanic(&protocommon.ApplicationPolicy{
+		Type: &protocommon.ApplicationPolicy_SignaturePolicy{
 			SignaturePolicy: spenvTmp,
 		},
 	})
@@ -104,8 +103,8 @@ func TestEvaluator(t *testing.T) {
 	// SCENARIO: channel ref policy supplied - good and bad path
 
 	chrefstr := "Quo usque tandem abutere, Catilina, patientia nostra?"
-	chrefstrEnv := protoutil.MarshalOrPanic(&peer.ApplicationPolicy{
-		Type: &peer.ApplicationPolicy_ChannelConfigPolicyReference{
+	chrefstrEnv := protoutil.MarshalOrPanic(&protocommon.ApplicationPolicy{
+		Type: &protocommon.ApplicationPolicy_ChannelConfigPolicyReference{
 			ChannelConfigPolicyReference: chrefstr,
 		},
 	})

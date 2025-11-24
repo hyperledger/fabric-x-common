@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/policies"
@@ -18,9 +18,9 @@ import (
 
 // ComparablePrincipal defines an MSPPrincipal that can be compared to other principals
 type ComparablePrincipal struct {
-	principal *msp.MSPPrincipal
-	ou        *msp.OrganizationUnit
-	role      *msp.MSPRole
+	principal *protomsp.MSPPrincipal
+	ou        *protomsp.OrganizationUnit
+	role      *protomsp.MSPRole
 	mspID     string
 	idBytes   []byte
 }
@@ -33,7 +33,7 @@ func (cp *ComparablePrincipal) Equal(cp2 *ComparablePrincipal) bool {
 
 // NewComparablePrincipal creates a ComparablePrincipal out of the given MSPPrincipal.
 // Returns nil if a failure occurs.
-func NewComparablePrincipal(principal *msp.MSPPrincipal) *ComparablePrincipal {
+func NewComparablePrincipal(principal *protomsp.MSPPrincipal) *ComparablePrincipal {
 	if principal == nil {
 		logger.Warning("Principal is nil")
 		return nil
@@ -42,14 +42,14 @@ func NewComparablePrincipal(principal *msp.MSPPrincipal) *ComparablePrincipal {
 		principal: principal,
 	}
 	switch principal.PrincipalClassification {
-	case msp.MSPPrincipal_ROLE:
+	case protomsp.MSPPrincipal_ROLE:
 		return cp.ToRole()
-	case msp.MSPPrincipal_ORGANIZATION_UNIT:
+	case protomsp.MSPPrincipal_ORGANIZATION_UNIT:
 		return cp.ToOURole()
-	case msp.MSPPrincipal_IDENTITY:
+	case protomsp.MSPPrincipal_IDENTITY:
 		return cp.ToIdentity()
 	}
-	mapping := msp.MSPPrincipal_Classification_name[int32(principal.PrincipalClassification)]
+	mapping := protomsp.MSPPrincipal_Classification_name[int32(principal.PrincipalClassification)]
 	logger.Warning("Received an unsupported principal type:", principal.PrincipalClassification, "mapped to", mapping)
 	return nil
 }
@@ -89,7 +89,7 @@ func (cp *ComparablePrincipal) IsA(other *ComparablePrincipal) bool {
 
 	// If the other Principal is a member, then any role or OU role
 	// fits, because every role or OU role is also a member of the MSP
-	if other.role != nil && other.role.Role == msp.MSPRole_MEMBER {
+	if other.role != nil && other.role.Role == protomsp.MSPRole_MEMBER {
 		return true
 	}
 
@@ -105,7 +105,7 @@ func (cp *ComparablePrincipal) IsA(other *ComparablePrincipal) bool {
 		return this.role.Role == other.role.Role
 	}
 
-	if this.principal.PrincipalClassification == msp.MSPPrincipal_IDENTITY {
+	if this.principal.PrincipalClassification == protomsp.MSPPrincipal_IDENTITY {
 		return bytes.Equal(this.idBytes, other.idBytes) && this.mspID == other.mspID
 	}
 
@@ -116,7 +116,7 @@ func (cp *ComparablePrincipal) IsA(other *ComparablePrincipal) bool {
 
 // ToOURole converts this ComparablePrincipal to OU principal, and returns nil on failure
 func (cp *ComparablePrincipal) ToOURole() *ComparablePrincipal {
-	ouRole := &msp.OrganizationUnit{}
+	ouRole := &protomsp.OrganizationUnit{}
 	err := proto.Unmarshal(cp.principal.Principal, ouRole)
 	if err != nil {
 		logger.Warning("Failed unmarshalling principal:", err)
@@ -129,7 +129,7 @@ func (cp *ComparablePrincipal) ToOURole() *ComparablePrincipal {
 
 // ToIdentity converts this ComparablePrincipal to Identity principal, and returns nil on failure
 func (cp *ComparablePrincipal) ToIdentity() *ComparablePrincipal {
-	sID := &msp.SerializedIdentity{}
+	sID := &protomsp.SerializedIdentity{}
 	err := proto.Unmarshal(cp.principal.Principal, sID)
 	if err != nil {
 		logger.Warning("Failed unmarshalling principal:", err)
@@ -142,7 +142,7 @@ func (cp *ComparablePrincipal) ToIdentity() *ComparablePrincipal {
 
 // ToRole converts this ComparablePrincipal to MSP Role, and returns nil if the conversion failed
 func (cp *ComparablePrincipal) ToRole() *ComparablePrincipal {
-	mspRole := &msp.MSPRole{}
+	mspRole := &protomsp.MSPRole{}
 	err := proto.Unmarshal(cp.principal.Principal, mspRole)
 	if err != nil {
 		logger.Warning("Failed unmarshalling principal:", err)

@@ -4,7 +4,7 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger"
 )
@@ -23,9 +23,8 @@ type FileLedgerBlockStore struct {
 	}
 	GetBlockchainInfoStub        func() (*common.BlockchainInfo, error)
 	getBlockchainInfoMutex       sync.RWMutex
-	getBlockchainInfoArgsForCall []struct {
-	}
-	getBlockchainInfoReturns struct {
+	getBlockchainInfoArgsForCall []struct{}
+	getBlockchainInfoReturns     struct {
 		result1 *common.BlockchainInfo
 		result2 error
 	}
@@ -61,10 +60,9 @@ type FileLedgerBlockStore struct {
 	}
 	ShutdownStub        func()
 	shutdownMutex       sync.RWMutex
-	shutdownArgsForCall []struct {
-	}
-	invocations      map[string][][]interface{}
-	invocationsMutex sync.RWMutex
+	shutdownArgsForCall []struct{}
+	invocations         map[string][][]interface{}
+	invocationsMutex    sync.RWMutex
 }
 
 func (fake *FileLedgerBlockStore) AddBlock(arg1 *common.Block) error {
@@ -131,8 +129,7 @@ func (fake *FileLedgerBlockStore) AddBlockReturnsOnCall(i int, result1 error) {
 func (fake *FileLedgerBlockStore) GetBlockchainInfo() (*common.BlockchainInfo, error) {
 	fake.getBlockchainInfoMutex.Lock()
 	ret, specificReturn := fake.getBlockchainInfoReturnsOnCall[len(fake.getBlockchainInfoArgsForCall)]
-	fake.getBlockchainInfoArgsForCall = append(fake.getBlockchainInfoArgsForCall, struct {
-	}{})
+	fake.getBlockchainInfoArgsForCall = append(fake.getBlockchainInfoArgsForCall, struct{}{})
 	stub := fake.GetBlockchainInfoStub
 	fakeReturns := fake.getBlockchainInfoReturns
 	fake.recordInvocation("GetBlockchainInfo", []interface{}{})
@@ -314,8 +311,7 @@ func (fake *FileLedgerBlockStore) RetrieveBlocksReturnsOnCall(i int, result1 led
 
 func (fake *FileLedgerBlockStore) Shutdown() {
 	fake.shutdownMutex.Lock()
-	fake.shutdownArgsForCall = append(fake.shutdownArgsForCall, struct {
-	}{})
+	fake.shutdownArgsForCall = append(fake.shutdownArgsForCall, struct{}{})
 	stub := fake.ShutdownStub
 	fake.recordInvocation("Shutdown", []interface{}{})
 	fake.shutdownMutex.Unlock()

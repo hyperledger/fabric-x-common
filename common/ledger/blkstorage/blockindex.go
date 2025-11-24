@@ -12,8 +12,9 @@ import (
 	"path/filepath"
 	"unicode/utf8"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
@@ -21,7 +22,6 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
 	"github.com/hyperledger/fabric-x-common/common/ledger/util"
 	"github.com/hyperledger/fabric-x-common/common/ledger/util/leveldbhelper"
-	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 )
 
 const (
@@ -48,7 +48,7 @@ type blockIdxInfo struct {
 	blockHash []byte
 	flp       *fileLocPointer
 	txOffsets []*txindexInfo
-	metadata  *common.BlockMetadata
+	metadata  *protocommon.BlockMetadata
 }
 
 type blockIndex struct {
@@ -92,7 +92,7 @@ func (index *blockIndex) indexBlock(blockIdxInfo *blockIdxInfo) error {
 	txOffsets := blockIdxInfo.txOffsets
 	blkNum := blockIdxInfo.blockNum
 	blkHash := blockIdxInfo.blockHash
-	txsfltr := txflags.ValidationFlags(blockIdxInfo.metadata.Metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER])
+	txsfltr := txflags.ValidationFlags(blockIdxInfo.metadata.Metadata[protocommon.BlockMetadataIndex_TRANSACTIONS_FILTER])
 	batch := index.db.NewUpdateBatch()
 	flpBytes := flp.marshal()
 
@@ -212,12 +212,12 @@ func (index *blockIndex) getBlockLocByTxID(txID string) (*fileLocPointer, error)
 	return blkFLP, nil
 }
 
-func (index *blockIndex) getTxValidationCodeByTxID(txID string) (peer.TxValidationCode, uint64, error) {
+func (index *blockIndex) getTxValidationCodeByTxID(txID string) (protopeer.TxValidationCode, uint64, error) {
 	v, blkNum, err := index.getTxIDVal(txID)
 	if err != nil {
-		return peer.TxValidationCode(-1), 0, err
+		return protopeer.TxValidationCode(-1), 0, err
 	}
-	return peer.TxValidationCode(v.TxValidationCode), blkNum, nil
+	return protopeer.TxValidationCode(v.TxValidationCode), blkNum, nil
 }
 
 func (index *blockIndex) txIDExists(txID string) (bool, error) {
@@ -362,7 +362,8 @@ func (index *blockIndex) exportUniqueTxIDs(dir string, newHashFunc snapshot.NewH
 func importTxIDsFromSnapshot(
 	snapshotDir string,
 	lastBlockNumInSnapshot uint64,
-	db *leveldbhelper.DBHandle) error {
+	db *leveldbhelper.DBHandle,
+) error {
 	txIDsMetadata, err := snapshot.OpenFile(filepath.Join(snapshotDir, snapshotMetadataFileName), snapshotFileFormat)
 	if err != nil {
 		return err

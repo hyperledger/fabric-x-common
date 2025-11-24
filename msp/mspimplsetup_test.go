@@ -12,9 +12,9 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/onsi/gomega"
 
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 )
 
@@ -90,7 +90,7 @@ func TestTLSCAValidation(t *testing.T) {
 			opts: &x509.VerifyOptions{Roots: x509.NewCertPool(), Intermediates: x509.NewCertPool()},
 		}
 
-		err := mspImpl.setupTLSCAs(&msp.FabricMSPConfig{
+		err := mspImpl.setupTLSCAs(&protomsp.FabricMSPConfig{
 			TlsRootCerts: [][]byte{[]byte(caCert)},
 		})
 		gt.Expect(err).NotTo(gomega.HaveOccurred())
@@ -101,7 +101,7 @@ func TestTLSCAValidation(t *testing.T) {
 			opts: &x509.VerifyOptions{Roots: x509.NewCertPool(), Intermediates: x509.NewCertPool()},
 		}
 
-		err := mspImpl.setupTLSCAs(&msp.FabricMSPConfig{
+		err := mspImpl.setupTLSCAs(&protomsp.FabricMSPConfig{
 			TlsRootCerts: [][]byte{[]byte(caExpired)},
 		})
 		gt.Expect(err).NotTo(gomega.HaveOccurred())
@@ -112,7 +112,7 @@ func TestTLSCAValidation(t *testing.T) {
 			opts: &x509.VerifyOptions{Roots: x509.NewCertPool(), Intermediates: x509.NewCertPool()},
 		}
 
-		err := mspImpl.setupTLSCAs(&msp.FabricMSPConfig{
+		err := mspImpl.setupTLSCAs(&protomsp.FabricMSPConfig{
 			TlsRootCerts: [][]byte{[]byte(nonCACert)},
 		})
 		gt.Expect(err).To(gomega.MatchError("CA Certificate did not have the CA attribute, (SN: c9dff7f76657d46f082570f6965051f5)"))
@@ -123,7 +123,7 @@ func TestTLSCAValidation(t *testing.T) {
 			opts: &x509.VerifyOptions{Roots: x509.NewCertPool(), Intermediates: x509.NewCertPool()},
 		}
 
-		err := mspImpl.setupTLSCAs(&msp.FabricMSPConfig{
+		err := mspImpl.setupTLSCAs(&protomsp.FabricMSPConfig{
 			TlsRootCerts: [][]byte{[]byte(caWithoutSKI)},
 		})
 		gt.Expect(err).To(gomega.MatchError("CA Certificate problem with Subject Key Identifier extension, (SN: ab0ae311f3e32036): subjectKeyIdentifier not found in certificate"))
@@ -146,7 +146,7 @@ func TestMalformedCertsChainSetup(t *testing.T) {
 	mspImpl := &bccspmsp{
 		opts:  &x509.VerifyOptions{Roots: x509.NewCertPool(), Intermediates: x509.NewCertPool()},
 		bccsp: cp,
-		cryptoConfig: &msp.FabricCryptoConfig{
+		cryptoConfig: &protomsp.FabricCryptoConfig{
 			IdentityIdentifierHashFunction: "SHA256",
 		},
 	}

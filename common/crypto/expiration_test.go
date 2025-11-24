@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -28,7 +28,7 @@ import (
 func TestX509CertExpiresAt(t *testing.T) {
 	certBytes, err := os.ReadFile(filepath.Join("testdata", "cert.pem"))
 	require.NoError(t, err)
-	sId := &msp.SerializedIdentity{
+	sId := &protomsp.SerializedIdentity{
 		IdBytes: certBytes,
 	}
 	serializedIdentity, err := proto.Marshal(sId)
@@ -40,7 +40,7 @@ func TestX509CertExpiresAt(t *testing.T) {
 func TestX509InvalidCertExpiresAt(t *testing.T) {
 	certBytes, err := os.ReadFile(filepath.Join("testdata", "badCert.pem"))
 	require.NoError(t, err)
-	sId := &msp.SerializedIdentity{
+	sId := &protomsp.SerializedIdentity{
 		IdBytes: certBytes,
 	}
 	serializedIdentity, err := proto.Marshal(sId)
@@ -50,14 +50,14 @@ func TestX509InvalidCertExpiresAt(t *testing.T) {
 }
 
 func TestIdemixIdentityExpiresAt(t *testing.T) {
-	idemixId := &msp.SerializedIdemixIdentity{
+	idemixId := &protomsp.SerializedIdemixIdentity{
 		NymX: []byte{1, 2, 3},
 		NymY: []byte{1, 2, 3},
 		Ou:   []byte("OU1"),
 	}
 	idemixBytes, err := proto.Marshal(idemixId)
 	require.NoError(t, err)
-	sId := &msp.SerializedIdentity{
+	sId := &protomsp.SerializedIdentity{
 		IdBytes: idemixBytes,
 	}
 	serializedIdentity, err := proto.Marshal(sId)
@@ -88,7 +88,7 @@ func TestTrackExpiration(t *testing.T) {
 	tlsCert, err := ca.NewServerCertKeyPair("127.0.0.1")
 	require.NoError(t, err)
 
-	signingIdentity := protoutil.MarshalOrPanic(&msp.SerializedIdentity{
+	signingIdentity := protoutil.MarshalOrPanic(&protomsp.SerializedIdentity{
 		IdBytes: tlsCert.Cert,
 	})
 

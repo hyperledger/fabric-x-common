@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -32,7 +32,7 @@ type BFTHeaderReceiver struct {
 	started                bool
 	errorStopTime          time.Time
 	endpoint               string
-	client                 orderer.AtomicBroadcast_DeliverClient
+	client                 protoorderer.AtomicBroadcast_DeliverClient
 	updatableBlockVerifier UpdatableBlockVerifier
 
 	// A block with Header & Metadata, without Data (i.e. lastHeader.Data==nil); except from config blocks, which are full.
@@ -50,7 +50,7 @@ type BFTHeaderReceiver struct {
 func NewBFTHeaderReceiver(
 	chainID string,
 	endpoint string,
-	client orderer.AtomicBroadcast_DeliverClient,
+	client protoorderer.AtomicBroadcast_DeliverClient,
 	updatableBlockVerifier UpdatableBlockVerifier,
 	previousReceiver *BFTHeaderReceiver,
 	logger *flogging.FabricLogger,
@@ -100,7 +100,7 @@ func (hr *BFTHeaderReceiver) DeliverHeaders() {
 		}
 
 		switch t := msg.GetType().(type) {
-		case *orderer.DeliverResponse_Status:
+		case *protoorderer.DeliverResponse_Status:
 			if t.Status == common.Status_SUCCESS {
 				hr.logger.Warningf("[%s][%s] Warning! Received %s for a seek that should never complete", hr.chainID, hr.endpoint, t.Status)
 				return
@@ -109,7 +109,7 @@ func (hr *BFTHeaderReceiver) DeliverHeaders() {
 			hr.logger.Errorf("[%s][%s] Got bad status %s", hr.chainID, hr.endpoint, t.Status)
 			return
 
-		case *orderer.DeliverResponse_Block:
+		case *protoorderer.DeliverResponse_Block:
 			blockNum := t.Block.Header.Number
 
 			if !protoutil.IsConfigBlock(t.Block) { // normal blocks with block.Data==nil

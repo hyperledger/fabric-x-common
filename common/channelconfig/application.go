@@ -7,9 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package channelconfig
 
 import (
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/capabilities"
@@ -29,7 +29,7 @@ const (
 type ApplicationProtos struct {
 	ACLs                         *pb.ACLs
 	Capabilities                 *cb.Capabilities
-	MetaNamespaceVerificationKey *msp.KeyInfo
+	MetaNamespaceVerificationKey *protomsp.KeyInfo
 }
 
 // ApplicationConfig implements the Application interface
@@ -84,6 +84,6 @@ func (ac *ApplicationConfig) APIPolicyMapper() PolicyMapper {
 }
 
 // MetaNamespaceVerificationKey returns the meta-namespace verification key
-func (ac *ApplicationConfig) MetaNamespaceVerificationKey() *msp.KeyInfo {
+func (ac *ApplicationConfig) MetaNamespaceVerificationKey() *protomsp.KeyInfo {
 	return ac.protos.MetaNamespaceVerificationKey
 }

@@ -14,8 +14,8 @@ import (
 	"fmt"
 	"math/big"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
@@ -299,7 +299,7 @@ func BlockSignatureVerifier(bftEnabled bool, consenters []*cb.Consenter, policy 
 func searchConsenterIdentityByID(consenters []*cb.Consenter, identifier uint32) []byte {
 	for _, consenter := range consenters {
 		if consenter.Id == identifier {
-			return MarshalOrPanic(&msp.SerializedIdentity{
+			return MarshalOrPanic(&protomsp.SerializedIdentity{
 				Mspid:   consenter.MspId,
 				IdBytes: consenter.Identity,
 			})

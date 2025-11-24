@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
@@ -91,7 +91,7 @@ func (id *identity) ExpiresAt() time.Time {
 }
 
 // SatisfiesPrincipal returns nil if this instance matches the supplied principal or an error otherwise
-func (id *identity) SatisfiesPrincipal(principal *msp.MSPPrincipal) error {
+func (id *identity) SatisfiesPrincipal(principal *protomsp.MSPPrincipal) error {
 	return id.msp.SatisfiesPrincipal(id, principal)
 }
 
@@ -157,7 +157,7 @@ func (id *identity) Anonymous() bool {
 func NewSerializedIdentity(mspID string, certPEM []byte) ([]byte, error) {
 	// We serialize identities by prepending the MSPID
 	// and appending the x509 cert in PEM format
-	sId := &msp.SerializedIdentity{Mspid: mspID, IdBytes: certPEM}
+	sId := &protomsp.SerializedIdentity{Mspid: mspID, IdBytes: certPEM}
 	raw, err := proto.Marshal(sId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed serializing identity [%s][%X]", mspID, certPEM)
@@ -215,7 +215,7 @@ func (id *identity) Serialize() ([]byte, error) {
 	}
 
 	// We serialize identities by prepending the MSPID and appending the ASN.1 DER content of the cert
-	sId := &msp.SerializedIdentity{Mspid: id.id.Mspid, IdBytes: pemBytes}
+	sId := &protomsp.SerializedIdentity{Mspid: id.id.Mspid, IdBytes: pemBytes}
 	idBytes, err := proto.Marshal(sId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not marshal a SerializedIdentity structure for identity %s", id.id)

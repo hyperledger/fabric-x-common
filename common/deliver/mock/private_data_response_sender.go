@@ -4,7 +4,7 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
 
 	"github.com/hyperledger/fabric-x-common/common/deliver"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -13,9 +13,8 @@ import (
 type PrivateDataResponseSender struct {
 	DataTypeStub        func() string
 	dataTypeMutex       sync.RWMutex
-	dataTypeArgsForCall []struct {
-	}
-	dataTypeReturns struct {
+	dataTypeArgsForCall []struct{}
+	dataTypeReturns     struct {
 		result1 string
 	}
 	dataTypeReturnsOnCall map[int]struct {
@@ -53,8 +52,7 @@ type PrivateDataResponseSender struct {
 func (fake *PrivateDataResponseSender) DataType() string {
 	fake.dataTypeMutex.Lock()
 	ret, specificReturn := fake.dataTypeReturnsOnCall[len(fake.dataTypeArgsForCall)]
-	fake.dataTypeArgsForCall = append(fake.dataTypeArgsForCall, struct {
-	}{})
+	fake.dataTypeArgsForCall = append(fake.dataTypeArgsForCall, struct{}{})
 	fake.recordInvocation("DataType", []interface{}{})
 	fake.dataTypeMutex.Unlock()
 	if fake.DataTypeStub != nil {

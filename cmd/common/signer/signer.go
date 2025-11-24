@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/util"
@@ -71,7 +71,7 @@ func serializeIdentity(clientCert string, mspID string) ([]byte, error) {
 	if err := validateEnrollmentCertificate(b); err != nil {
 		return nil, err
 	}
-	sId := &msp.SerializedIdentity{
+	sId := &protomsp.SerializedIdentity{
 		Mspid:   mspID,
 		IdBytes: b,
 	}

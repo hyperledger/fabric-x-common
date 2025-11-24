@@ -14,10 +14,10 @@ import (
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoetcdraft"
+	ab "github.com/hyperledger/fabric-x-common/api/protoorderer"
+	"github.com/hyperledger/fabric-x-common/api/protosmartbft"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/types"
@@ -418,8 +418,8 @@ var _ = ginkgo.Describe("Encoder", func() {
 		ginkgo.Context("when the consensus type is etcd/raft", func() {
 			ginkgo.BeforeEach(func() {
 				conf.OrdererType = "etcdraft"
-				conf.EtcdRaft = &etcdraft.ConfigMetadata{
-					Options: &etcdraft.Options{
+				conf.EtcdRaft = &protoetcdraft.ConfigMetadata{
+					Options: &protoetcdraft.Options{
 						TickInterval: "500ms",
 					},
 				}
@@ -433,7 +433,7 @@ var _ = ginkgo.Describe("Encoder", func() {
 				err = proto.Unmarshal(cg.Values["ConsensusType"].Value, consensusType)
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 				gomega.Expect(consensusType.Type).To(gomega.Equal("etcdraft"))
-				metadata := &etcdraft.ConfigMetadata{}
+				metadata := &protoetcdraft.ConfigMetadata{}
 				err = proto.Unmarshal(consensusType.Metadata, metadata)
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 				gomega.Expect(metadata.Options.TickInterval).To(gomega.Equal("500ms"))
@@ -441,8 +441,8 @@ var _ = ginkgo.Describe("Encoder", func() {
 
 			ginkgo.Context("when the raft configuration is bad", func() {
 				ginkgo.BeforeEach(func() {
-					conf.EtcdRaft = &etcdraft.ConfigMetadata{
-						Consenters: []*etcdraft.Consenter{
+					conf.EtcdRaft = &protoetcdraft.ConfigMetadata{
+						Consenters: []*protoetcdraft.Consenter{
 							{},
 						},
 					}
@@ -476,7 +476,7 @@ var _ = ginkgo.Describe("Encoder", func() {
 						Identity:      path.Join(mspDir, "admincerts/admincert.pem"),
 					},
 				}
-				conf.SmartBFT = &smartbft.Options{}
+				conf.SmartBFT = &protosmartbft.Options{}
 			})
 
 			ginkgo.It("adds the Orderers key", func() {

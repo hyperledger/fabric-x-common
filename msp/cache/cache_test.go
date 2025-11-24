@@ -10,7 +10,7 @@ import (
 	"sync"
 	"testing"
 
-	msp2 "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	msp2 "github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

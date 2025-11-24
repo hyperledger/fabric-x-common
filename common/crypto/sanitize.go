@@ -16,14 +16,14 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 )
 
 // SanitizeIdentity sanitizes the signature scheme of the identity
 func SanitizeIdentity(identity []byte) ([]byte, error) {
-	sID := &msp.SerializedIdentity{}
+	sID := &protomsp.SerializedIdentity{}
 	if err := proto.Unmarshal(identity, sID); err != nil {
 		return nil, errors.Wrapf(err, "failed unmarshaling identity %s", string(identity))
 	}

@@ -1,0 +1,16 @@
+// Copyright the Hyperledger Fabric contributors. All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+option go_package = "github.com/hyperledger/fabric-x-common/api/protopeer";
+
+package protopeer;
+
+import "api/protopeer/proposal.proto";
+import "api/protopeer/proposal_response.proto";
+
+service Endorser {
+    rpc ProcessProposal(SignedProposal) returns (ProposalResponse);
+}

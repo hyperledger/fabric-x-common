@@ -9,8 +9,8 @@ package channelconfig
 import (
 	"fmt"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/pkg/errors"
 )
 

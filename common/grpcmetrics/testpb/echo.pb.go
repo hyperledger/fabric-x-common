@@ -115,10 +115,12 @@ func file_echo_proto_rawDescGZIP() []byte {
 	return file_echo_proto_rawDescData
 }
 
-var file_echo_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_echo_proto_goTypes = []any{
-	(*Message)(nil), // 0: testpb.Message
-}
+var (
+	file_echo_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+	file_echo_proto_goTypes  = []any{
+		(*Message)(nil), // 0: testpb.Message
+	}
+)
 var file_echo_proto_depIdxs = []int32{
 	0, // 0: testpb.EchoService.Echo:input_type -> testpb.Message
 	0, // 1: testpb.EchoService.EchoStream:input_type -> testpb.Message

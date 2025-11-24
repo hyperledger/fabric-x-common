@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -38,18 +38,18 @@ func TestLocalMSPPrincipalGetter_Get(t *testing.T) {
 	p, err := g.Get(Admins)
 	require.NoError(t, err)
 	require.NotNil(t, p)
-	require.Equal(t, msp.MSPPrincipal_ROLE, p.PrincipalClassification)
-	role := &msp.MSPRole{}
+	require.Equal(t, protomsp.MSPPrincipal_ROLE, p.PrincipalClassification)
+	role := &protomsp.MSPRole{}
 	proto.Unmarshal(p.Principal, role)
 	require.Equal(t, localMSPID, role.MspIdentifier)
-	require.Equal(t, msp.MSPRole_ADMIN, role.Role)
+	require.Equal(t, protomsp.MSPRole_ADMIN, role.Role)
 
 	p, err = g.Get(Members)
 	require.NoError(t, err)
 	require.NotNil(t, p)
-	require.Equal(t, msp.MSPPrincipal_ROLE, p.PrincipalClassification)
-	role = &msp.MSPRole{}
+	require.Equal(t, protomsp.MSPPrincipal_ROLE, p.PrincipalClassification)
+	role = &protomsp.MSPRole{}
 	proto.Unmarshal(p.Principal, role)
 	require.Equal(t, localMSPID, role.MspIdentifier)
-	require.Equal(t, msp.MSPRole_MEMBER, role.Role)
+	require.Equal(t, protomsp.MSPRole_MEMBER, role.Role)
 }

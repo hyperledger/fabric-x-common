@@ -15,7 +15,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
@@ -37,7 +37,7 @@ func TestFileCreateAndRead(t *testing.T) {
 	require.NoError(t, fileCreator.EncodeString("")) // zreo length string
 	require.NoError(t, fileCreator.EncodeUVarint(uint64(25)))
 	require.NoError(t, fileCreator.EncodeProtoMessage(
-		&common.BlockchainInfo{
+		&protocommon.BlockchainInfo{
 			Height:            30,
 			CurrentBlockHash:  []byte("Current-Block-Hash"),
 			PreviousBlockHash: []byte("Previous-Block-Hash"),
@@ -76,10 +76,10 @@ func TestFileCreateAndRead(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(25), number)
 
-	retrievedBlockchainInfo := &common.BlockchainInfo{}
+	retrievedBlockchainInfo := &protocommon.BlockchainInfo{}
 	require.NoError(t, fileReader.DecodeProtoMessage(retrievedBlockchainInfo))
 	require.True(t, proto.Equal(
-		&common.BlockchainInfo{
+		&protocommon.BlockchainInfo{
 			Height:            30,
 			CurrentBlockHash:  []byte("Current-Block-Hash"),
 			PreviousBlockHash: []byte("Previous-Block-Hash"),
@@ -147,7 +147,7 @@ func TestFileCreatorErrorPropagation(t *testing.T) {
 	require.EqualError(t, fileCreator.EncodeBytes([]byte("junk")), "error while writing data to the snapshot file: "+dataFilePath+": error-from-EncodeBytes")
 
 	fileCreator.multiWriter = &errorCausingWriter{err: errors.New("error-from-EncodeProtoMessage")}
-	require.EqualError(t, fileCreator.EncodeProtoMessage(&common.BlockchainInfo{}), "error while writing data to the snapshot file: "+dataFilePath+": error-from-EncodeProtoMessage")
+	require.EqualError(t, fileCreator.EncodeProtoMessage(&protocommon.BlockchainInfo{}), "error while writing data to the snapshot file: "+dataFilePath+": error-from-EncodeProtoMessage")
 	require.EqualError(t, fileCreator.EncodeProtoMessage(nil), "error marshalling proto message to write to the snapshot file: "+dataFilePath+": proto: Marshal called with nil")
 
 	fileCreator.multiWriter = &errorCausingWriter{err: errors.New("error-from-EncodeString")}
@@ -206,7 +206,7 @@ func TestFileReaderErrorPropagation(t *testing.T) {
 	require.Contains(t, err.Error(), "error while reading from snapshot file: "+closedFile)
 	_, err = closedFileReader.DecodeString()
 	require.Contains(t, err.Error(), "error while reading from snapshot file: "+closedFile)
-	err = closedFileReader.DecodeProtoMessage(&common.BlockchainInfo{})
+	err = closedFileReader.DecodeProtoMessage(&protocommon.BlockchainInfo{})
 	require.Contains(t, err.Error(), "error while reading from snapshot file: "+closedFile)
 	err = closedFileReader.Close()
 	require.Contains(t, err.Error(), "error while closing the snapshot file: "+closedFile)

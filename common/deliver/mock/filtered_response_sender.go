@@ -4,7 +4,7 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
 
 	"github.com/hyperledger/fabric-x-common/common/deliver"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -13,9 +13,8 @@ import (
 type FilteredResponseSender struct {
 	DataTypeStub        func() string
 	dataTypeMutex       sync.RWMutex
-	dataTypeArgsForCall []struct {
-	}
-	dataTypeReturns struct {
+	dataTypeArgsForCall []struct{}
+	dataTypeReturns     struct {
 		result1 string
 	}
 	dataTypeReturnsOnCall map[int]struct {
@@ -23,9 +22,8 @@ type FilteredResponseSender struct {
 	}
 	IsFilteredStub        func() bool
 	isFilteredMutex       sync.RWMutex
-	isFilteredArgsForCall []struct {
-	}
-	isFilteredReturns struct {
+	isFilteredArgsForCall []struct{}
+	isFilteredReturns     struct {
 		result1 bool
 	}
 	isFilteredReturnsOnCall map[int]struct {
@@ -63,8 +61,7 @@ type FilteredResponseSender struct {
 func (fake *FilteredResponseSender) DataType() string {
 	fake.dataTypeMutex.Lock()
 	ret, specificReturn := fake.dataTypeReturnsOnCall[len(fake.dataTypeArgsForCall)]
-	fake.dataTypeArgsForCall = append(fake.dataTypeArgsForCall, struct {
-	}{})
+	fake.dataTypeArgsForCall = append(fake.dataTypeArgsForCall, struct{}{})
 	fake.recordInvocation("DataType", []interface{}{})
 	fake.dataTypeMutex.Unlock()
 	if fake.DataTypeStub != nil {
@@ -115,8 +112,7 @@ func (fake *FilteredResponseSender) DataTypeReturnsOnCall(i int, result1 string)
 func (fake *FilteredResponseSender) IsFiltered() bool {
 	fake.isFilteredMutex.Lock()
 	ret, specificReturn := fake.isFilteredReturnsOnCall[len(fake.isFilteredArgsForCall)]
-	fake.isFilteredArgsForCall = append(fake.isFilteredArgsForCall, struct {
-	}{})
+	fake.isFilteredArgsForCall = append(fake.isFilteredArgsForCall, struct{}{})
 	fake.recordInvocation("IsFiltered", []interface{}{})
 	fake.isFilteredMutex.Unlock()
 	if fake.IsFilteredStub != nil {

@@ -11,7 +11,7 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	mspprotos "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	mspprotos "github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"

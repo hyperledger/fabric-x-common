@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 )
 
 const (
@@ -27,7 +27,7 @@ type cache struct {
 }
 
 type cachedBlock struct {
-	block     *common.Block
+	block     *protocommon.Block
 	blockSize int
 }
 
@@ -41,7 +41,7 @@ func newCache(maxSizeBytes int) *cache {
 	}
 }
 
-func (c *cache) get(seq uint64) (*common.Block, bool) {
+func (c *cache) get(seq uint64) (*protocommon.Block, bool) {
 	if c.disabled {
 		return nil, false
 	}
@@ -53,7 +53,7 @@ func (c *cache) get(seq uint64) (*common.Block, bool) {
 	return cachedBlock.block, exists
 }
 
-func (c *cache) put(block *common.Block, blockSize int) {
+func (c *cache) put(block *protocommon.Block, blockSize int) {
 	if c.disabled {
 		return
 	}

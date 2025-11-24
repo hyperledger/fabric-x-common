@@ -9,7 +9,7 @@ package blocksprovider
 import (
 	"context"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	orderer "github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"google.golang.org/grpc"
 
 	"github.com/hyperledger/fabric-x-common/tools/pkg/comm"

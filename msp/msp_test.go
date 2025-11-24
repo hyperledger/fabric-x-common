@@ -30,7 +30,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -60,12 +60,12 @@ func TestMSPParsers(t *testing.T) {
 	_, err = localMsp.(*bccspmsp).getSigningIdentityFromConf(nil)
 	require.Error(t, err)
 
-	sigid := &msp.SigningIdentityInfo{PublicSigner: []byte("barf"), PrivateSigner: nil}
+	sigid := &protomsp.SigningIdentityInfo{PublicSigner: []byte("barf"), PrivateSigner: nil}
 	_, err = localMsp.(*bccspmsp).getSigningIdentityFromConf(sigid)
 	require.Error(t, err)
 
-	keyinfo := &msp.KeyInfo{KeyIdentifier: "PEER", KeyMaterial: nil}
-	sigid = &msp.SigningIdentityInfo{PublicSigner: []byte("barf"), PrivateSigner: keyinfo}
+	keyinfo := &protomsp.KeyInfo{KeyIdentifier: "PEER", KeyMaterial: nil}
+	sigid = &protomsp.SigningIdentityInfo{PublicSigner: []byte("barf"), PrivateSigner: keyinfo}
 	_, err = localMsp.(*bccspmsp).getSigningIdentityFromConf(sigid)
 	require.Error(t, err)
 }
@@ -85,11 +85,11 @@ func TestGetSigningIdentityFromConfWithWrongPrivateCert(t *testing.T) {
 	pem := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
 
 	// Use wrong formatted private cert
-	keyinfo := &msp.KeyInfo{
+	keyinfo := &protomsp.KeyInfo{
 		KeyMaterial:   []byte("wrong encoding"),
 		KeyIdentifier: "MyPrivateKey",
 	}
-	sigid := &msp.SigningIdentityInfo{PublicSigner: pem, PrivateSigner: keyinfo}
+	sigid := &protomsp.SigningIdentityInfo{PublicSigner: pem, PrivateSigner: keyinfo}
 	_, err := localMsp.(*bccspmsp).getSigningIdentityFromConf(sigid)
 	require.EqualError(t, err, "MyPrivateKey: wrong PEM encoding")
 }
@@ -102,7 +102,7 @@ func TestMSPSetupNoCryptoConf(t *testing.T) {
 		os.Exit(-1)
 	}
 
-	mspconf := &msp.FabricMSPConfig{}
+	mspconf := &protomsp.FabricMSPConfig{}
 	err = proto.Unmarshal(conf.Config, mspconf)
 	require.NoError(t, err)
 
@@ -214,13 +214,13 @@ func TestDeserializeIdentityFails(t *testing.T) {
 	_, err := localMsp.DeserializeIdentity([]byte("barf"))
 	require.Error(t, err)
 
-	id := &msp.SerializedIdentity{Mspid: "SampleOrg", IdBytes: []byte("barfr")}
+	id := &protomsp.SerializedIdentity{Mspid: "SampleOrg", IdBytes: []byte("barfr")}
 	b, err := proto.Marshal(id)
 	require.NoError(t, err)
 	_, err = localMsp.DeserializeIdentity(b)
 	require.Error(t, err)
 
-	id = &msp.SerializedIdentity{Mspid: "SampleOrg", IdBytes: []byte(notACert)}
+	id = &protomsp.SerializedIdentity{Mspid: "SampleOrg", IdBytes: []byte(notACert)}
 	b, err = proto.Marshal(id)
 	require.NoError(t, err)
 	_, err = localMsp.DeserializeIdentity(b)
@@ -419,18 +419,18 @@ func TestValidateCANameConstraintsMitigation(t *testing.T) {
 	})
 
 	t.Run("ValidationAtSetup", func(t *testing.T) {
-		fabricMSPConfig := &msp.FabricMSPConfig{
+		fabricMSPConfig := &protomsp.FabricMSPConfig{
 			Name:      "ConstraintsMSP",
 			RootCerts: [][]byte{caCertPem},
-			SigningIdentity: &msp.SigningIdentityInfo{
+			SigningIdentity: &protomsp.SigningIdentityInfo{
 				PublicSigner: leafCertPem,
-				PrivateSigner: &msp.KeyInfo{
+				PrivateSigner: &protomsp.KeyInfo{
 					KeyIdentifier: "Certificate Without SAN",
 					KeyMaterial:   leafKeyPem,
 				},
 			},
 		}
-		mspConfig := &msp.MSPConfig{
+		mspConfig := &protomsp.MSPConfig{
 			Config: protoutil.MarshalOrPanic(fabricMSPConfig),
 		}
 
@@ -465,7 +465,7 @@ func TestIsWellFormed(t *testing.T) {
 		return
 	}
 
-	sId := &msp.SerializedIdentity{}
+	sId := &protomsp.SerializedIdentity{}
 	err = proto.Unmarshal(serializedID, sId)
 	require.NoError(t, err)
 
@@ -508,7 +508,7 @@ func TestIsWellFormed(t *testing.T) {
 	require.Equal(t, "no MSP provider recognizes the identity", err.Error())
 
 	// Restore the identity to what it was
-	sId = &msp.SerializedIdentity{}
+	sId = &protomsp.SerializedIdentity{}
 	err = proto.Unmarshal(serializedID, sId)
 	require.NoError(t, err)
 
@@ -598,7 +598,7 @@ func TestSerializeIdentitiesWithWrongMSP(t *testing.T) {
 		return
 	}
 
-	sid := &msp.SerializedIdentity{}
+	sid := &protomsp.SerializedIdentity{}
 	err = proto.Unmarshal(serializedID, sid)
 	require.NoError(t, err)
 
@@ -627,7 +627,7 @@ func TestSerializeIdentitiesWithMSPManager(t *testing.T) {
 	_, err = mspMgr.DeserializeIdentity(serializedID)
 	require.NoError(t, err)
 
-	sid := &msp.SerializedIdentity{}
+	sid := &protomsp.SerializedIdentity{}
 	err = proto.Unmarshal(serializedID, sid)
 	require.NoError(t, err)
 
@@ -858,7 +858,7 @@ func TestOUPolicyPrincipal(t *testing.T) {
 	cid, err := localMsp.(*bccspmsp).getCertificationChainIdentifier(id.GetPublicVersion())
 	require.NoError(t, err)
 
-	ou := &msp.OrganizationUnit{
+	ou := &protomsp.OrganizationUnit{
 		OrganizationalUnitIdentifier: "COP",
 		MspIdentifier:                "SampleOrg",
 		CertifiersIdentifier:         cid,
@@ -866,8 +866,8 @@ func TestOUPolicyPrincipal(t *testing.T) {
 	bytes, err := proto.Marshal(ou)
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ORGANIZATION_UNIT,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ORGANIZATION_UNIT,
 		Principal:               bytes,
 	}
 
@@ -879,8 +879,8 @@ func TestOUPolicyPrincipalBadPrincipal(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ORGANIZATION_UNIT,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ORGANIZATION_UNIT,
 		Principal:               []byte("barf"),
 	}
 
@@ -895,7 +895,7 @@ func TestOUPolicyPrincipalBadMSPID(t *testing.T) {
 	cid, err := localMsp.(*bccspmsp).getCertificationChainIdentifier(id.GetPublicVersion())
 	require.NoError(t, err)
 
-	ou := &msp.OrganizationUnit{
+	ou := &protomsp.OrganizationUnit{
 		OrganizationalUnitIdentifier: "COP",
 		MspIdentifier:                "SampleOrgbarfbarf",
 		CertifiersIdentifier:         cid,
@@ -903,8 +903,8 @@ func TestOUPolicyPrincipalBadMSPID(t *testing.T) {
 	bytes, err := proto.Marshal(ou)
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ORGANIZATION_UNIT,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ORGANIZATION_UNIT,
 		Principal:               bytes,
 	}
 
@@ -916,7 +916,7 @@ func TestOUPolicyPrincipalBadPath(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	ou := &msp.OrganizationUnit{
+	ou := &protomsp.OrganizationUnit{
 		OrganizationalUnitIdentifier: "COP",
 		MspIdentifier:                "SampleOrg",
 		CertifiersIdentifier:         nil,
@@ -924,15 +924,15 @@ func TestOUPolicyPrincipalBadPath(t *testing.T) {
 	bytes, err := proto.Marshal(ou)
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ORGANIZATION_UNIT,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ORGANIZATION_UNIT,
 		Principal:               bytes,
 	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.Error(t, err)
 
-	ou = &msp.OrganizationUnit{
+	ou = &protomsp.OrganizationUnit{
 		OrganizationalUnitIdentifier: "COP",
 		MspIdentifier:                "SampleOrg",
 		CertifiersIdentifier:         []byte{0, 1, 2, 3, 4},
@@ -940,8 +940,8 @@ func TestOUPolicyPrincipalBadPath(t *testing.T) {
 	bytes, err = proto.Marshal(ou)
 	require.NoError(t, err)
 
-	principal = &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ORGANIZATION_UNIT,
+	principal = &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ORGANIZATION_UNIT,
 		Principal:               bytes,
 	}
 
@@ -953,10 +953,10 @@ func TestPolicyPrincipalBogusType(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: 35, MspIdentifier: "SampleOrg"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: 35, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
+	principal := &protomsp.MSPPrincipal{
 		PrincipalClassification: 35,
 		Principal:               principalBytes,
 	}
@@ -969,11 +969,11 @@ func TestPolicyPrincipalBogusRole(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: 35, MspIdentifier: "SampleOrg"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: 35, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 
@@ -985,11 +985,11 @@ func TestPolicyPrincipalWrongMSPID(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "SampleOrgBARFBARF"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "SampleOrgBARFBARF"})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 
@@ -1001,11 +1001,11 @@ func TestMemberPolicyPrincipal(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "SampleOrg"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 
@@ -1017,11 +1017,11 @@ func TestAdminPolicyPrincipal(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 
@@ -1031,17 +1031,17 @@ func TestAdminPolicyPrincipal(t *testing.T) {
 
 // Combine one or more MSPPrincipals into a MSPPrincipal of type
 // MSPPrincipal_COMBINED.
-func createCombinedPrincipal(principals ...*msp.MSPPrincipal) (*msp.MSPPrincipal, error) {
+func createCombinedPrincipal(principals ...*protomsp.MSPPrincipal) (*protomsp.MSPPrincipal, error) {
 	if len(principals) == 0 {
 		return nil, errors.New("no principals in CombinedPrincipal")
 	}
-	principalsArray := append([]*msp.MSPPrincipal(nil), principals...)
-	combinedPrincipal := &msp.CombinedPrincipal{Principals: principalsArray}
+	principalsArray := append([]*protomsp.MSPPrincipal(nil), principals...)
+	combinedPrincipal := &protomsp.CombinedPrincipal{Principals: principalsArray}
 	combinedPrincipalBytes, err := proto.Marshal(combinedPrincipal)
 	if err != nil {
 		return nil, err
 	}
-	principalsCombined := &msp.MSPPrincipal{PrincipalClassification: msp.MSPPrincipal_COMBINED, Principal: combinedPrincipalBytes}
+	principalsCombined := &protomsp.MSPPrincipal{PrincipalClassification: protomsp.MSPPrincipal_COMBINED, Principal: combinedPrincipalBytes}
 	return principalsCombined, nil
 }
 
@@ -1049,19 +1049,19 @@ func TestMultilevelAdminAndMemberPolicyPrincipal(t *testing.T) {
 	id, err := localMspV13.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	adminPrincipalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
+	adminPrincipalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	memberPrincipalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "SampleOrg"})
+	memberPrincipalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	adminPrincipal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	adminPrincipal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               adminPrincipalBytes,
 	}
 
-	memberPrincipal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	memberPrincipal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               memberPrincipalBytes,
 	}
 
@@ -1088,19 +1088,19 @@ func TestMultilevelAdminAndMemberPolicyPrincipalPreV12(t *testing.T) {
 	id, err := localMspV11.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	adminPrincipalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
+	adminPrincipalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	memberPrincipalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "SampleOrg"})
+	memberPrincipalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	adminPrincipal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	adminPrincipal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               adminPrincipalBytes,
 	}
 
-	memberPrincipal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	memberPrincipal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               memberPrincipalBytes,
 	}
 
@@ -1127,11 +1127,11 @@ func TestAdminPolicyPrincipalFails(t *testing.T) {
 	id, err := localMspV13.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
+	principalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               principalBytes,
 	}
 
@@ -1146,19 +1146,19 @@ func TestMultilevelAdminAndMemberPolicyPrincipalFails(t *testing.T) {
 	id, err := localMspV13.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	adminPrincipalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
+	adminPrincipalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	memberPrincipalBytes, err := proto.Marshal(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "SampleOrg"})
+	memberPrincipalBytes, err := proto.Marshal(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "SampleOrg"})
 	require.NoError(t, err)
 
-	adminPrincipal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	adminPrincipal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               adminPrincipalBytes,
 	}
 
-	memberPrincipal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
+	memberPrincipal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
 		Principal:               memberPrincipalBytes,
 	}
 
@@ -1226,8 +1226,8 @@ func TestIdentityPolicyPrincipal(t *testing.T) {
 	idSerialized, err := id.Serialize()
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_IDENTITY,
 		Principal:               idSerialized,
 	}
 
@@ -1239,8 +1239,8 @@ func TestIdentityPolicyPrincipalBadBytes(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_IDENTITY,
 		Principal:               []byte("barf"),
 	}
 
@@ -1309,8 +1309,8 @@ func TestIdentityPolicyPrincipalFails(t *testing.T) {
 	sid, err := NewSerializedIdentity("SampleOrg", []byte(othercert))
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_IDENTITY,
 		Principal:               sid,
 	}
 
@@ -1319,7 +1319,7 @@ func TestIdentityPolicyPrincipalFails(t *testing.T) {
 }
 
 var (
-	conf        *msp.MSPConfig
+	conf        *protomsp.MSPConfig
 	localMsp    MSP
 	localMspV11 MSP
 	localMspV13 MSP
@@ -1477,21 +1477,21 @@ func getLocalMSPWithVersion(t *testing.T, dir string, version MSPVersion) MSP {
 }
 
 func TestCollectEmptyCombinedPrincipal(t *testing.T) {
-	var principalsArray []*msp.MSPPrincipal
-	combinedPrincipal := &msp.CombinedPrincipal{Principals: principalsArray}
+	var principalsArray []*protomsp.MSPPrincipal
+	combinedPrincipal := &protomsp.CombinedPrincipal{Principals: principalsArray}
 	combinedPrincipalBytes, err := proto.Marshal(combinedPrincipal)
 	require.NoError(t, err, "Error marshalling empty combined principal")
-	principalsCombined := &msp.MSPPrincipal{PrincipalClassification: msp.MSPPrincipal_COMBINED, Principal: combinedPrincipalBytes}
+	principalsCombined := &protomsp.MSPPrincipal{PrincipalClassification: protomsp.MSPPrincipal_COMBINED, Principal: combinedPrincipalBytes}
 	_, err = collectPrincipals(principalsCombined, MSPv1_3)
 	require.Error(t, err)
 }
 
 func TestCollectPrincipalContainingEmptyCombinedPrincipal(t *testing.T) {
-	var principalsArray []*msp.MSPPrincipal
-	combinedPrincipal := &msp.CombinedPrincipal{Principals: principalsArray}
+	var principalsArray []*protomsp.MSPPrincipal
+	combinedPrincipal := &protomsp.CombinedPrincipal{Principals: principalsArray}
 	combinedPrincipalBytes, err := proto.Marshal(combinedPrincipal)
 	require.NoError(t, err, "Error marshalling empty combined principal")
-	emptyPrincipal := &msp.MSPPrincipal{PrincipalClassification: msp.MSPPrincipal_COMBINED, Principal: combinedPrincipalBytes}
+	emptyPrincipal := &protomsp.MSPPrincipal{PrincipalClassification: protomsp.MSPPrincipal_COMBINED, Principal: combinedPrincipalBytes}
 	levelOneCombinedPrincipal, err := createCombinedPrincipal(emptyPrincipal)
 	require.NoError(t, err)
 	_, err = collectPrincipals(levelOneCombinedPrincipal, MSPv1_3)
@@ -1559,11 +1559,11 @@ func TestAnonymityIdentity(t *testing.T) {
 	id, err := localMspV13.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPIdentityAnonymity{AnonymityType: msp.MSPIdentityAnonymity_NOMINAL})
+	principalBytes, err := proto.Marshal(&protomsp.MSPIdentityAnonymity{AnonymityType: protomsp.MSPIdentityAnonymity_NOMINAL})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ANONYMITY,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ANONYMITY,
 		Principal:               principalBytes,
 	}
 
@@ -1575,11 +1575,11 @@ func TestAnonymityIdentityPreV12Fail(t *testing.T) {
 	id, err := localMspV11.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPIdentityAnonymity{AnonymityType: msp.MSPIdentityAnonymity_NOMINAL})
+	principalBytes, err := proto.Marshal(&protomsp.MSPIdentityAnonymity{AnonymityType: protomsp.MSPIdentityAnonymity_NOMINAL})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ANONYMITY,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ANONYMITY,
 		Principal:               principalBytes,
 	}
 
@@ -1591,11 +1591,11 @@ func TestAnonymityIdentityFail(t *testing.T) {
 	id, err := localMspV13.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	principalBytes, err := proto.Marshal(&msp.MSPIdentityAnonymity{AnonymityType: msp.MSPIdentityAnonymity_ANONYMOUS})
+	principalBytes, err := proto.Marshal(&protomsp.MSPIdentityAnonymity{AnonymityType: protomsp.MSPIdentityAnonymity_ANONYMOUS})
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ANONYMITY,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ANONYMITY,
 		Principal:               principalBytes,
 	}
 

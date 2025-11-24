@@ -11,14 +11,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCacheDisabled(t *testing.T) {
 	c := newCache(0)
 
-	c.put(&common.Block{Header: &common.BlockHeader{}}, 0)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{}}, 0)
 	block, exists := c.get(0)
 
 	assertNotCached(t, exists, block)
@@ -28,13 +28,13 @@ func TestNotCachingTooSmallEntry(t *testing.T) {
 	c := newCache(10)
 
 	for i := 100; i < 105; i++ {
-		block := &common.Block{
-			Header: &common.BlockHeader{Number: uint64(i)},
+		block := &protocommon.Block{
+			Header: &protocommon.BlockHeader{Number: uint64(i)},
 		}
 		c.put(block, 1)
 	}
 
-	c.put(&common.Block{Header: &common.BlockHeader{Number: 99}}, 1)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 99}}, 1)
 	block, exists := c.get(99)
 
 	assertNotCached(t, exists, block)
@@ -43,7 +43,7 @@ func TestNotCachingTooSmallEntry(t *testing.T) {
 func TestTooBigEntryNotCached(t *testing.T) {
 	c := newCache(10)
 
-	c.put(&common.Block{Header: &common.BlockHeader{Number: 100}}, 11)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 100}}, 11)
 	block, exists := c.get(100)
 
 	assertNotCached(t, exists, block)
@@ -52,7 +52,7 @@ func TestTooBigEntryNotCached(t *testing.T) {
 func TestOutOfOrderInsertionPanics(t *testing.T) {
 	c := newCache(10)
 
-	c.put(&common.Block{Header: &common.BlockHeader{Number: 100}}, 1)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 100}}, 1)
 	block, exists := c.get(100)
 
 	assertCached(t, exists, block, 100)
@@ -63,14 +63,14 @@ func TestOutOfOrderInsertionPanics(t *testing.T) {
 			assert.Contains(t, err.(string), "detected out of order block insertion: attempted to insert block number 102 but highest block is 100")
 		}()
 
-		c.put(&common.Block{Header: &common.BlockHeader{Number: 102}}, 1)
+		c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 102}}, 1)
 	}()
 }
 
 func TestDoubleInsertionPanics(t *testing.T) {
 	c := newCache(10)
 
-	c.put(&common.Block{Header: &common.BlockHeader{Number: 100}}, 1)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 100}}, 1)
 	block, exists := c.get(100)
 
 	assertCached(t, exists, block, 100)
@@ -81,16 +81,16 @@ func TestDoubleInsertionPanics(t *testing.T) {
 			assert.Contains(t, err.(string), "detected insertion of the same block (100) twice")
 		}()
 
-		c.put(&common.Block{Header: &common.BlockHeader{Number: 100}}, 1)
+		c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 100}}, 1)
 	}()
 }
 
 func TestTooBigEntryEvictsSmallerEntries(t *testing.T) {
 	c := newCache(10)
 
-	c.put(&common.Block{Header: &common.BlockHeader{Number: 1}}, 1)
-	c.put(&common.Block{Header: &common.BlockHeader{Number: 2}}, 1)
-	c.put(&common.Block{Header: &common.BlockHeader{Number: 3}}, 1)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 1}}, 1)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 2}}, 1)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 3}}, 1)
 
 	block, exists := c.get(1)
 	assertCached(t, exists, block, 1)
@@ -101,7 +101,7 @@ func TestTooBigEntryEvictsSmallerEntries(t *testing.T) {
 	block, exists = c.get(3)
 	assertCached(t, exists, block, 3)
 
-	c.put(&common.Block{Header: &common.BlockHeader{Number: 4}}, 10)
+	c.put(&protocommon.Block{Header: &protocommon.BlockHeader{Number: 4}}, 10)
 
 	block, exists = c.get(1)
 	assertNotCached(t, exists, block)
@@ -120,8 +120,8 @@ func TestCacheEviction(t *testing.T) {
 	c := newCache(10)
 
 	for i := 0; i < 10; i++ {
-		block := &common.Block{
-			Header: &common.BlockHeader{Number: uint64(i)},
+		block := &protocommon.Block{
+			Header: &protocommon.BlockHeader{Number: uint64(i)},
 		}
 		c.put(block, 1)
 	}
@@ -136,8 +136,8 @@ func TestCacheEviction(t *testing.T) {
 		block, exists := c.get(uint64(i) - 10)
 		assertCached(t, exists, block, uint64(i)-10)
 
-		block = &common.Block{
-			Header: &common.BlockHeader{Number: uint64(i)},
+		block = &protocommon.Block{
+			Header: &protocommon.BlockHeader{Number: uint64(i)},
 		}
 		c.put(block, 1)
 	}
@@ -151,15 +151,15 @@ func TestCacheEviction(t *testing.T) {
 	}
 }
 
-func assertNotCached(t *testing.T, exists bool, block *common.Block) {
+func assertNotCached(t *testing.T, exists bool, block *protocommon.Block) {
 	assertWasCached(t, exists, block, 0, false)
 }
 
-func assertCached(t *testing.T, exists bool, block *common.Block, expectedSeq uint64) {
+func assertCached(t *testing.T, exists bool, block *protocommon.Block, expectedSeq uint64) {
 	assertWasCached(t, exists, block, expectedSeq, true)
 }
 
-func assertWasCached(t *testing.T, exists bool, block *common.Block, expectedSeq uint64, expectedExists bool) {
+func assertWasCached(t *testing.T, exists bool, block *protocommon.Block, expectedSeq uint64, expectedExists bool) {
 	if !expectedExists {
 		require.False(t, exists)
 		require.Nil(t, block)

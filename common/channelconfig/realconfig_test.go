@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/api/types"
@@ -40,7 +40,7 @@ func TestOrgSpecificOrdererEndpoints(t *testing.T) {
 		cg, err := configtxgen.NewChannelGroup(conf)
 		require.NoError(t, err)
 
-		cg.Groups["Orderer"].Groups["SampleOrg"].Values[channelconfig.EndpointsKey] = &common.ConfigValue{ModPolicy: channelconfig.AdminsPolicyKey}
+		cg.Groups["Orderer"].Groups["SampleOrg"].Values[channelconfig.EndpointsKey] = &protocommon.ConfigValue{ModPolicy: channelconfig.AdminsPolicyKey}
 
 		cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 		require.NoError(t, err)

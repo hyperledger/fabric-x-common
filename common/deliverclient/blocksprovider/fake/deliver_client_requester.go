@@ -4,27 +4,27 @@ package fake
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
 )
 
 type DeliverClientRequester struct {
-	ConnectStub        func(*common.Envelope, *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error)
+	ConnectStub        func(*common.Envelope, *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error)
 	connectMutex       sync.RWMutex
 	connectArgsForCall []struct {
 		arg1 *common.Envelope
 		arg2 *orderers.Endpoint
 	}
 	connectReturns struct {
-		result1 orderer.AtomicBroadcast_DeliverClient
+		result1 protoorderer.AtomicBroadcast_DeliverClient
 		result2 func()
 		result3 error
 	}
 	connectReturnsOnCall map[int]struct {
-		result1 orderer.AtomicBroadcast_DeliverClient
+		result1 protoorderer.AtomicBroadcast_DeliverClient
 		result2 func()
 		result3 error
 	}
@@ -45,7 +45,7 @@ type DeliverClientRequester struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *DeliverClientRequester) Connect(arg1 *common.Envelope, arg2 *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
+func (fake *DeliverClientRequester) Connect(arg1 *common.Envelope, arg2 *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error) {
 	fake.connectMutex.Lock()
 	ret, specificReturn := fake.connectReturnsOnCall[len(fake.connectArgsForCall)]
 	fake.connectArgsForCall = append(fake.connectArgsForCall, struct {
@@ -71,7 +71,7 @@ func (fake *DeliverClientRequester) ConnectCallCount() int {
 	return len(fake.connectArgsForCall)
 }
 
-func (fake *DeliverClientRequester) ConnectCalls(stub func(*common.Envelope, *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error)) {
+func (fake *DeliverClientRequester) ConnectCalls(stub func(*common.Envelope, *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error)) {
 	fake.connectMutex.Lock()
 	defer fake.connectMutex.Unlock()
 	fake.ConnectStub = stub
@@ -84,30 +84,30 @@ func (fake *DeliverClientRequester) ConnectArgsForCall(i int) (*common.Envelope,
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *DeliverClientRequester) ConnectReturns(result1 orderer.AtomicBroadcast_DeliverClient, result2 func(), result3 error) {
+func (fake *DeliverClientRequester) ConnectReturns(result1 protoorderer.AtomicBroadcast_DeliverClient, result2 func(), result3 error) {
 	fake.connectMutex.Lock()
 	defer fake.connectMutex.Unlock()
 	fake.ConnectStub = nil
 	fake.connectReturns = struct {
-		result1 orderer.AtomicBroadcast_DeliverClient
+		result1 protoorderer.AtomicBroadcast_DeliverClient
 		result2 func()
 		result3 error
 	}{result1, result2, result3}
 }
 
-func (fake *DeliverClientRequester) ConnectReturnsOnCall(i int, result1 orderer.AtomicBroadcast_DeliverClient, result2 func(), result3 error) {
+func (fake *DeliverClientRequester) ConnectReturnsOnCall(i int, result1 protoorderer.AtomicBroadcast_DeliverClient, result2 func(), result3 error) {
 	fake.connectMutex.Lock()
 	defer fake.connectMutex.Unlock()
 	fake.ConnectStub = nil
 	if fake.connectReturnsOnCall == nil {
 		fake.connectReturnsOnCall = make(map[int]struct {
-			result1 orderer.AtomicBroadcast_DeliverClient
+			result1 protoorderer.AtomicBroadcast_DeliverClient
 			result2 func()
 			result3 error
 		})
 	}
 	fake.connectReturnsOnCall[i] = struct {
-		result1 orderer.AtomicBroadcast_DeliverClient
+		result1 protoorderer.AtomicBroadcast_DeliverClient
 		result2 func()
 		result3 error
 	}{result1, result2, result3}

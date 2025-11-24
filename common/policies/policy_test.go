@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging/floggingtest"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
@@ -201,8 +201,8 @@ func TestNestedManager(t *testing.T) {
 func TestPrincipalUniqueSet(t *testing.T) {
 	var principalSet PrincipalSet
 	addPrincipal := func(i int) {
-		principalSet = append(principalSet, &msp.MSPPrincipal{
-			PrincipalClassification: msp.MSPPrincipal_Classification(i),
+		principalSet = append(principalSet, &protomsp.MSPPrincipal{
+			PrincipalClassification: protomsp.MSPPrincipal_Classification(i),
 			Principal:               []byte(fmt.Sprintf("%d", i)),
 		})
 	}
@@ -219,8 +219,8 @@ func TestPrincipalUniqueSet(t *testing.T) {
 		require.Equal(t, fmt.Sprintf("%d", plurality), string(principal.Principal))
 	}
 
-	v := reflect.Indirect(reflect.ValueOf(msp.MSPPrincipal{}))
-	// Ensure msp.MSPPrincipal has only 2 fields.
+	v := reflect.Indirect(reflect.ValueOf(protomsp.MSPPrincipal{}))
+	// Ensure protomsp.MSPPrincipal has only 2 fields.
 	// This is essential for 'UniqueSet' to work properly
 	// XXX This is a rather brittle check and brittle way to fix the test
 	// There seems to be an assumption that the number of fields in the proto
@@ -233,8 +233,8 @@ func TestPrincipalSetContainingOnly(t *testing.T) {
 	var principalSet PrincipalSet
 	for j := 0; j < 3; j++ {
 		for i := 0; i < 10; i++ {
-			principalSet = append(principalSet, &msp.MSPPrincipal{
-				PrincipalClassification: msp.MSPPrincipal_IDENTITY,
+			principalSet = append(principalSet, &protomsp.MSPPrincipal{
+				PrincipalClassification: protomsp.MSPPrincipal_IDENTITY,
 				Principal:               []byte(fmt.Sprintf("%d", j*10+i)),
 			})
 		}
@@ -242,7 +242,7 @@ func TestPrincipalSetContainingOnly(t *testing.T) {
 		principalSet = nil
 	}
 
-	between20And30 := func(principal *msp.MSPPrincipal) bool {
+	between20And30 := func(principal *protomsp.MSPPrincipal) bool {
 		n, _ := strconv.ParseInt(string(principal.Principal), 10, 32)
 		return n >= 20 && n <= 29
 	}
@@ -302,7 +302,7 @@ func TestSignatureSetToValidIdentitiesDeserializeErr(t *testing.T) {
 	require.NoError(t, err)
 	client1, err := ca.NewClientCertKeyPair()
 	require.NoError(t, err)
-	id := &msp.SerializedIdentity{
+	id := &protomsp.SerializedIdentity{
 		Mspid:   "MyMSP",
 		IdBytes: client1.Cert,
 	}

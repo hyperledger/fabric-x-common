@@ -9,8 +9,8 @@ package blkstorage
 import (
 	"time"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger"
 	"github.com/hyperledger/fabric-x-common/common/ledger/snapshot"
@@ -27,7 +27,8 @@ type BlockStore struct {
 
 // newBlockStore constructs a `BlockStore`
 func newBlockStore(id string, conf *Conf, indexConfig *IndexConfig,
-	dbHandle *leveldbhelper.DBHandle, stats *stats) (*BlockStore, error) {
+	dbHandle *leveldbhelper.DBHandle, stats *stats,
+) (*BlockStore, error) {
 	fileMgr, err := newBlockfileMgr(id, conf, indexConfig, dbHandle)
 	if err != nil {
 		return nil, err
@@ -42,7 +43,7 @@ func newBlockStore(id string, conf *Conf, indexConfig *IndexConfig,
 }
 
 // AddBlock adds a new block
-func (store *BlockStore) AddBlock(block *common.Block) error {
+func (store *BlockStore) AddBlock(block *protocommon.Block) error {
 	// track elapsed time to collect block commit time
 	startBlockCommit := time.Now()
 	result := store.fileMgr.addBlock(block)
@@ -54,7 +55,7 @@ func (store *BlockStore) AddBlock(block *common.Block) error {
 }
 
 // GetBlockchainInfo returns the current info about blockchain
-func (store *BlockStore) GetBlockchainInfo() (*common.BlockchainInfo, error) {
+func (store *BlockStore) GetBlockchainInfo() (*protocommon.BlockchainInfo, error) {
 	return store.fileMgr.getBlockchainInfo(), nil
 }
 
@@ -64,12 +65,12 @@ func (store *BlockStore) RetrieveBlocks(startNum uint64) (ledger.ResultsIterator
 }
 
 // RetrieveBlockByHash returns the block for given block-hash
-func (store *BlockStore) RetrieveBlockByHash(blockHash []byte) (*common.Block, error) {
+func (store *BlockStore) RetrieveBlockByHash(blockHash []byte) (*protocommon.Block, error) {
 	return store.fileMgr.retrieveBlockByHash(blockHash)
 }
 
 // RetrieveBlockByNumber returns the block at a given blockchain height
-func (store *BlockStore) RetrieveBlockByNumber(blockNum uint64) (*common.Block, error) {
+func (store *BlockStore) RetrieveBlockByNumber(blockNum uint64) (*protocommon.Block, error) {
 	return store.fileMgr.retrieveBlockByNumber(blockNum)
 }
 
@@ -79,22 +80,22 @@ func (store *BlockStore) TxIDExists(txID string) (bool, error) {
 }
 
 // RetrieveTxByID returns a transaction for given transaction id
-func (store *BlockStore) RetrieveTxByID(txID string) (*common.Envelope, error) {
+func (store *BlockStore) RetrieveTxByID(txID string) (*protocommon.Envelope, error) {
 	return store.fileMgr.retrieveTransactionByID(txID)
 }
 
 // RetrieveTxByBlockNumTranNum returns a transaction for the given <blockNum, tranNum>
-func (store *BlockStore) RetrieveTxByBlockNumTranNum(blockNum uint64, tranNum uint64) (*common.Envelope, error) {
+func (store *BlockStore) RetrieveTxByBlockNumTranNum(blockNum uint64, tranNum uint64) (*protocommon.Envelope, error) {
 	return store.fileMgr.retrieveTransactionByBlockNumTranNum(blockNum, tranNum)
 }
 
 // RetrieveBlockByTxID returns the block for the specified txID
-func (store *BlockStore) RetrieveBlockByTxID(txID string) (*common.Block, error) {
+func (store *BlockStore) RetrieveBlockByTxID(txID string) (*protocommon.Block, error) {
 	return store.fileMgr.retrieveBlockByTxID(txID)
 }
 
 // RetrieveTxValidationCodeByTxID returns validation code and blocknumber for the specified txID
-func (store *BlockStore) RetrieveTxValidationCodeByTxID(txID string) (peer.TxValidationCode, uint64, error) {
+func (store *BlockStore) RetrieveTxValidationCodeByTxID(txID string) (protopeer.TxValidationCode, uint64, error) {
 	return store.fileMgr.retrieveTxValidationCodeByTxID(txID)
 }
 

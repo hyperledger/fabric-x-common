@@ -9,7 +9,7 @@ package configtx
 import (
 	"strings"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 

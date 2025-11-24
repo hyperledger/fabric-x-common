@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	mspa "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	mspa "github.com/hyperledger/fabric-x-common/api/protomsp"
 
 	"github.com/hyperledger/fabric-x-common/msp"
 )

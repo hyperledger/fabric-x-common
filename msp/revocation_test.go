@@ -25,7 +25,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
@@ -60,7 +60,7 @@ func TestRevocation(t *testing.T) {
 		require.NoError(t, err)
 
 		// Unmarshal the config
-		var mspConfig msp.FabricMSPConfig
+		var mspConfig protomsp.FabricMSPConfig
 		err = proto.Unmarshal(conf.Config, &mspConfig)
 		require.NoError(t, err)
 		require.Len(t, mspConfig.RevocationList, 1)
@@ -136,8 +136,8 @@ func TestIdentityPolicyPrincipalAgainstRevokedIdentity(t *testing.T) {
 	idSerialized, err := id.Serialize()
 	require.NoError(t, err)
 
-	principal := &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
+	principal := &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_IDENTITY,
 		Principal:               idSerialized,
 	}
 

@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/cockroachdb/errors"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
 	"github.com/hyperledger/fabric-x-common/sampleconfig"
@@ -81,7 +81,7 @@ func LoadSampleConfig(profile string) (*configtxgen.Profile, error) {
 // CreateDefaultConfigBlockWithCrypto creates a config block with default values and a crypto material.
 // It uses the first orderer organization as a template and creates the given organizations.
 // It uses the same organizations for the orderer and the application.
-func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Block, error) {
+func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*protocommon.Block, error) {
 	if conf.BaseProfile == "" {
 		conf.BaseProfile = configtxgen.TwoOrgsSampleFabricX
 	}

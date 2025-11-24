@@ -9,7 +9,7 @@ package blocksprovider_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

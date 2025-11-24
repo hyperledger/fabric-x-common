@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package genesis
 
 import (
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )

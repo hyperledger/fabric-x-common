@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
-	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 
 	"github.com/hyperledger/fabric-x-common/msp"
 )
@@ -35,7 +35,7 @@ func (md *MockIdentityDeserializer) DeserializeIdentity( //nolint:ireturn
 }
 
 // IsWellFormed checks if the given identity can be deserialized into its provider-specific form.
-func (*MockIdentityDeserializer) IsWellFormed(_ *mb.SerializedIdentity) error {
+func (*MockIdentityDeserializer) IsWellFormed(_ *protomsp.SerializedIdentity) error {
 	return nil
 }
 
@@ -56,7 +56,7 @@ func (*MockIdentity) ExpiresAt() time.Time {
 
 // SatisfiesPrincipal checks whether this instance matches
 // the description supplied in MSPPrincipal.
-func (id *MockIdentity) SatisfiesPrincipal(p *mb.MSPPrincipal) error {
+func (id *MockIdentity) SatisfiesPrincipal(p *protomsp.MSPPrincipal) error {
 	if !bytes.Equal(id.IDBytes, p.Principal) {
 		return errors.New("Principals do not match")
 	}

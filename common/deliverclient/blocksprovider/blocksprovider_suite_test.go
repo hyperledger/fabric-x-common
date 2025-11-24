@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 
 	"github.com/hyperledger/fabric-x-common/tools/pkg/identity"
 )
@@ -24,7 +24,7 @@ type signer interface {
 
 //go:generate counterfeiter -o fake/ab_deliver_client.go --fake-name DeliverClient . abDeliverClient
 type abDeliverClient interface {
-	orderer.AtomicBroadcast_DeliverClient
+	protoorderer.AtomicBroadcast_DeliverClient
 }
 
 func TestBlocksProvider(t *testing.T) {

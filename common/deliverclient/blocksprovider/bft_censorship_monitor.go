@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
 
@@ -37,7 +37,7 @@ type BlockProgressReporter interface {
 //go:generate counterfeiter -o fake/deliver_client_requester.go --fake-name DeliverClientRequester . DeliverClientRequester
 type DeliverClientRequester interface {
 	SeekInfoHeadersFrom(ledgerHeight uint64) (*common.Envelope, error)
-	Connect(seekInfoEnv *common.Envelope, endpoint *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error)
+	Connect(seekInfoEnv *common.Envelope, endpoint *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error)
 }
 
 // BFTCensorshipMonitor monitors the progress of headers receivers versus the progress of the block receiver.
@@ -383,7 +383,7 @@ func (m *BFTCensorshipMonitor) launchHeaderReceivers() error {
 
 // newHeaderClient connects to the orderer's delivery service and requests a stream of headers.
 // Seek from the largest of the block progress and the last good header from the previous header receiver.
-func (m *BFTCensorshipMonitor) newHeaderClient(endpoint *orderers.Endpoint, prevHeaderReceiver *BFTHeaderReceiver) (deliverClient orderer.AtomicBroadcast_DeliverClient, clientCloser func(), err error) {
+func (m *BFTCensorshipMonitor) newHeaderClient(endpoint *orderers.Endpoint, prevHeaderReceiver *BFTHeaderReceiver) (deliverClient protoorderer.AtomicBroadcast_DeliverClient, clientCloser func(), err error) {
 	blockNumber, blockTime := m.progressReporter.BlockProgress()
 	if !blockTime.IsZero() {
 		blockNumber++ // If blockTime.IsZero(), we request block number 0, else blockNumber+1

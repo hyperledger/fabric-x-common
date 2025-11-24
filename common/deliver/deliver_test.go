@@ -15,9 +15,9 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
+	ab "github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -60,7 +60,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 			cert, err = x509.ParseCertificate(der.Bytes)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			serializedIdentity = protoutil.MarshalOrPanic(&msp.SerializedIdentity{IdBytes: certBytes})
+			serializedIdentity = protoutil.MarshalOrPanic(&protomsp.SerializedIdentity{IdBytes: certBytes})
 		})
 
 		ginkgo.It("returns a new handler", func() {

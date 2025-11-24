@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	"github.com/Knetic/govaluate"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	mb "github.com/hyperledger/fabric-x-common/api/protomsp"
 	"google.golang.org/protobuf/proto"
 )
 

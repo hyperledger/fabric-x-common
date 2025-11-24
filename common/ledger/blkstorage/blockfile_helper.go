@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
@@ -31,7 +31,7 @@ func constructBlockfilesInfo(rootDir string) (*blockfilesInfo, error) {
 	var lastBlockNumber uint64
 
 	var lastBlockBytes []byte
-	var lastBlock *common.Block
+	var lastBlock *protocommon.Block
 	var err error
 
 	if lastFileNum, err = retrieveLastFileSuffix(rootDir); err != nil {

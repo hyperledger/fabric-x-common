@@ -11,8 +11,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protowire"
 
@@ -63,7 +63,8 @@ func TestBlockfileMgrCrashDuringWriting(t *testing.T) {
 
 func testBlockfileMgrCrashDuringWriting(t *testing.T, numBlksBeforeSavingBlkfilesInfo int,
 	numBlksAfterSavingBlkfilesInfo int, numLastBlockBytes int, numPartialBytesToWrite int,
-	deleteBFInfo bool) {
+	deleteBFInfo bool,
+) {
 	env := newTestEnv(t, NewConf(t.TempDir(), 0))
 	defer env.Cleanup()
 	ledgerid := "testLedger"
@@ -72,12 +73,12 @@ func testBlockfileMgrCrashDuringWriting(t *testing.T, numBlksBeforeSavingBlkfile
 
 	// create all necessary blocks
 	totalBlocks := numBlksBeforeSavingBlkfilesInfo + numBlksAfterSavingBlkfilesInfo
-	allBlocks := []*common.Block{gb}
+	allBlocks := []*protocommon.Block{gb}
 	allBlocks = append(allBlocks, bg.NextTestBlocks(totalBlocks+1)...)
 
 	// identify the blocks that are to be added beforeCP, afterCP, and after restart
-	blocksBeforeSavingBlkfilesInfo := []*common.Block{}
-	blocksAfterSavingBlkfilesInfo := []*common.Block{}
+	blocksBeforeSavingBlkfilesInfo := []*protocommon.Block{}
+	blocksAfterSavingBlkfilesInfo := []*protocommon.Block{}
 	if numBlksBeforeSavingBlkfilesInfo != 0 {
 		blocksBeforeSavingBlkfilesInfo = allBlocks[0:numBlksBeforeSavingBlkfilesInfo]
 	}
@@ -138,7 +139,8 @@ func TestBlockfileMgrBlockIterator(t *testing.T) {
 }
 
 func testBlockfileMgrBlockIterator(t *testing.T, blockfileMgr *blockfileMgr,
-	firstBlockNum int, lastBlockNum int, expectedBlocks []*common.Block) {
+	firstBlockNum int, lastBlockNum int, expectedBlocks []*protocommon.Block,
+) {
 	itr, err := blockfileMgr.retrieveBlocks(uint64(firstBlockNum))
 	require.NoError(t, err, "Error while getting blocks iterator")
 	defer itr.Close()
@@ -162,7 +164,7 @@ func TestBlockfileMgrBlockchainInfo(t *testing.T) {
 	defer blkfileMgrWrapper.close()
 
 	bcInfo := blkfileMgrWrapper.blockfileMgr.getBlockchainInfo()
-	require.Equal(t, &common.BlockchainInfo{Height: 0, CurrentBlockHash: nil, PreviousBlockHash: nil}, bcInfo)
+	require.Equal(t, &protocommon.BlockchainInfo{Height: 0, CurrentBlockHash: nil, PreviousBlockHash: nil}, bcInfo)
 
 	blocks := testutil.ConstructTestBlocks(t, 10)
 	blkfileMgrWrapper.addBlocks(blocks)
@@ -254,10 +256,10 @@ func TestBlockfileMgrGetTxByIdDuplicateTxid(t *testing.T) {
 		[]string{"txid-1", "txid-2", "txid-1"},
 	)
 	txValidationFlags := txflags.New(3)
-	txValidationFlags.SetFlag(0, peer.TxValidationCode_VALID)
-	txValidationFlags.SetFlag(1, peer.TxValidationCode_INVALID_OTHER_REASON)
-	txValidationFlags.SetFlag(2, peer.TxValidationCode_DUPLICATE_TXID)
-	block1.Metadata.Metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER] = txValidationFlags
+	txValidationFlags.SetFlag(0, protopeer.TxValidationCode_VALID)
+	txValidationFlags.SetFlag(1, protopeer.TxValidationCode_INVALID_OTHER_REASON)
+	txValidationFlags.SetFlag(2, protopeer.TxValidationCode_DUPLICATE_TXID)
+	block1.Metadata.Metadata[protocommon.BlockMetadataIndex_TRANSACTIONS_FILTER] = txValidationFlags
 	require.NoError(t, blkFileMgr.addBlock(block1))
 
 	block2 := bg.NextBlockWithTxid(
@@ -268,9 +270,9 @@ func TestBlockfileMgrGetTxByIdDuplicateTxid(t *testing.T) {
 		[]string{"txid-3", "txid-1"},
 	)
 	txValidationFlags = txflags.New(2)
-	txValidationFlags.SetFlag(0, peer.TxValidationCode_VALID)
-	txValidationFlags.SetFlag(1, peer.TxValidationCode_DUPLICATE_TXID)
-	block2.Metadata.Metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER] = txValidationFlags
+	txValidationFlags.SetFlag(0, protopeer.TxValidationCode_VALID)
+	txValidationFlags.SetFlag(1, protopeer.TxValidationCode_DUPLICATE_TXID)
+	block2.Metadata.Metadata[protocommon.BlockMetadataIndex_TRANSACTIONS_FILTER] = txValidationFlags
 	require.NoError(t, blkFileMgr.addBlock(block2))
 
 	txenvp1, err := protoutil.GetEnvelopeFromBlock(block1.Data.Data[0])
@@ -295,13 +297,13 @@ func TestBlockfileMgrGetTxByIdDuplicateTxid(t *testing.T) {
 	require.Equal(t, block2, blk)
 
 	validationCode, blkNum, _ := blkFileMgr.retrieveTxValidationCodeByTxID("txid-1")
-	require.Equal(t, peer.TxValidationCode_VALID, validationCode)
+	require.Equal(t, protopeer.TxValidationCode_VALID, validationCode)
 	require.Equal(t, uint64(1), blkNum)
 	validationCode, blkNum, _ = blkFileMgr.retrieveTxValidationCodeByTxID("txid-2")
-	require.Equal(t, peer.TxValidationCode_INVALID_OTHER_REASON, validationCode)
+	require.Equal(t, protopeer.TxValidationCode_INVALID_OTHER_REASON, validationCode)
 	require.Equal(t, uint64(1), blkNum)
 	validationCode, blkNum, _ = blkFileMgr.retrieveTxValidationCodeByTxID("txid-3")
-	require.Equal(t, peer.TxValidationCode_VALID, validationCode)
+	require.Equal(t, protopeer.TxValidationCode_VALID, validationCode)
 	require.Equal(t, uint64(2), blkNum)
 
 	// though we do not expose an API for retrieving all the txs by same id but we may in future
@@ -316,17 +318,17 @@ func TestBlockfileMgrGetTxByIdDuplicateTxid(t *testing.T) {
 			{
 				blk:            block1,
 				txEnv:          protoutil.ExtractEnvelopeOrPanic(block1, 0),
-				validationCode: peer.TxValidationCode_VALID,
+				validationCode: protopeer.TxValidationCode_VALID,
 			},
 			{
 				blk:            block1,
 				txEnv:          protoutil.ExtractEnvelopeOrPanic(block1, 2),
-				validationCode: peer.TxValidationCode_DUPLICATE_TXID,
+				validationCode: protopeer.TxValidationCode_DUPLICATE_TXID,
 			},
 			{
 				blk:            block2,
 				txEnv:          protoutil.ExtractEnvelopeOrPanic(block2, 1),
-				validationCode: peer.TxValidationCode_DUPLICATE_TXID,
+				validationCode: protopeer.TxValidationCode_DUPLICATE_TXID,
 			},
 		},
 	)
@@ -337,7 +339,7 @@ func TestBlockfileMgrGetTxByIdDuplicateTxid(t *testing.T) {
 			{
 				blk:            block1,
 				txEnv:          protoutil.ExtractEnvelopeOrPanic(block1, 1),
-				validationCode: peer.TxValidationCode_INVALID_OTHER_REASON,
+				validationCode: protopeer.TxValidationCode_INVALID_OTHER_REASON,
 			},
 		},
 	)
@@ -348,7 +350,7 @@ func TestBlockfileMgrGetTxByIdDuplicateTxid(t *testing.T) {
 			{
 				blk:            block2,
 				txEnv:          protoutil.ExtractEnvelopeOrPanic(block2, 0),
-				validationCode: peer.TxValidationCode_VALID,
+				validationCode: protopeer.TxValidationCode_VALID,
 			},
 		},
 	)

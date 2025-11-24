@@ -13,8 +13,8 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient"
@@ -107,7 +107,7 @@ type BFTDeliverer struct {
 	censorshipMonitor CensorshipDetector
 }
 
-func (d *BFTDeliverer) Initialize(channelConfig *common.Config, selfEndpoint string) {
+func (d *BFTDeliverer) Initialize(channelConfig *protocommon.Config, selfEndpoint string) {
 	d.requester = NewDeliveryRequester(
 		d.ChannelID,
 		d.Signer,
@@ -359,7 +359,7 @@ func (d *BFTDeliverer) FetchBlocks(source *orderers.Endpoint) {
 			updatableBlockVerifier: d.UpdatableBlockVerifier,
 			deliverClient:          deliverClient,
 			cancelSendFunc:         cancel,
-			recvC:                  make(chan *orderer.DeliverResponse),
+			recvC:                  make(chan *protoorderer.DeliverResponse),
 			stopC:                  make(chan struct{}),
 			endpoint:               source,
 			logger:                 util.MustGetLogger("BlockReceiver").With("orderer-address", source.Address),
@@ -391,7 +391,7 @@ func (d *BFTDeliverer) FetchBlocks(source *orderers.Endpoint) {
 	}
 }
 
-func (d *BFTDeliverer) onBlockProcessingSuccess(blockNum uint64, channelConfig *common.Config) {
+func (d *BFTDeliverer) onBlockProcessingSuccess(blockNum uint64, channelConfig *protocommon.Config) {
 	d.Logger.Debugf("onBlockProcessingSuccess: %d, %v", blockNum, channelConfig)
 
 	d.mutex.Lock()

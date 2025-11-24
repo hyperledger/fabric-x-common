@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient"
@@ -34,9 +34,9 @@ type BlockReceiver struct {
 	channelID              string
 	blockHandler           BlockHandler
 	updatableBlockVerifier UpdatableBlockVerifier
-	deliverClient          orderer.AtomicBroadcast_DeliverClient
+	deliverClient          protoorderer.AtomicBroadcast_DeliverClient
 	cancelSendFunc         func()
-	recvC                  chan *orderer.DeliverResponse
+	recvC                  chan *protoorderer.DeliverResponse
 	stopC                  chan struct{}
 	endpoint               *orderers.Endpoint
 
@@ -127,15 +127,15 @@ RecvLoop: // Loop until the endpoint is refreshed, or there is an error on the c
 	return err
 }
 
-func (br *BlockReceiver) processMsg(msg *orderer.DeliverResponse) (uint64, *common.Config, error) {
+func (br *BlockReceiver) processMsg(msg *protoorderer.DeliverResponse) (uint64, *common.Config, error) {
 	switch t := msg.GetType().(type) {
-	case *orderer.DeliverResponse_Status:
+	case *protoorderer.DeliverResponse_Status:
 		if t.Status == common.Status_SUCCESS {
 			return 0, nil, errors.Errorf("received success for a seek that should never complete")
 		}
 
 		return 0, nil, errors.Errorf("received bad status %v from orderer", t.Status)
-	case *orderer.DeliverResponse_Block:
+	case *protoorderer.DeliverResponse_Block:
 		blockNum := t.Block.Header.Number
 
 		if err := br.updatableBlockVerifier.VerifyBlock(t.Block); err != nil {

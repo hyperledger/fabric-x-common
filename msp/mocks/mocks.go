@@ -9,7 +9,7 @@ package mocks
 import (
 	"time"
 
-	pmsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	pmsp "github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/hyperledger/fabric-x-common/msp"

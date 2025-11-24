@@ -64,6 +64,35 @@ lint: FORCE
 	@echo "Running License Header Linters..."
 	scripts/license-lint.sh
 
+PROTO_DIRS := $(shell find . -not -path "*/vendor/*" -not -path "*/.git/*" -name '*.proto' -print0 | xargs -0 -n 1 dirname | sort -u)
+
+# 2. Define a phony target that runs the loop
+.PHONY: proto
+proto:
+	@for dir in $(PROTO_DIRS); do \
+		echo "Compiling protos in: $$dir"; \
+		protoc --proto_path=. \
+		--proto_path="/usr/include" \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		--go_out=paths=source_relative:. \
+		$$dir/*.proto; \
+	done
+#
+# PROTO_TARGETS ?= $(shell find ./api \
+# 	 -name '*.proto' -print0 | \
+# 	 xargs -0 -n 1 dirname | xargs -n 1 basename | \
+# 	 sort -u | sed -e "s/^proto/proto-/" \
+# )
+#
+# proto: $(PROTO_TARGETS)
+#
+# proto-%: FORCE
+# 	@echo "Compiling: $*"
+# 	@protoc --proto_path="${PWD}" \
+#           --proto_path="/usr/include" \
+#           --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+#           --go_out=paths=source_relative:. ${PWD}/api/proto$*/*.proto
+
 # https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
 # If a rule has no prerequisites or recipe, and the target of the rule is a nonexistent file,
 # then make imagines this target to have been updated whenever its rule is run.

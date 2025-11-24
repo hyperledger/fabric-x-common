@@ -14,9 +14,9 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/gossip"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"google.golang.org/grpc"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
@@ -61,7 +61,7 @@ type Dialer interface {
 
 //go:generate counterfeiter -o fake/deliver_streamer.go --fake-name DeliverStreamer . DeliverStreamer
 type DeliverStreamer interface {
-	Deliver(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error)
+	Deliver(context.Context, *grpc.ClientConn) (protoorderer.AtomicBroadcast_DeliverClient, error)
 }
 
 // MaxRetryDurationExceededHandler is a function that decides what to do in case the total time the component spends in
@@ -198,7 +198,7 @@ func (d *Deliverer) DeliverBlocks() {
 			updatableBlockVerifier: d.UpdatableBlockVerifier,
 			deliverClient:          deliverClient,
 			cancelSendFunc:         cancel,
-			recvC:                  make(chan *orderer.DeliverResponse),
+			recvC:                  make(chan *protoorderer.DeliverResponse),
 			stopC:                  make(chan struct{}),
 			endpoint:               endpoint,
 			logger:                 d.Logger.With("orderer-address", endpoint.Address),

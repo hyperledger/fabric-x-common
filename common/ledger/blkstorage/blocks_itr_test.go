@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
@@ -149,16 +149,16 @@ func iterateInBackground(t *testing.T, itr *blocksItr, quitAfterBlkNum uint64, w
 		if blk == nil {
 			return
 		}
-		blkNum := blk.(*common.Block).Header.Number
+		blkNum := blk.(*protocommon.Block).Header.Number
 		retrievedBlkNums = append(retrievedBlkNums, blkNum)
-		t.Logf("blk.Num=%d", blk.(*common.Block).Header.Number)
+		t.Logf("blk.Num=%d", blk.(*protocommon.Block).Header.Number)
 		if blkNum == quitAfterBlkNum {
 			return
 		}
 	}
 }
 
-func testIterateAndVerify(t *testing.T, itr *blocksItr, blocks []*common.Block, readyAt int, readyChan chan<- struct{}, doneChan chan bool) {
+func testIterateAndVerify(t *testing.T, itr *blocksItr, blocks []*protocommon.Block, readyAt int, readyChan chan<- struct{}, doneChan chan bool) {
 	blocksIterated := 0
 	for {
 		t.Logf("blocksIterated: %v", blocksIterated)
@@ -176,6 +176,6 @@ func testIterateAndVerify(t *testing.T, itr *blocksItr, blocks []*common.Block, 
 	doneChan <- true
 }
 
-func testAppendBlocks(blkfileMgrWrapper *testBlockfileMgrWrapper, blocks []*common.Block) {
+func testAppendBlocks(blkfileMgrWrapper *testBlockfileMgrWrapper, blocks []*protocommon.Block) {
 	blkfileMgrWrapper.addBlocks(blocks)
 }

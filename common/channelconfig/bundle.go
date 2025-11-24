@@ -8,7 +8,7 @@ package channelconfig
 
 import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/cauthdsl"
