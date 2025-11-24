@@ -6,12 +6,12 @@ SPDX-License-Identifier: Apache-2.0
 
 package protoutil
 
-import "github.com/hyperledger/fabric-protos-go-apiv2/common"
+import "github.com/hyperledger/fabric-x-common/api/protocommon"
 
-func NewConfigGroup() *common.ConfigGroup {
-	return &common.ConfigGroup{
-		Groups:   make(map[string]*common.ConfigGroup),
-		Values:   make(map[string]*common.ConfigValue),
-		Policies: make(map[string]*common.ConfigPolicy),
+func NewConfigGroup() *protocommon.ConfigGroup {
+	return &protocommon.ConfigGroup{
+		Groups:   make(map[string]*protocommon.ConfigGroup),
+		Values:   make(map[string]*protocommon.ConfigValue),
+		Policies: make(map[string]*protocommon.ConfigPolicy),
 	}
 }

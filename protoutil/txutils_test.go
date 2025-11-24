@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/stretchr/testify/require"

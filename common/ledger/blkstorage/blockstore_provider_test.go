@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
@@ -85,7 +85,7 @@ func TestMultipleBlockStores(t *testing.T) {
 	checkWithWrongInputs(t, newstore2, 10)
 }
 
-func addBlocksToStore(t *testing.T, store *BlockStore, numBlocks int) []*common.Block {
+func addBlocksToStore(t *testing.T, store *BlockStore, numBlocks int) []*protocommon.Block {
 	blocks := testutil.ConstructTestBlocks(t, numBlocks)
 	for _, b := range blocks {
 		err := store.AddBlock(b)
@@ -94,7 +94,7 @@ func addBlocksToStore(t *testing.T, store *BlockStore, numBlocks int) []*common.
 	return blocks
 }
 
-func checkBlocks(t *testing.T, expectedBlocks []*common.Block, store *BlockStore) {
+func checkBlocks(t *testing.T, expectedBlocks []*protocommon.Block, store *BlockStore) {
 	bcInfo, _ := store.GetBlockchainInfo()
 	require.Equal(t, uint64(len(expectedBlocks)), bcInfo.Height)
 	require.Equal(t, protoutil.BlockHeaderHash(expectedBlocks[len(expectedBlocks)-1].GetHeader()), bcInfo.CurrentBlockHash)
@@ -107,7 +107,7 @@ func checkBlocks(t *testing.T, expectedBlocks []*common.Block, store *BlockStore
 
 	for blockNum := 0; blockNum < len(expectedBlocks); blockNum++ {
 		block := expectedBlocks[blockNum]
-		flags := txflags.ValidationFlags(block.Metadata.Metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER])
+		flags := txflags.ValidationFlags(block.Metadata.Metadata[protocommon.BlockMetadataIndex_TRANSACTIONS_FILTER])
 		retrievedBlock, _ := store.RetrieveBlockByNumber(uint64(blockNum))
 		require.Equal(t, block, retrievedBlock)
 
@@ -155,7 +155,7 @@ func checkWithWrongInputs(t *testing.T, store *BlockStore, numBlocks int) {
 	require.EqualError(t, err, fmt.Sprintf("no such blockNumber, transactionNumber <%d, 0> in index", numBlocks+1))
 
 	txCode, blkNum, err := store.RetrieveTxValidationCodeByTxID("non-existent-txid")
-	require.Equal(t, peer.TxValidationCode(-1), txCode)
+	require.Equal(t, protopeer.TxValidationCode(-1), txCode)
 	require.Equal(t, uint64(0), blkNum)
 	require.EqualError(t, err, "no such transaction ID [non-existent-txid] in index")
 }
@@ -239,7 +239,7 @@ func TestDrop(t *testing.T) {
 	require.NoError(t, err)
 	bcInfo, err := newstore1.GetBlockchainInfo()
 	require.NoError(t, err)
-	require.Equal(t, &common.BlockchainInfo{}, bcInfo)
+	require.Equal(t, &protocommon.BlockchainInfo{}, bcInfo)
 
 	// negative test
 	provider.Close()

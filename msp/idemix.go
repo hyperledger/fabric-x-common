@@ -7,7 +7,9 @@ package msp
 
 import (
 	"github.com/IBM/idemix"
+
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 )
 
 type idemixSigningIdentityWrapper struct {
@@ -16,6 +18,10 @@ type idemixSigningIdentityWrapper struct {
 
 func (i *idemixSigningIdentityWrapper) GetPublicVersion() Identity {
 	return &idemixIdentityWrapper{Idemixidentity: i.IdemixSigningIdentity.GetPublicVersion().(*idemix.Idemixidentity)}
+}
+
+func (i *idemixSigningIdentityWrapper) SatisfiesPrincipal(p *protomsp.MSPPrincipal) error {
+	return i.IdemixSigningIdentity.SatisfiesPrincipal(toIdemixMSPPrincipal(p))
 }
 
 func (i *idemixSigningIdentityWrapper) GetIdentifier() *IdentityIdentifier {
@@ -37,6 +43,10 @@ func (i *idemixIdentityWrapper) GetIdentifier() *IdentityIdentifier {
 		Mspid: id.Mspid,
 		Id:    id.Id,
 	}
+}
+
+func (i *idemixIdentityWrapper) SatisfiesPrincipal(p *protomsp.MSPPrincipal) error {
+	return i.Idemixidentity.SatisfiesPrincipal(toIdemixMSPPrincipal(p))
 }
 
 func (i *idemixIdentityWrapper) GetOrganizationalUnits() []*OUIdentifier {
@@ -95,6 +105,24 @@ func (i *idemixMSPWrapper) Validate(id Identity) error {
 	return i.Idemixmsp.Validate(id.(*idemixIdentityWrapper).Idemixidentity)
 }
 
-func (i *idemixMSPWrapper) SatisfiesPrincipal(id Identity, principal *msp.MSPPrincipal) error {
-	return i.Idemixmsp.SatisfiesPrincipal(id.(*idemixIdentityWrapper).Idemixidentity, principal)
+func (i *idemixMSPWrapper) SatisfiesPrincipal(id Identity, p *protomsp.MSPPrincipal) error {
+	return i.Idemixmsp.SatisfiesPrincipal(id.(*idemixIdentityWrapper).Idemixidentity, toIdemixMSPPrincipal(p))
+}
+
+func (i *idemixMSPWrapper) Setup(conf *protomsp.MSPConfig) error {
+	return i.Idemixmsp.Setup(&msp.MSPConfig{
+		Type:   conf.GetType(),
+		Config: conf.GetConfig(),
+	})
+}
+
+func (i *idemixMSPWrapper) IsWellFormed(id *protomsp.SerializedIdentity) error {
+	return i.Idemixmsp.IsWellFormed(&msp.SerializedIdentity{Mspid: id.Mspid, IdBytes: id.IdBytes})
+}
+
+func toIdemixMSPPrincipal(p *protomsp.MSPPrincipal) *msp.MSPPrincipal {
+	return &msp.MSPPrincipal{
+		PrincipalClassification: msp.MSPPrincipal_Classification(p.PrincipalClassification),
+		Principal:               p.Principal,
+	}
 }

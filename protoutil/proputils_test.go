@@ -15,8 +15,8 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -86,7 +86,7 @@ func TestCDSProposals(t *testing.T) {
 func TestProposal(t *testing.T) {
 	// create a proposal from a ChaincodeInvocationSpec
 	prop, _, err := protoutil.CreateChaincodeProposalWithTransient(
-		common.HeaderType_ENDORSER_TRANSACTION,
+		protocommon.HeaderType_ENDORSER_TRANSACTION,
 		testChannelID, createCIS(),
 		[]byte("creator"),
 		map[string][]byte{"certx": []byte("transient")})
@@ -145,7 +145,7 @@ func TestProposal(t *testing.T) {
 	}
 
 	// sanity check on header
-	if chdr.Type != int32(common.HeaderType_ENDORSER_TRANSACTION) ||
+	if chdr.Type != int32(protocommon.HeaderType_ENDORSER_TRANSACTION) ||
 		shdr.Nonce == nil ||
 		string(shdr.Creator) != "creator" {
 		t.Fatalf("Invalid header after unmarshalling\n")
@@ -199,7 +199,7 @@ func TestProposal(t *testing.T) {
 func TestProposalWithTxID(t *testing.T) {
 	// create a proposal from a ChaincodeInvocationSpec
 	prop, txid, err := protoutil.CreateChaincodeProposalWithTxIDAndTransient(
-		common.HeaderType_ENDORSER_TRANSACTION,
+		protocommon.HeaderType_ENDORSER_TRANSACTION,
 		testChannelID,
 		createCIS(),
 		[]byte("creator"),
@@ -211,7 +211,7 @@ func TestProposalWithTxID(t *testing.T) {
 	require.Equal(t, txid, "testtx")
 
 	prop, txid, err = protoutil.CreateChaincodeProposalWithTxIDAndTransient(
-		common.HeaderType_ENDORSER_TRANSACTION,
+		protocommon.HeaderType_ENDORSER_TRANSACTION,
 		testChannelID,
 		createCIS(),
 		[]byte("creator"),
@@ -330,7 +330,7 @@ func TestProposalResponse(t *testing.T) {
 
 func TestEnvelope(t *testing.T) {
 	// create a proposal from a ChaincodeInvocationSpec
-	prop, _, err := protoutil.CreateChaincodeProposal(common.HeaderType_ENDORSER_TRANSACTION, testChannelID, createCIS(), signerSerialized)
+	prop, _, err := protoutil.CreateChaincodeProposal(protocommon.HeaderType_ENDORSER_TRANSACTION, testChannelID, createCIS(), signerSerialized)
 	if err != nil {
 		t.Fatalf("Could not create chaincode proposal, err %s\n", err)
 		return

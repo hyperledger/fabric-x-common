@@ -11,8 +11,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -62,14 +62,14 @@ func TestPolicyBase(t *testing.T) {
 	provider := newPolicyProvider(evaluator)
 
 	t.Run("SignedProposal", func(t *testing.T) {
-		proposal, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+		proposal, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &protopeer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
 		err := provider.CheckACL("pol", proposal)
 		require.NoError(t, err)
 	})
 
 	t.Run("Envelope", func(t *testing.T) {
 		signer := &mocks.SignerSerializer{}
-		envelope, err := protoutil.CreateSignedEnvelope(common.HeaderType_CONFIG, "myc", signer, &common.ConfigEnvelope{}, 0, 0)
+		envelope, err := protoutil.CreateSignedEnvelope(protocommon.HeaderType_CONFIG, "myc", signer, &protocommon.ConfigEnvelope{}, 0, 0)
 		require.NoError(t, err)
 		err = provider.CheckACL("pol", envelope)
 		require.NoError(t, err)
@@ -94,17 +94,17 @@ func TestPolicyBad(t *testing.T) {
 	err := pprov.CheckACL("pol", []byte("not a signed proposal"))
 	require.Error(t, err, InvalidIdInfo("pol").Error())
 
-	sProp, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+	sProp, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &protopeer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
 	err = pprov.CheckACL("badpolicy", sProp)
 	require.Error(t, err)
 
-	sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+	sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &protopeer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
 	sProp.ProposalBytes = []byte("bad proposal bytes")
 	err = pprov.CheckACL("res", sProp)
 	require.Error(t, err)
 
-	sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
-	prop := &peer.Proposal{}
+	sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &protopeer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+	prop := &protopeer.Proposal{}
 	if proto.Unmarshal(sProp.ProposalBytes, prop) != nil {
 		t.FailNow()
 	}

@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -54,7 +54,7 @@ type bftDelivererTestSetup struct {
 	channelConfig                      *common.Config
 
 	deliverClientDoneC chan struct{} // signals the deliverClient to exit
-	recvStepC          chan *orderer.DeliverResponse
+	recvStepC          chan *protoorderer.DeliverResponse
 	endC               chan struct{}
 
 	mutex         sync.Mutex                 // protects the following fields
@@ -82,7 +82,7 @@ func newBFTDelivererTestSetup(t *testing.T) *bftDelivererTestSetup {
 		fakeSleeper:                        &fake.Sleeper{},
 		fakeDurationExceededHandler:        &fake.DurationExceededHandler{},
 		deliverClientDoneC:                 make(chan struct{}),
-		recvStepC:                          make(chan *orderer.DeliverResponse),
+		recvStepC:                          make(chan *protoorderer.DeliverResponse),
 		endC:                               make(chan struct{}),
 	}
 
@@ -135,7 +135,7 @@ func (s *bftDelivererTestSetup) initialize(t *testing.T) {
 
 	s.fakeSigner.SignReturns([]byte("good-sig"), nil)
 
-	s.fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
+	s.fakeDeliverClient.RecvStub = func() (*protoorderer.DeliverResponse, error) {
 		select {
 		case r := <-s.recvStepC:
 			if r == nil {
@@ -290,7 +290,7 @@ func TestBFTDeliverer_NoBlocks(t *testing.T) {
 	require.True(t, bytes.Equal(env.GetSignature(), []byte("good-sig")))
 	payload, err := protoutil.UnmarshalPayload(env.GetPayload())
 	require.NoError(t, err)
-	seekInfo := &orderer.SeekInfo{}
+	seekInfo := &protoorderer.SeekInfo{}
 	err = proto.Unmarshal(payload.Data, seekInfo)
 	require.NoError(t, err)
 	require.Equal(t, uint64(7), seekInfo.GetStart().GetSpecified().GetNumber())
@@ -676,8 +676,8 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		require.True(t, bTime.After(startTime))
 
 		t.Log("Recv() returns a single block, num: 7")
-		setup.recvStepC <- &orderer.DeliverResponse{
-			Type: &orderer.DeliverResponse_Block{
+		setup.recvStepC <- &protoorderer.DeliverResponse{
+			Type: &protoorderer.DeliverResponse_Block{
 				Block: &common.Block{Header: &common.BlockHeader{Number: 7}},
 			},
 		}
@@ -721,8 +721,8 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		setup.start()
 
 		t.Log("Recv() returns a single block, num: 7")
-		setup.recvStepC <- &orderer.DeliverResponse{
-			Type: &orderer.DeliverResponse_Block{
+		setup.recvStepC <- &protoorderer.DeliverResponse{
+			Type: &protoorderer.DeliverResponse_Block{
 				Block: &common.Block{Header: &common.BlockHeader{Number: 7}},
 			},
 		}
@@ -766,8 +766,8 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		setup.start()
 
 		t.Log("Recv() returns a single block, num: 7")
-		setup.recvStepC <- &orderer.DeliverResponse{
-			Type: &orderer.DeliverResponse_Block{
+		setup.recvStepC <- &protoorderer.DeliverResponse{
+			Type: &protoorderer.DeliverResponse_Block{
 				Block: &common.Block{Header: &common.BlockHeader{Number: 7}},
 			},
 		}
@@ -823,8 +823,8 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		setup.gWithT.Expect(setup.fakeSleeper.SleepCallCount()).To(Equal(24))
 
 		t.Log("Recv() returns a single block, num: 7")
-		setup.recvStepC <- &orderer.DeliverResponse{
-			Type: &orderer.DeliverResponse_Block{
+		setup.recvStepC <- &protoorderer.DeliverResponse{
+			Type: &protoorderer.DeliverResponse_Block{
 				Block: &common.Block{Header: &common.BlockHeader{Number: 7}},
 			},
 		}
@@ -899,8 +899,8 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		setup.gWithT.Expect(setup.fakeSleeper.SleepCallCount()).To(Equal(80))
 
 		t.Log("Recv() returns a single block, num: 7")
-		setup.recvStepC <- &orderer.DeliverResponse{
-			Type: &orderer.DeliverResponse_Block{
+		setup.recvStepC <- &protoorderer.DeliverResponse{
+			Type: &protoorderer.DeliverResponse_Block{
 				Block: &common.Block{Header: &common.BlockHeader{Number: 7}},
 			},
 		}
@@ -916,8 +916,8 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		setup.gWithT.Expect(setup.fakeSleeper.SleepCallCount()).To(Equal(160))
 
 		t.Log("Recv() returns a single block, num: 8")
-		setup.recvStepC <- &orderer.DeliverResponse{
-			Type: &orderer.DeliverResponse_Block{
+		setup.recvStepC <- &protoorderer.DeliverResponse{
+			Type: &protoorderer.DeliverResponse_Block{
 				Block: &common.Block{Header: &common.BlockHeader{Number: 8}},
 			},
 		}
@@ -979,8 +979,8 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 			},
 		}
 
-		setup.recvStepC <- &orderer.DeliverResponse{
-			Type: &orderer.DeliverResponse_Block{
+		setup.recvStepC <- &protoorderer.DeliverResponse{
+			Type: &protoorderer.DeliverResponse_Block{
 				Block: configBlock,
 			},
 		}

@@ -86,6 +86,7 @@ type UnimplementedEchoServiceServer struct{}
 func (UnimplementedEchoServiceServer) Echo(context.Context, *Message) (*Message, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Echo not implemented")
 }
+
 func (UnimplementedEchoServiceServer) EchoStream(grpc.BidiStreamingServer[Message, Message]) error {
 	return status.Errorf(codes.Unimplemented, "method EchoStream not implemented")
 }

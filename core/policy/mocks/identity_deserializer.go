@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	fabric_protos_gomsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	fabric_protos_goprotomsp "github.com/hyperledger/fabric-x-common/api/protomsp"
 	mock "github.com/stretchr/testify/mock"
 
 	msp "github.com/hyperledger/fabric-x-common/msp"
@@ -38,11 +38,11 @@ func (_m *IdentityDeserializer) DeserializeIdentity(serializedIdentity []byte) (
 }
 
 // IsWellFormed provides a mock function with given fields: identity
-func (_m *IdentityDeserializer) IsWellFormed(identity *fabric_protos_gomsp.SerializedIdentity) error {
+func (_m *IdentityDeserializer) IsWellFormed(identity *fabric_protos_goprotomsp.SerializedIdentity) error {
 	ret := _m.Called(identity)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*fabric_protos_gomsp.SerializedIdentity) error); ok {
+	if rf, ok := ret.Get(0).(func(*fabric_protos_goprotomsp.SerializedIdentity) error); ok {
 		r0 = rf(identity)
 	} else {
 		r0 = ret.Error(0)

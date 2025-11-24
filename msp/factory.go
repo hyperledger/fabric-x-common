@@ -10,7 +10,7 @@ import (
 	"github.com/IBM/idemix"
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
-	msppb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 )
 
@@ -117,7 +117,7 @@ func LoadVerifyingMspDir(p DirLoadParameters) (MSP, error) {
 }
 
 //nolint:ireturn,nolintlint // method may return any MSP implementation.
-func loadMSP(cspConfig *factory.FactoryOpts, conf *msppb.MSPConfig) (MSP, error) {
+func loadMSP(cspConfig *factory.FactoryOpts, conf *protomsp.MSPConfig) (MSP, error) {
 	csp, err := factory.GetBCCSPFromOpts(cspConfig)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting BCCSP from config")

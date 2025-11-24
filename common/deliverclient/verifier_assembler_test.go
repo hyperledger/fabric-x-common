@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
@@ -36,8 +36,8 @@ func TestBlockVerifierAssembler(t *testing.T) {
 
 	t.Run("Good config envelope", func(t *testing.T) {
 		bva := &deliverclient.BlockVerifierAssembler{BCCSP: cryptoProvider}
-		verifier, err := bva.VerifierFromConfig(&common.ConfigEnvelope{
-			Config: &common.Config{
+		verifier, err := bva.VerifierFromConfig(&protocommon.ConfigEnvelope{
+			Config: &protocommon.Config{
 				ChannelGroup: group,
 			},
 		}, "mychannel")
@@ -48,7 +48,7 @@ func TestBlockVerifierAssembler(t *testing.T) {
 
 	t.Run("Bad config envelope", func(t *testing.T) {
 		bva := &deliverclient.BlockVerifierAssembler{BCCSP: cryptoProvider}
-		verifier, err := bva.VerifierFromConfig(&common.ConfigEnvelope{}, "mychannel")
+		verifier, err := bva.VerifierFromConfig(&protocommon.ConfigEnvelope{}, "mychannel")
 		require.EqualError(t, err, "channelconfig Config cannot be nil")
 		err = verifier(nil, nil)
 		require.EqualError(t, err, "failed to initialize block verifier function: channelconfig Config cannot be nil")

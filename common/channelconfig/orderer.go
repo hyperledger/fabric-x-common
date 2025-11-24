@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	ab "github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/capabilities"

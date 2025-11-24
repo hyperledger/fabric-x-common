@@ -9,8 +9,8 @@ package aclmgmt
 import (
 	"fmt"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -124,7 +124,7 @@ func (rp *aclmgmtPolicyProviderImpl) CheckACL(polName string, idinfo interface{}
 			Signature: signedProp.Signature,
 		}}
 
-	case *common.Envelope:
+	case *protocommon.Envelope:
 		var err error
 		sd, err = protoutil.EnvelopeAsSignedData(idinfo)
 		if err != nil {

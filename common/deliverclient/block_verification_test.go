@@ -14,7 +14,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -40,7 +40,7 @@ func TestNewBlockVerificationAssistantFromConfig(t *testing.T) {
 	block := blockWithGroups(group, "channel1", 1)
 	blockHeaderHash := protoutil.BlockHeaderHash(block.Header)
 
-	config := &common.Config{ChannelGroup: group}
+	config := &protocommon.Config{ChannelGroup: group}
 	logger := util.MustGetLogger("logger")
 	blockVerifierAssembler := &BlockVerifierAssembler{Logger: logger, BCCSP: cryptoProvider}
 	require.NoError(t, err)
@@ -51,7 +51,7 @@ func TestNewBlockVerificationAssistantFromConfig(t *testing.T) {
 		require.Equal(t, "channel1", assistant.channelID)
 		require.Equal(t, blockVerifierAssembler, assistant.verifierAssembler)
 		require.Nil(t, assistant.configBlockHeader)
-		require.Equal(t, &common.BlockHeader{Number: 1}, assistant.lastBlockHeader)
+		require.Equal(t, &protocommon.BlockHeader{Number: 1}, assistant.lastBlockHeader)
 		require.Equal(t, blockHeaderHash, assistant.lastBlockHeaderHash)
 		require.Equal(t, logger, assistant.logger)
 		err = assistant.sigVerifierFunc(block.Header, block.Metadata)
@@ -149,7 +149,7 @@ func TestBlockVerificationAssistant_VerifyBlock(t *testing.T) {
 	group, err := configtxgen.NewChannelGroup(configProfile)
 	require.NoError(t, err)
 	require.NotNil(t, group)
-	config := &common.Config{ChannelGroup: group}
+	config := &protocommon.Config{ChannelGroup: group}
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
 	logger := util.MustGetLogger("logger")
@@ -240,7 +240,7 @@ func TestBlockVerificationAssistant_VerifyBlock(t *testing.T) {
 		require.Error(t, err)
 		require.EqualError(t, err, "block with id [1] on channel [channel1] does not have metadata or contains too few entries")
 
-		block.Metadata = &common.BlockMetadata{Metadata: nil}
+		block.Metadata = &protocommon.BlockMetadata{Metadata: nil}
 		require.Error(t, err)
 		require.EqualError(t, err, "block with id [1] on channel [channel1] does not have metadata or contains too few entries")
 	})
@@ -327,11 +327,11 @@ func TestBlockVerificationAssistant_VerifyBlock(t *testing.T) {
 		require.NoError(t, err)
 		assistant.sigVerifierFunc = sigVerifierFuncReturnNoError()
 
-		txEnv := &common.Envelope{
-			Payload: protoutil.MarshalOrPanic(&common.Payload{
-				Header: &common.Header{
-					ChannelHeader: protoutil.MarshalOrPanic(&common.ChannelHeader{
-						Type:      int32(common.HeaderType_ENDORSER_TRANSACTION),
+		txEnv := &protocommon.Envelope{
+			Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
+				Header: &protocommon.Header{
+					ChannelHeader: protoutil.MarshalOrPanic(&protocommon.ChannelHeader{
+						Type:      int32(protocommon.HeaderType_ENDORSER_TRANSACTION),
 						ChannelId: "channel1",
 					}),
 				},
@@ -360,13 +360,13 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 	t.Run("update config succeed", func(t *testing.T) {
 		configBlock := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
-		config := &common.Config{ChannelGroup: group}
+		config := &protocommon.Config{ChannelGroup: group}
 		logger := util.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
 
-		expectedVerifierFunc, err := assistant.verifierAssembler.VerifierFromConfig(&common.ConfigEnvelope{Config: config}, "channel1")
+		expectedVerifierFunc, err := assistant.verifierAssembler.VerifierFromConfig(&protocommon.ConfigEnvelope{Config: config}, "channel1")
 		require.NoError(t, err)
 
 		err = assistant.UpdateConfig(configBlock)
@@ -380,7 +380,7 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 	t.Run("block data is corrupt", func(t *testing.T) {
 		configBlock := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
-		config := &common.Config{ChannelGroup: group}
+		config := &protocommon.Config{ChannelGroup: group}
 		logger := util.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
@@ -410,14 +410,14 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 	t.Run("missing channel header", func(t *testing.T) {
 		configBlock := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
-		config := &common.Config{ChannelGroup: group}
+		config := &protocommon.Config{ChannelGroup: group}
 		logger := util.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
 
-		configBlock.Data.Data[0] = protoutil.MarshalOrPanic(&common.Envelope{
-			Payload: protoutil.MarshalOrPanic(&common.Payload{
+		configBlock.Data.Data[0] = protoutil.MarshalOrPanic(&protocommon.Envelope{
+			Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
 				Header: nil,
 			}),
 		})
@@ -430,7 +430,7 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 	t.Run("config block channel id is different from the assistant channel id", func(t *testing.T) {
 		configBlock := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
-		config := &common.Config{ChannelGroup: group}
+		config := &protocommon.Config{ChannelGroup: group}
 		logger := util.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel2", cryptoProvider, logger)
@@ -459,7 +459,7 @@ func TestBlockVerificationAssistant_UpdateBlockHeader(t *testing.T) {
 
 	block := blockWithGroups(group, "channel1", 1)
 	lastBlockHeaderHash := []byte{1, 2, 3}
-	config := &common.Config{ChannelGroup: group}
+	config := &protocommon.Config{ChannelGroup: group}
 	logger := util.MustGetLogger("logger")
 
 	assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel2", cryptoProvider, logger)
@@ -485,7 +485,7 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 	t.Run("verify non config block attestation with data succeed", func(t *testing.T) {
 		block := nonConfigBlock("channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
-		config := &common.Config{ChannelGroup: group}
+		config := &protocommon.Config{ChannelGroup: group}
 		logger := util.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
@@ -501,7 +501,7 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 	t.Run("verify non block attestation with nil data succeed", func(t *testing.T) {
 		block := nonConfigBlock("channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
-		config := &common.Config{ChannelGroup: group}
+		config := &protocommon.Config{ChannelGroup: group}
 		logger := util.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
@@ -517,7 +517,7 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 	t.Run("nil metadata", func(t *testing.T) {
 		block := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
-		config := &common.Config{ChannelGroup: group}
+		config := &protocommon.Config{ChannelGroup: group}
 		logger := util.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
@@ -534,7 +534,7 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 	t.Run("sig verifier func return policy error", func(t *testing.T) {
 		block := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
-		config := &common.Config{ChannelGroup: group}
+		config := &protocommon.Config{ChannelGroup: group}
 		logger := util.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
@@ -560,7 +560,7 @@ func TestBlockVerificationAssistant_Clone(t *testing.T) {
 	require.NoError(t, err)
 
 	lastBlockHeaderHash := []byte{1, 2, 3}
-	config := &common.Config{ChannelGroup: group}
+	config := &protocommon.Config{ChannelGroup: group}
 	logger := util.MustGetLogger("logger")
 
 	assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
@@ -597,20 +597,20 @@ func generateCertificatesSmartBFT(t *testing.T, confAppSmartBFT *configtxgen.Pro
 	}
 }
 
-func blockWithGroups(groups *common.ConfigGroup, channelID string, blockNumber uint64) *common.Block {
+func blockWithGroups(groups *protocommon.ConfigGroup, channelID string, blockNumber uint64) *protocommon.Block {
 	block := protoutil.NewBlock(blockNumber, []byte{1, 2, 3})
-	block.Data = &common.BlockData{
+	block.Data = &protocommon.BlockData{
 		Data: [][]byte{
-			protoutil.MarshalOrPanic(&common.Envelope{
-				Payload: protoutil.MarshalOrPanic(&common.Payload{
-					Data: protoutil.MarshalOrPanic(&common.ConfigEnvelope{
-						Config: &common.Config{
+			protoutil.MarshalOrPanic(&protocommon.Envelope{
+				Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
+					Data: protoutil.MarshalOrPanic(&protocommon.ConfigEnvelope{
+						Config: &protocommon.Config{
 							ChannelGroup: groups,
 						},
 					}),
-					Header: &common.Header{
-						ChannelHeader: protoutil.MarshalOrPanic(&common.ChannelHeader{
-							Type:      int32(common.HeaderType_CONFIG),
+					Header: &protocommon.Header{
+						ChannelHeader: protoutil.MarshalOrPanic(&protocommon.ChannelHeader{
+							Type:      int32(protocommon.HeaderType_CONFIG),
 							ChannelId: channelID,
 						}),
 					},
@@ -619,9 +619,9 @@ func blockWithGroups(groups *common.ConfigGroup, channelID string, blockNumber u
 		},
 	}
 	block.Header.DataHash = protoutil.ComputeBlockDataHash(block.Data)
-	block.Metadata.Metadata[common.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(&common.Metadata{
-		Value: protoutil.MarshalOrPanic(&common.OrdererBlockMetadata{
-			LastConfig: &common.LastConfig{
+	block.Metadata.Metadata[protocommon.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(&protocommon.Metadata{
+		Value: protoutil.MarshalOrPanic(&protocommon.OrdererBlockMetadata{
+			LastConfig: &protocommon.LastConfig{
 				Index: uint64(blockNumber),
 			},
 		}),
@@ -630,14 +630,14 @@ func blockWithGroups(groups *common.ConfigGroup, channelID string, blockNumber u
 	return block
 }
 
-func nonConfigBlock(channelID string, blockNumber uint64) *common.Block {
+func nonConfigBlock(channelID string, blockNumber uint64) *protocommon.Block {
 	block := protoutil.NewBlock(blockNumber, []byte{1, 2, 3})
 
-	txEnv := &common.Envelope{
-		Payload: protoutil.MarshalOrPanic(&common.Payload{
-			Header: &common.Header{
-				ChannelHeader: protoutil.MarshalOrPanic(&common.ChannelHeader{
-					Type:      int32(common.HeaderType_ENDORSER_TRANSACTION),
+	txEnv := &protocommon.Envelope{
+		Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
+			Header: &protocommon.Header{
+				ChannelHeader: protoutil.MarshalOrPanic(&protocommon.ChannelHeader{
+					Type:      int32(protocommon.HeaderType_ENDORSER_TRANSACTION),
 					ChannelId: channelID,
 				}),
 			},
@@ -645,7 +645,7 @@ func nonConfigBlock(channelID string, blockNumber uint64) *common.Block {
 		Signature: []byte{1, 2, 3},
 	}
 
-	block.Data = &common.BlockData{
+	block.Data = &protocommon.BlockData{
 		Data: [][]byte{
 			protoutil.MarshalOrPanic(txEnv),
 		},
@@ -657,14 +657,14 @@ func nonConfigBlock(channelID string, blockNumber uint64) *common.Block {
 	return block
 }
 
-func sigVerifierFuncReturnNoError() func(header *common.BlockHeader, metadata *common.BlockMetadata) error {
-	return func(header *common.BlockHeader, metadata *common.BlockMetadata) error {
+func sigVerifierFuncReturnNoError() func(header *protocommon.BlockHeader, metadata *protocommon.BlockMetadata) error {
+	return func(header *protocommon.BlockHeader, metadata *protocommon.BlockMetadata) error {
 		return nil
 	}
 }
 
-func sigVerifierFuncReturnPolicyError() func(header *common.BlockHeader, metadata *common.BlockMetadata) error {
-	return func(header *common.BlockHeader, metadata *common.BlockMetadata) error {
+func sigVerifierFuncReturnPolicyError() func(header *protocommon.BlockHeader, metadata *protocommon.BlockMetadata) error {
+	return func(header *protocommon.BlockHeader, metadata *protocommon.BlockMetadata) error {
 		return errors.New("signature set did not satisfy policy")
 	}
 }

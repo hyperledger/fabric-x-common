@@ -15,8 +15,8 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"google.golang.org/grpc"
@@ -100,7 +100,7 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 		fakeOrdererConnectionSourceFactory.CreateConnectionSourceReturns(fakeOrdererConnectionSource)
 
 		fakeDeliverClient = &fake.DeliverClient{}
-		fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
+		fakeDeliverClient.RecvStub = func() (*protoorderer.DeliverResponse, error) {
 			select {
 			case <-recvStep:
 				return nil, fmt.Errorf("fake-recv-step-error")
@@ -337,12 +337,12 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 				}
 				return nil
 			}
-			fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
+			fakeDeliverClient.RecvStub = func() (*protoorderer.DeliverResponse, error) {
 				c := fakeDeliverClient.RecvCallCount()
 				switch c {
 				case 300:
-					return &orderer.DeliverResponse{
-						Type: &orderer.DeliverResponse_Block{
+					return &protoorderer.DeliverResponse{
+						Type: &protoorderer.DeliverResponse_Block{
 							Block: &common.Block{
 								Header: &common.BlockHeader{
 									Number: 8,
@@ -351,8 +351,8 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 						},
 					}, nil
 				case 600:
-					return &orderer.DeliverResponse{
-						Type: &orderer.DeliverResponse_Block{
+					return &protoorderer.DeliverResponse{
+						Type: &protoorderer.DeliverResponse_Block{
 							Block: &common.Block{
 								Header: &common.BlockHeader{
 									Number: 9,
@@ -361,8 +361,8 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 						},
 					}, nil
 				case 900:
-					return &orderer.DeliverResponse{
-						Type: &orderer.DeliverResponse_Block{
+					return &protoorderer.DeliverResponse{
+						Type: &protoorderer.DeliverResponse_Block{
 							Block: &common.Block{
 								Header: &common.BlockHeader{
 									Number: 9,
@@ -477,7 +477,7 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 			fakeDeliverClient := fakeDeliverClient
 
 			fakeDeliverClient.CloseSendStub = nil
-			fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
+			fakeDeliverClient.RecvStub = func() (*protoorderer.DeliverResponse, error) {
 				if fakeDeliverClient.RecvCallCount() == 1 {
 					return nil, fmt.Errorf("fake-recv-error")
 				}
@@ -513,13 +513,13 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 				}
 				return nil
 			}
-			fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
+			fakeDeliverClient.RecvStub = func() (*protoorderer.DeliverResponse, error) {
 				switch fakeDeliverClient.RecvCallCount() {
 				case 1, 2, 4:
 					return nil, fmt.Errorf("fake-recv-error")
 				case 3:
-					return &orderer.DeliverResponse{
-						Type: &orderer.DeliverResponse_Block{
+					return &protoorderer.DeliverResponse{
+						Type: &protoorderer.DeliverResponse_Block{
 							Block: &common.Block{
 								Header: &common.BlockHeader{
 									Number: 8,
@@ -554,10 +554,10 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 			recvStep := recvStep
 			fakeDeliverClient := fakeDeliverClient
 
-			fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
+			fakeDeliverClient.RecvStub = func() (*protoorderer.DeliverResponse, error) {
 				if fakeDeliverClient.RecvCallCount() == 1 {
-					return &orderer.DeliverResponse{
-						Type: &orderer.DeliverResponse_Block{
+					return &protoorderer.DeliverResponse{
+						Type: &protoorderer.DeliverResponse_Block{
 							Block: &common.Block{
 								Header: &common.BlockHeader{
 									Number: 8,
@@ -662,10 +662,10 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 				},
 			}
 
-			fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
+			fakeDeliverClient.RecvStub = func() (*protoorderer.DeliverResponse, error) {
 				if fakeDeliverClient.RecvCallCount() == 1 {
-					return &orderer.DeliverResponse{
-						Type: &orderer.DeliverResponse_Block{
+					return &protoorderer.DeliverResponse{
+						Type: &protoorderer.DeliverResponse_Block{
 							Block: configBlock,
 						},
 					}, nil
@@ -734,10 +734,10 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 			fakeDeliverClient := fakeDeliverClient
 
 			status = common.Status_SUCCESS
-			fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
+			fakeDeliverClient.RecvStub = func() (*protoorderer.DeliverResponse, error) {
 				if fakeDeliverClient.RecvCallCount() == 1 {
-					return &orderer.DeliverResponse{
-						Type: &orderer.DeliverResponse_Status{
+					return &protoorderer.DeliverResponse{
+						Type: &protoorderer.DeliverResponse_Status{
 							Status: status,
 						},
 					}, nil

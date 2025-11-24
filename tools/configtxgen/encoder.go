@@ -13,9 +13,9 @@ import (
 	"fmt"
 	"os"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protosmartbft"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
@@ -230,7 +230,7 @@ func NewOrdererGroup(conf *Orderer, channelCapabilities map[string]bool) (*cb.Co
 			return nil, errors.Errorf("consenter options read failed with error %s for orderer type %s", err, ConsensusTypeBFT)
 		}
 		// Force leader rotation to be turned off
-		conf.SmartBFT.LeaderRotation = smartbft.Options_ROTATION_OFF
+		conf.SmartBFT.LeaderRotation = protosmartbft.Options_ROTATION_OFF
 		// Overwrite policy manually by computing it from the consenters
 		policies.EncodeBFTBlockVerificationPolicy(consenterProtos, ordererGroup)
 	case ConsensusTypeArma:

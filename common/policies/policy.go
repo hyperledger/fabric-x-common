@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
@@ -65,13 +65,13 @@ const (
 var logger = util.MustGetLogger("policies")
 
 // PrincipalSet is a collection of MSPPrincipals
-type PrincipalSet []*msp.MSPPrincipal
+type PrincipalSet []*protomsp.MSPPrincipal
 
 // PrincipalSets aggregates PrincipalSets
 type PrincipalSets []PrincipalSet
 
 // ContainingOnly returns PrincipalSets that contain only principals of the given predicate
-func (psSets PrincipalSets) ContainingOnly(f func(*msp.MSPPrincipal) bool) PrincipalSets {
+func (psSets PrincipalSets) ContainingOnly(f func(*protomsp.MSPPrincipal) bool) PrincipalSets {
 	var res PrincipalSets
 	for _, set := range psSets {
 		if !set.ContainingOnly(f) {
@@ -84,7 +84,7 @@ func (psSets PrincipalSets) ContainingOnly(f func(*msp.MSPPrincipal) bool) Princ
 
 // ContainingOnly returns whether the given PrincipalSet contains only Principals
 // that satisfy the given predicate
-func (ps PrincipalSet) ContainingOnly(f func(*msp.MSPPrincipal) bool) bool {
+func (ps PrincipalSet) ContainingOnly(f func(*protomsp.MSPPrincipal) bool) bool {
 	for _, principal := range ps {
 		if !f(principal) {
 			return false
@@ -94,7 +94,7 @@ func (ps PrincipalSet) ContainingOnly(f func(*msp.MSPPrincipal) bool) bool {
 }
 
 // UniqueSet returns a histogram that is induced by the PrincipalSet
-func (ps PrincipalSet) UniqueSet() map[*msp.MSPPrincipal]int {
+func (ps PrincipalSet) UniqueSet() map[*protomsp.MSPPrincipal]int {
 	// Create a histogram that holds the MSPPrincipals and counts them
 	histogram := make(map[struct {
 		cls       int32
@@ -112,10 +112,10 @@ func (ps PrincipalSet) UniqueSet() map[*msp.MSPPrincipal]int {
 		histogram[key]++
 	}
 	// Finally, convert to a histogram of MSPPrincipal pointers
-	res := make(map[*msp.MSPPrincipal]int)
+	res := make(map[*protomsp.MSPPrincipal]int)
 	for principal, count := range histogram {
-		res[&msp.MSPPrincipal{
-			PrincipalClassification: msp.MSPPrincipal_Classification(principal.cls),
+		res[&protomsp.MSPPrincipal{
+			PrincipalClassification: protomsp.MSPPrincipal_Classification(principal.cls),
 			Principal:               []byte(principal.principal),
 		}] = count
 	}

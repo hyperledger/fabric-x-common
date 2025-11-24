@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
@@ -37,7 +37,7 @@ func TestRollback(t *testing.T) {
 	}
 
 	// 2. Check the BlockchainInfo
-	expectedBlockchainInfo := &common.BlockchainInfo{
+	expectedBlockchainInfo := &protocommon.BlockchainInfo{
 		Height:            50,
 		CurrentBlockHash:  protoutil.BlockHeaderHash(blocks[49].Header),
 		PreviousBlockHash: protoutil.BlockHeaderHash(blocks[48].Header),
@@ -130,7 +130,7 @@ func TestRollbackWithOnlyBlockIndexAttributes(t *testing.T) {
 	}
 
 	// 2. Check the BlockchainInfo
-	expectedBlockchainInfo := &common.BlockchainInfo{
+	expectedBlockchainInfo := &protocommon.BlockchainInfo{
 		Height:            50,
 		CurrentBlockHash:  protoutil.BlockHeaderHash(blocks[49].Header),
 		PreviousBlockHash: protoutil.BlockHeaderHash(blocks[48].Header),
@@ -180,7 +180,7 @@ func TestRollbackWithNoIndexDir(t *testing.T) {
 	}
 
 	// 2. Check the BlockchainInfo
-	expectedBlockchainInfo := &common.BlockchainInfo{
+	expectedBlockchainInfo := &protocommon.BlockchainInfo{
 		Height:            50,
 		CurrentBlockHash:  protoutil.BlockHeaderHash(blocks[49].Header),
 		PreviousBlockHash: protoutil.BlockHeaderHash(blocks[48].Header),
@@ -243,7 +243,7 @@ func TestDuplicateTxIDDuringRollback(t *testing.T) {
 	env := newTestEnv(t, NewConf(path, maxFileSize))
 	defer env.Cleanup()
 	blkfileMgrWrapper := newTestBlockfileWrapper(env, "testLedger")
-	blocks[3].Metadata.Metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER][0] = byte(peer.TxValidationCode_DUPLICATE_TXID)
+	blocks[3].Metadata.Metadata[protocommon.BlockMetadataIndex_TRANSACTIONS_FILTER][0] = byte(protopeer.TxValidationCode_DUPLICATE_TXID)
 	testutil.SetTxID(t, blocks[3], 0, "tx0")
 	testutil.SetTxID(t, blocks[2], 0, "tx0")
 
@@ -251,7 +251,7 @@ func TestDuplicateTxIDDuringRollback(t *testing.T) {
 	blkfileMgrWrapper.addBlocks(blocks)
 
 	// 2. Check the BlockchainInfo
-	expectedBlockchainInfo := &common.BlockchainInfo{
+	expectedBlockchainInfo := &protocommon.BlockchainInfo{
 		Height:            4,
 		CurrentBlockHash:  protoutil.BlockHeaderHash(blocks[3].Header),
 		PreviousBlockHash: protoutil.BlockHeaderHash(blocks[2].Header),
@@ -275,7 +275,7 @@ func TestDuplicateTxIDDuringRollback(t *testing.T) {
 	blkfileMgrWrapper = newTestBlockfileWrapper(env, "testLedger")
 
 	// 6. Check the BlockchainInfo
-	expectedBlockchainInfo = &common.BlockchainInfo{
+	expectedBlockchainInfo = &protocommon.BlockchainInfo{
 		Height:            3,
 		CurrentBlockHash:  protoutil.BlockHeaderHash(blocks[2].Header),
 		PreviousBlockHash: protoutil.BlockHeaderHash(blocks[1].Header),
@@ -287,13 +287,14 @@ func TestDuplicateTxIDDuringRollback(t *testing.T) {
 	blkfileMgrWrapper.testGetTransactionByTxID("tx0", blocks[2].Data.Data[0], nil)
 }
 
-func assertBlockStoreRollback(t *testing.T, path, ledgerID string, blocks []*common.Block,
-	rollbackedToBlkNum uint64, lastFileSuffixNum int, indexConfig *IndexConfig) {
+func assertBlockStoreRollback(t *testing.T, path, ledgerID string, blocks []*protocommon.Block,
+	rollbackedToBlkNum uint64, lastFileSuffixNum int, indexConfig *IndexConfig,
+) {
 	env := newTestEnvSelectiveIndexing(t, NewConf(path, 0), indexConfig.AttrsToIndex, &disabled.Provider{})
 	blkfileMgrWrapper := newTestBlockfileWrapper(env, ledgerID)
 
 	// 1. Check the BlockchainInfo after the rollback
-	expectedBlockchainInfo := &common.BlockchainInfo{
+	expectedBlockchainInfo := &protocommon.BlockchainInfo{
 		Height:            rollbackedToBlkNum + 1,
 		CurrentBlockHash:  protoutil.BlockHeaderHash(blocks[rollbackedToBlkNum].Header),
 		PreviousBlockHash: protoutil.BlockHeaderHash(blocks[rollbackedToBlkNum-1].Header),

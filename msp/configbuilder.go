@@ -14,7 +14,7 @@ import (
 	"github.com/IBM/idemix"
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"go.yaml.in/yaml/v3"
 	"google.golang.org/protobuf/proto"
@@ -155,18 +155,25 @@ func SetupBCCSPKeystoreConfig(bccspConfig *factory.FactoryOpts, keystoreDir stri
 // GetLocalMspConfigWithType returns a local MSP
 // configuration for the MSP in the specified
 // directory, with the specified ID and type
-func GetLocalMspConfigWithType(dir string, bccspConfig *factory.FactoryOpts, ID, mspType string) (*msp.MSPConfig, error) {
+func GetLocalMspConfigWithType(dir string, bccspConfig *factory.FactoryOpts, ID, mspType string) (*protomsp.MSPConfig, error) {
 	switch mspType {
 	case ProviderTypeToString(FABRIC):
 		return GetLocalMspConfig(dir, bccspConfig, ID)
 	case ProviderTypeToString(IDEMIX):
-		return idemix.GetIdemixMspConfig(dir, ID)
+		mspConfig, err := idemix.GetIdemixMspConfig(dir, ID)
+		if err != nil {
+			return nil, err
+		}
+		return &protomsp.MSPConfig{
+			Type:   mspConfig.GetType(),
+			Config: mspConfig.GetConfig(),
+		}, nil
 	default:
 		return nil, errors.Errorf("unknown MSP type '%s'", mspType)
 	}
 }
 
-func GetLocalMspConfig(dir string, bccspConfig *factory.FactoryOpts, ID string) (*msp.MSPConfig, error) {
+func GetLocalMspConfig(dir string, bccspConfig *factory.FactoryOpts, ID string) (*protomsp.MSPConfig, error) {
 	signcertDir := filepath.Join(dir, signcerts)
 	keystoreDir := filepath.Join(dir, keystore)
 	bccspConfig = SetupBCCSPKeystoreConfig(bccspConfig, keystoreDir)
@@ -187,24 +194,31 @@ func GetLocalMspConfig(dir string, bccspConfig *factory.FactoryOpts, ID string) 
 	   signing cert
 	*/
 
-	sigid := &msp.SigningIdentityInfo{PublicSigner: signcert[0], PrivateSigner: nil}
+	sigid := &protomsp.SigningIdentityInfo{PublicSigner: signcert[0], PrivateSigner: nil}
 
 	return getMspConfig(dir, ID, sigid)
 }
 
 // GetVerifyingMspConfig returns an MSP config given directory, ID and type
-func GetVerifyingMspConfig(dir, ID, mspType string) (*msp.MSPConfig, error) {
+func GetVerifyingMspConfig(dir, ID, mspType string) (*protomsp.MSPConfig, error) {
 	switch mspType {
 	case ProviderTypeToString(FABRIC):
 		return getMspConfig(dir, ID, nil)
 	case ProviderTypeToString(IDEMIX):
-		return idemix.GetIdemixMspConfig(dir, ID)
+		mspConfig, err := idemix.GetIdemixMspConfig(dir, ID)
+		if err != nil {
+			return nil, err
+		}
+		return &protomsp.MSPConfig{
+			Type:   mspConfig.GetType(),
+			Config: mspConfig.GetConfig(),
+		}, nil
 	default:
 		return nil, errors.Errorf("unknown MSP type '%s'", mspType)
 	}
 }
 
-func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.MSPConfig, error) {
+func getMspConfig(dir string, ID string, sigid *protomsp.SigningIdentityInfo) (*protomsp.MSPConfig, error) {
 	cacertDir := filepath.Join(dir, cacerts)
 	admincertDir := filepath.Join(dir, admincerts)
 	intermediatecertsDir := filepath.Join(dir, intermediatecerts)
@@ -257,8 +271,8 @@ func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.M
 	// Load configuration file
 	// if the configuration file is there then load it
 	// otherwise skip it
-	var ouis []*msp.FabricOUIdentifier
-	var nodeOUs *msp.FabricNodeOUs
+	var ouis []*protomsp.FabricOUIdentifier
+	var nodeOUs *protomsp.FabricNodeOUs
 	_, err = os.Stat(configFile)
 	if err == nil {
 		// load the file, if there is a failure in loading it then
@@ -283,7 +297,7 @@ func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.M
 					return nil, errors.Wrapf(err, "failed loading OrganizationalUnit certificate at [%s]", f)
 				}
 
-				oui := &msp.FabricOUIdentifier{
+				oui := &protomsp.FabricOUIdentifier{
 					Certificate:                  raw,
 					OrganizationalUnitIdentifier: ouID.OrganizationalUnitIdentifier,
 				}
@@ -294,20 +308,20 @@ func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.M
 		// Prepare NodeOUs
 		if configuration.NodeOUs != nil && configuration.NodeOUs.Enable {
 			mspLogger.Debug("Loading NodeOUs")
-			nodeOUs = &msp.FabricNodeOUs{
+			nodeOUs = &protomsp.FabricNodeOUs{
 				Enable: true,
 			}
 			if configuration.NodeOUs.ClientOUIdentifier != nil && len(configuration.NodeOUs.ClientOUIdentifier.OrganizationalUnitIdentifier) != 0 {
-				nodeOUs.ClientOuIdentifier = &msp.FabricOUIdentifier{OrganizationalUnitIdentifier: configuration.NodeOUs.ClientOUIdentifier.OrganizationalUnitIdentifier}
+				nodeOUs.ClientOuIdentifier = &protomsp.FabricOUIdentifier{OrganizationalUnitIdentifier: configuration.NodeOUs.ClientOUIdentifier.OrganizationalUnitIdentifier}
 			}
 			if configuration.NodeOUs.PeerOUIdentifier != nil && len(configuration.NodeOUs.PeerOUIdentifier.OrganizationalUnitIdentifier) != 0 {
-				nodeOUs.PeerOuIdentifier = &msp.FabricOUIdentifier{OrganizationalUnitIdentifier: configuration.NodeOUs.PeerOUIdentifier.OrganizationalUnitIdentifier}
+				nodeOUs.PeerOuIdentifier = &protomsp.FabricOUIdentifier{OrganizationalUnitIdentifier: configuration.NodeOUs.PeerOUIdentifier.OrganizationalUnitIdentifier}
 			}
 			if configuration.NodeOUs.AdminOUIdentifier != nil && len(configuration.NodeOUs.AdminOUIdentifier.OrganizationalUnitIdentifier) != 0 {
-				nodeOUs.AdminOuIdentifier = &msp.FabricOUIdentifier{OrganizationalUnitIdentifier: configuration.NodeOUs.AdminOUIdentifier.OrganizationalUnitIdentifier}
+				nodeOUs.AdminOuIdentifier = &protomsp.FabricOUIdentifier{OrganizationalUnitIdentifier: configuration.NodeOUs.AdminOUIdentifier.OrganizationalUnitIdentifier}
 			}
 			if configuration.NodeOUs.OrdererOUIdentifier != nil && len(configuration.NodeOUs.OrdererOUIdentifier.OrganizationalUnitIdentifier) != 0 {
-				nodeOUs.OrdererOuIdentifier = &msp.FabricOUIdentifier{OrganizationalUnitIdentifier: configuration.NodeOUs.OrdererOUIdentifier.OrganizationalUnitIdentifier}
+				nodeOUs.OrdererOuIdentifier = &protomsp.FabricOUIdentifier{OrganizationalUnitIdentifier: configuration.NodeOUs.OrdererOUIdentifier.OrganizationalUnitIdentifier}
 			}
 
 			// Read certificates, if defined
@@ -334,13 +348,13 @@ func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.M
 	}
 
 	// Set FabricCryptoConfig
-	cryptoConfig := &msp.FabricCryptoConfig{
+	cryptoConfig := &protomsp.FabricCryptoConfig{
 		SignatureHashFamily:            bccsp.SHA2,
 		IdentityIdentifierHashFunction: bccsp.SHA256,
 	}
 
 	// Compose FabricMSPConfig
-	fmspconf := &msp.FabricMSPConfig{
+	fmspconf := &protomsp.FabricMSPConfig{
 		Admins:                        admincert,
 		RootCerts:                     cacerts,
 		IntermediateCerts:             intermediatecerts,
@@ -359,7 +373,7 @@ func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.M
 		return nil, err
 	}
 
-	return &msp.MSPConfig{Config: fmpsjs, Type: int32(FABRIC)}, nil
+	return &protomsp.MSPConfig{Config: fmpsjs, Type: int32(FABRIC)}, nil
 }
 
 func loadCertificateAt(dir, certificatePath string, ouType string) []byte {

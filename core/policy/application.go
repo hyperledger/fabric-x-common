@@ -7,11 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package policy
 
 import (
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/hyperledger/fabric-x-common/common/cauthdsl"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/msp"
@@ -59,7 +58,7 @@ type Identity interface {
 // SignaturePolicyProvider provides the backing implementation of a policy.
 type SignaturePolicyProvider interface {
 	// NewPolicy creates a new policy based on the policy bytes.
-	NewPolicy(signaturePolicy *common.SignaturePolicyEnvelope) (policies.Policy, error)
+	NewPolicy(signaturePolicy *protocommon.SignaturePolicyEnvelope) (policies.Policy, error)
 }
 
 // ChannelPolicyReferenceProvider is used to determine if a set of signature is valid and complies with a policy.
@@ -128,7 +127,7 @@ func New(deserializer msp.IdentityDeserializer, channel string, channelPolicyMan
 	}, nil
 }
 
-func (a *ApplicationPolicyEvaluator) evaluateSignaturePolicy(signaturePolicy *common.SignaturePolicyEnvelope, signatureSet []*protoutil.SignedData) error {
+func (a *ApplicationPolicyEvaluator) evaluateSignaturePolicy(signaturePolicy *protocommon.SignaturePolicyEnvelope, signatureSet []*protoutil.SignedData) error {
 	p, err := a.signaturePolicyProvider.NewPolicy(signaturePolicy)
 	if err != nil {
 		return errors.WithMessage(err, "could not create evaluator for signature policy")
@@ -147,16 +146,16 @@ func (a *ApplicationPolicyEvaluator) evaluateChannelConfigPolicyReference(channe
 }
 
 func (a *ApplicationPolicyEvaluator) Evaluate(policyBytes []byte, signatureSet []*protoutil.SignedData) error {
-	p := &peer.ApplicationPolicy{}
+	p := &protocommon.ApplicationPolicy{}
 	err := proto.Unmarshal(policyBytes, p)
 	if err != nil {
 		return errors.Wrap(err, "failed to unmarshal ApplicationPolicy bytes")
 	}
 
 	switch policy := p.Type.(type) {
-	case *peer.ApplicationPolicy_SignaturePolicy:
+	case *protocommon.ApplicationPolicy_SignaturePolicy:
 		return a.evaluateSignaturePolicy(policy.SignaturePolicy, signatureSet)
-	case *peer.ApplicationPolicy_ChannelConfigPolicyReference:
+	case *protocommon.ApplicationPolicy_ChannelConfigPolicyReference:
 		return a.evaluateChannelConfigPolicyReference(policy.ChannelConfigPolicyReference, signatureSet)
 	default:
 		return errors.Errorf("unsupported policy type %T", policy)

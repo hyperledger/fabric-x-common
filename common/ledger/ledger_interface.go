@@ -17,16 +17,16 @@ limitations under the License.
 package ledger
 
 import (
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 )
 
 // Ledger captures the methods that are common across the 'PeerLedger', 'OrdererLedger', and 'ValidatedLedger'
 type Ledger interface {
 	// GetBlockchainInfo returns basic info about blockchain
-	GetBlockchainInfo() (*common.BlockchainInfo, error)
+	GetBlockchainInfo() (*protocommon.BlockchainInfo, error)
 	// GetBlockByNumber returns block at a given height
 	// blockNumber of  math.MaxUint64 will return last block
-	GetBlockByNumber(blockNumber uint64) (*common.Block, error)
+	GetBlockByNumber(blockNumber uint64) (*protocommon.Block, error)
 	// GetBlocksIterator returns an iterator that starts from `startBlockNumber`(inclusive).
 	// The iterator is a blocking iterator i.e., it blocks till the next block gets available in the ledger
 	// ResultsIterator contains type BlockHolder

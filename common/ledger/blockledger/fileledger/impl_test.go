@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	ab "github.com/hyperledger/fabric-x-common/api/protoorderer"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -58,7 +58,7 @@ type mockBlockStore struct {
 	resultsIterator            cl.ResultsIterator
 	block                      *cb.Block
 	envelope                   *cb.Envelope
-	txValidationCode           peer.TxValidationCode
+	txValidationCode           protopeer.TxValidationCode
 	defaultError               error
 	getBlockchainInfoError     error
 	retrieveBlockByNumberError error
@@ -96,7 +96,7 @@ func (mbs *mockBlockStore) RetrieveBlockByTxID(txID string) (*cb.Block, error) {
 	return mbs.block, mbs.defaultError
 }
 
-func (mbs *mockBlockStore) RetrieveTxValidationCodeByTxID(txID string) (peer.TxValidationCode, error) {
+func (mbs *mockBlockStore) RetrieveTxValidationCodeByTxID(txID string) (protopeer.TxValidationCode, error) {
 	return mbs.txValidationCode, mbs.defaultError
 }
 

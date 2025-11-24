@@ -19,7 +19,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/bccsp/signer"
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/onsi/gomega"
@@ -109,7 +109,7 @@ func TestSignatureAlgorithms(t *testing.T) {
 	t.Run("Test ecdsa sign with digest and ed25519 sign with full message", func(t *testing.T) {
 		bccspDefault := factory.GetDefault()
 		mspImpl, _ := newBccspMsp(MSPv3_0, bccspDefault)
-		mspImpl.(*bccspmsp).cryptoConfig = &msp.FabricCryptoConfig{
+		mspImpl.(*bccspmsp).cryptoConfig = &protomsp.FabricCryptoConfig{
 			SignatureHashFamily:            "SHA2",
 			IdentityIdentifierHashFunction: "SHA256",
 		}
@@ -171,17 +171,17 @@ func TestIdentityValidation(t *testing.T) {
 	t.Run("Test MSPv3_0 ed2551 identity validation", func(t *testing.T) {
 		bccspDefault := factory.GetDefault()
 		mspImpl, _ := newBccspMsp(MSPv1_4_3, bccspDefault)
-		cryptoConfig := &msp.FabricCryptoConfig{
+		cryptoConfig := &protomsp.FabricCryptoConfig{
 			SignatureHashFamily:            "SHA2",
 			IdentityIdentifierHashFunction: "SHA256",
 		}
 
 		mspImpl.(*bccspmsp).cryptoConfig = cryptoConfig
-		mspConfigBytes, _ := proto.Marshal(&msp.FabricMSPConfig{
+		mspConfigBytes, _ := proto.Marshal(&protomsp.FabricMSPConfig{
 			RootCerts: [][]byte{[]byte(caCertPem)},
 			Admins:    [][]byte{[]byte(ecdsaCertPem)},
 		})
-		mspImpl.Setup(&msp.MSPConfig{Config: mspConfigBytes})
+		mspImpl.Setup(&protomsp.MSPConfig{Config: mspConfigBytes})
 
 		ed25519Der, _ := pem.Decode([]byte(ed25519Pem))
 		ed25519Cert, _ := x509.ParseCertificate(ed25519Der.Bytes)
@@ -202,7 +202,7 @@ func TestIdentityValidation(t *testing.T) {
 
 		mspImpl, _ = newBccspMsp(MSPv3_0, bccspDefault)
 		mspImpl.(*bccspmsp).cryptoConfig = cryptoConfig
-		mspImpl.Setup(&msp.MSPConfig{Config: mspConfigBytes})
+		mspImpl.Setup(&protomsp.MSPConfig{Config: mspConfigBytes})
 
 		ed25519Identity, _ = newIdentity(ed25519Cert, ed25519FabricPubKey, mspImpl.(*bccspmsp))
 		ecdsaIdentity, _ = newIdentity(ecdsaCert, ecdsaFabricPubKey, mspImpl.(*bccspmsp))

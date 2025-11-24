@@ -13,12 +13,12 @@ import (
 	"os"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	mspprotos "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoetcdraft"
+	mspprotos "github.com/hyperledger/fabric-x-common/api/protomsp"
+	ab "github.com/hyperledger/fabric-x-common/api/protoorderer"
+	"github.com/hyperledger/fabric-x-common/api/protosmartbft"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
@@ -321,8 +321,8 @@ func extractChannelConfig(block *cb.Block, bccsp bccsp.BCCSP) (*ChannelConfig, e
 }
 
 // MarshalEtcdRaftMetadata serializes etcd RAFT metadata.
-func MarshalEtcdRaftMetadata(md *etcdraft.ConfigMetadata) ([]byte, error) {
-	copyMd := proto.Clone(md).(*etcdraft.ConfigMetadata)
+func MarshalEtcdRaftMetadata(md *protoetcdraft.ConfigMetadata) ([]byte, error) {
+	copyMd := proto.Clone(md).(*protoetcdraft.ConfigMetadata)
 	for _, c := range copyMd.Consenters {
 		// Expect the user to set the config value for client/server certs to the
 		// path where they are persisted locally, then load these files to memory.
@@ -342,8 +342,8 @@ func MarshalEtcdRaftMetadata(md *etcdraft.ConfigMetadata) ([]byte, error) {
 }
 
 // MarshalBFTOptions serializes smartbft options.
-func MarshalBFTOptions(op *smartbft.Options) ([]byte, error) {
-	if copyMd, ok := proto.Clone(op).(*smartbft.Options); ok {
+func MarshalBFTOptions(op *protosmartbft.Options) ([]byte, error) {
+	if copyMd, ok := proto.Clone(op).(*protosmartbft.Options); ok {
 		return proto.Marshal(copyMd)
 	} else {
 		return nil, errors.New("consenter options type mismatch")

@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
-	mspprotos "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	mspprotos "github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 

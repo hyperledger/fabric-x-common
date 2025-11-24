@@ -9,7 +9,7 @@ package inquire
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -53,9 +53,9 @@ func TestNewComparablePrincipal(t *testing.T) {
 		expectedPrincipal := &ComparablePrincipal{
 			mspID:   mspID,
 			idBytes: []byte("identity"),
-			principal: &msp.MSPPrincipal{
-				PrincipalClassification: msp.MSPPrincipal_IDENTITY,
-				Principal:               protoutil.MarshalOrPanic(&msp.SerializedIdentity{IdBytes: []byte("identity"), Mspid: mspID}),
+			principal: &protomsp.MSPPrincipal{
+				PrincipalClassification: protomsp.MSPPrincipal_IDENTITY,
+				Principal:               protoutil.MarshalOrPanic(&protomsp.SerializedIdentity{IdBytes: []byte("identity"), Mspid: mspID}),
 			},
 		}
 
@@ -73,12 +73,12 @@ func TestNewComparablePrincipal(t *testing.T) {
 	})
 
 	t.Run("Role", func(t *testing.T) {
-		expectedMember := &msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: mspID}
+		expectedMember := &protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: mspID}
 		expectedPrincipal := &ComparablePrincipal{
 			role: expectedMember, mspID: mspID,
-			principal: &msp.MSPPrincipal{
-				PrincipalClassification: msp.MSPPrincipal_ROLE,
-				Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: mspID}),
+			principal: &protomsp.MSPPrincipal{
+				PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+				Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: mspID}),
 			},
 		}
 		res := NewComparablePrincipal(member(mspID))
@@ -90,13 +90,13 @@ func TestNewComparablePrincipal(t *testing.T) {
 	})
 
 	t.Run("OU", func(t *testing.T) {
-		expectedOURole := &msp.OrganizationUnit{OrganizationalUnitIdentifier: "ou", MspIdentifier: mspID}
+		expectedOURole := &protomsp.OrganizationUnit{OrganizationalUnitIdentifier: "ou", MspIdentifier: mspID}
 		expectedPrincipal := &ComparablePrincipal{
 			ou:    expectedOURole,
 			mspID: mspID,
-			principal: &msp.MSPPrincipal{
-				PrincipalClassification: msp.MSPPrincipal_ORGANIZATION_UNIT,
-				Principal:               protoutil.MarshalOrPanic(&msp.OrganizationUnit{OrganizationalUnitIdentifier: "ou", MspIdentifier: mspID}),
+			principal: &protomsp.MSPPrincipal{
+				PrincipalClassification: protomsp.MSPPrincipal_ORGANIZATION_UNIT,
+				Principal:               protoutil.MarshalOrPanic(&protomsp.OrganizationUnit{OrganizationalUnitIdentifier: "ou", MspIdentifier: mspID}),
 			},
 		}
 		res := NewComparablePrincipal(ou(mspID))
@@ -194,7 +194,7 @@ func TestIsFound(t *testing.T) {
 func TestNewComparablePrincipalSet(t *testing.T) {
 	t.Run("Invalid principal", func(t *testing.T) {
 		idCP := NewComparablePrincipal(identity("Org1MSP", []byte("identity")))
-		principals := []*msp.MSPPrincipal{member("Org1MSP"), identity("Org1MSP", []byte("identity"))}
+		principals := []*protomsp.MSPPrincipal{member("Org1MSP"), identity("Org1MSP", []byte("identity"))}
 		cps := NewComparablePrincipalSet(principals)
 		expected := ComparablePrincipalSet([]*ComparablePrincipal{member1, idCP})
 		require.Equal(t, expected, cps)
@@ -203,37 +203,37 @@ func TestNewComparablePrincipalSet(t *testing.T) {
 	t.Run("Valid Principals", func(t *testing.T) {
 		member1 := NewComparablePrincipal(member("Org1MSP"))
 		peer2 := NewComparablePrincipal(peer("Org2MSP"))
-		principals := []*msp.MSPPrincipal{member("Org1MSP"), peer("Org2MSP")}
+		principals := []*protomsp.MSPPrincipal{member("Org1MSP"), peer("Org2MSP")}
 		cps := NewComparablePrincipalSet(principals)
 		expected := ComparablePrincipalSet([]*ComparablePrincipal{member1, peer2})
 		require.Equal(t, expected, cps)
 	})
 }
 
-func member(orgName string) *msp.MSPPrincipal {
-	return &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: orgName}),
+func member(orgName string) *protomsp.MSPPrincipal {
+	return &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: orgName}),
 	}
 }
 
-func peer(orgName string) *msp.MSPPrincipal {
-	return &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_PEER, MspIdentifier: orgName}),
+func peer(orgName string) *protomsp.MSPPrincipal {
+	return &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_PEER, MspIdentifier: orgName}),
 	}
 }
 
-func ou(orgName string) *msp.MSPPrincipal {
-	return &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ORGANIZATION_UNIT,
-		Principal:               protoutil.MarshalOrPanic(&msp.OrganizationUnit{OrganizationalUnitIdentifier: "ou", MspIdentifier: orgName}),
+func ou(orgName string) *protomsp.MSPPrincipal {
+	return &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ORGANIZATION_UNIT,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.OrganizationUnit{OrganizationalUnitIdentifier: "ou", MspIdentifier: orgName}),
 	}
 }
 
-func identity(orgName string, idBytes []byte) *msp.MSPPrincipal {
-	return &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
-		Principal:               protoutil.MarshalOrPanic(&msp.SerializedIdentity{Mspid: orgName, IdBytes: idBytes}),
+func identity(orgName string, idBytes []byte) *protomsp.MSPPrincipal {
+	return &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_IDENTITY,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.SerializedIdentity{Mspid: orgName, IdBytes: idBytes}),
 	}
 }

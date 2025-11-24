@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -25,15 +25,15 @@ type testCase struct {
 	name       string
 	policy     string
 	expected   map[string]struct{}
-	principals []*msp.MSPPrincipal
+	principals []*protomsp.MSPPrincipal
 }
 
-func createPrincipals(orgNames ...string) []*msp.MSPPrincipal {
-	principals := make([]*msp.MSPPrincipal, 0)
+func createPrincipals(orgNames ...string) []*protomsp.MSPPrincipal {
+	principals := make([]*protomsp.MSPPrincipal, 0)
 	appendPrincipal := func(orgName string) {
-		principals = append(principals, &msp.MSPPrincipal{
-			PrincipalClassification: msp.MSPPrincipal_ROLE,
-			Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: orgName}),
+		principals = append(principals, &protomsp.MSPPrincipal{
+			PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+			Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: orgName}),
 		})
 	}
 	for _, org := range orgNames {
@@ -82,8 +82,8 @@ var cases = []testCase{
 	},
 }
 
-func mspId(principal *msp.MSPPrincipal) string {
-	role := &msp.MSPRole{}
+func mspId(principal *protomsp.MSPPrincipal) string {
+	role := &protomsp.MSPRole{}
 	proto.Unmarshal(principal.Principal, role)
 	return role.MspIdentifier
 }
@@ -124,8 +124,8 @@ func TestSatisfiedByEmptyPolicy(t *testing.T) {
 		return nil
 	}))
 
-	ip := NewInquireableSignaturePolicy(&common.SignaturePolicyEnvelope{
-		Identities: []*msp.MSPPrincipal{{}},
+	ip := NewInquireableSignaturePolicy(&protocommon.SignaturePolicyEnvelope{
+		Identities: []*protomsp.MSPPrincipal{{}},
 	})
 
 	require.Nil(t, ip.SatisfiedBy())

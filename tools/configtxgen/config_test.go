@@ -9,9 +9,9 @@ package configtxgen
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/api/protoetcdraft"
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 )
@@ -113,11 +113,11 @@ func TestConsensusSpecificInit(t *testing.T) {
 	})
 
 	t.Run("raft", func(t *testing.T) {
-		makeProfile := func(consenters []*etcdraft.Consenter, options *etcdraft.Options) *Profile {
+		makeProfile := func(consenters []*protoetcdraft.Consenter, options *protoetcdraft.Options) *Profile {
 			return &Profile{
 				Orderer: &Orderer{
 					OrdererType: "etcdraft",
-					EtcdRaft: &etcdraft.ConfigMetadata{
+					EtcdRaft: &protoetcdraft.ConfigMetadata{
 						Consenters: consenters,
 						Options:    options,
 					},
@@ -145,7 +145,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 		})
 
 		t.Run("single consenter", func(t *testing.T) {
-			consenters := []*etcdraft.Consenter{
+			consenters := []*protoetcdraft.Consenter{
 				{
 					Host:          "node-1.example.com",
 					Port:          7050,
@@ -155,7 +155,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 			}
 
 			t.Run("invalid consenters specification", func(t *testing.T) {
-				failingConsenterSpecifications := []*etcdraft.Consenter{
+				failingConsenterSpecifications := []*protoetcdraft.Consenter{
 					{ // missing Host
 						Port:          7050,
 						ClientTlsCert: []byte("path/to/client/cert"),
@@ -179,7 +179,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 				}
 
 				for _, consenter := range failingConsenterSpecifications {
-					profile := makeProfile([]*etcdraft.Consenter{consenter}, nil)
+					profile := makeProfile([]*protoetcdraft.Consenter{consenter}, nil)
 
 					require.Panics(t, func() {
 						profile.CompleteInitialization(devConfigDir)
@@ -203,7 +203,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 
 			t.Run("heartbeat tick specified in Options", func(t *testing.T) {
 				heartbeatTick := uint32(2)
-				options := &etcdraft.Options{ // partially set so that we can check that the other members are set to defaults
+				options := &protoetcdraft.Options{ // partially set so that we can check that the other members are set to defaults
 					HeartbeatTick: heartbeatTick,
 				}
 				profile := makeProfile(consenters, options)
@@ -218,7 +218,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 
 			t.Run("election tick specified in Options", func(t *testing.T) {
 				electionTick := uint32(20)
-				options := &etcdraft.Options{ // partially set so that we can check that the other members are set to defaults
+				options := &protoetcdraft.Options{ // partially set so that we can check that the other members are set to defaults
 					ElectionTick: electionTick,
 				}
 				profile := makeProfile(consenters, options)
@@ -232,7 +232,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 			})
 
 			t.Run("panic on invalid Heartbeat and Election tick", func(t *testing.T) {
-				options := &etcdraft.Options{
+				options := &protoetcdraft.Options{
 					HeartbeatTick: 2,
 					ElectionTick:  1,
 				}
@@ -244,7 +244,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 			})
 
 			t.Run("panic on invalid TickInterval", func(t *testing.T) {
-				options := &etcdraft.Options{
+				options := &protoetcdraft.Options{
 					TickInterval: "500",
 				}
 				profile := makeProfile(consenters, options)

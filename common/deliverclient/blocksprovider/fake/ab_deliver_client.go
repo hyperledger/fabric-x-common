@@ -5,17 +5,16 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	orderer "github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"google.golang.org/grpc/metadata"
 )
 
 type DeliverClient struct {
 	CloseSendStub        func() error
 	closeSendMutex       sync.RWMutex
-	closeSendArgsForCall []struct {
-	}
-	closeSendReturns struct {
+	closeSendArgsForCall []struct{}
+	closeSendReturns     struct {
 		result1 error
 	}
 	closeSendReturnsOnCall map[int]struct {
@@ -23,9 +22,8 @@ type DeliverClient struct {
 	}
 	ContextStub        func() context.Context
 	contextMutex       sync.RWMutex
-	contextArgsForCall []struct {
-	}
-	contextReturns struct {
+	contextArgsForCall []struct{}
+	contextReturns     struct {
 		result1 context.Context
 	}
 	contextReturnsOnCall map[int]struct {
@@ -33,9 +31,8 @@ type DeliverClient struct {
 	}
 	HeaderStub        func() (metadata.MD, error)
 	headerMutex       sync.RWMutex
-	headerArgsForCall []struct {
-	}
-	headerReturns struct {
+	headerArgsForCall []struct{}
+	headerReturns     struct {
 		result1 metadata.MD
 		result2 error
 	}
@@ -45,9 +42,8 @@ type DeliverClient struct {
 	}
 	RecvStub        func() (*orderer.DeliverResponse, error)
 	recvMutex       sync.RWMutex
-	recvArgsForCall []struct {
-	}
-	recvReturns struct {
+	recvArgsForCall []struct{}
+	recvReturns     struct {
 		result1 *orderer.DeliverResponse
 		result2 error
 	}
@@ -90,9 +86,8 @@ type DeliverClient struct {
 	}
 	TrailerStub        func() metadata.MD
 	trailerMutex       sync.RWMutex
-	trailerArgsForCall []struct {
-	}
-	trailerReturns struct {
+	trailerArgsForCall []struct{}
+	trailerReturns     struct {
 		result1 metadata.MD
 	}
 	trailerReturnsOnCall map[int]struct {
@@ -105,8 +100,7 @@ type DeliverClient struct {
 func (fake *DeliverClient) CloseSend() error {
 	fake.closeSendMutex.Lock()
 	ret, specificReturn := fake.closeSendReturnsOnCall[len(fake.closeSendArgsForCall)]
-	fake.closeSendArgsForCall = append(fake.closeSendArgsForCall, struct {
-	}{})
+	fake.closeSendArgsForCall = append(fake.closeSendArgsForCall, struct{}{})
 	fake.recordInvocation("CloseSend", []interface{}{})
 	fake.closeSendMutex.Unlock()
 	if fake.CloseSendStub != nil {
@@ -157,8 +151,7 @@ func (fake *DeliverClient) CloseSendReturnsOnCall(i int, result1 error) {
 func (fake *DeliverClient) Context() context.Context {
 	fake.contextMutex.Lock()
 	ret, specificReturn := fake.contextReturnsOnCall[len(fake.contextArgsForCall)]
-	fake.contextArgsForCall = append(fake.contextArgsForCall, struct {
-	}{})
+	fake.contextArgsForCall = append(fake.contextArgsForCall, struct{}{})
 	fake.recordInvocation("Context", []interface{}{})
 	fake.contextMutex.Unlock()
 	if fake.ContextStub != nil {
@@ -209,8 +202,7 @@ func (fake *DeliverClient) ContextReturnsOnCall(i int, result1 context.Context) 
 func (fake *DeliverClient) Header() (metadata.MD, error) {
 	fake.headerMutex.Lock()
 	ret, specificReturn := fake.headerReturnsOnCall[len(fake.headerArgsForCall)]
-	fake.headerArgsForCall = append(fake.headerArgsForCall, struct {
-	}{})
+	fake.headerArgsForCall = append(fake.headerArgsForCall, struct{}{})
 	fake.recordInvocation("Header", []interface{}{})
 	fake.headerMutex.Unlock()
 	if fake.HeaderStub != nil {
@@ -264,8 +256,7 @@ func (fake *DeliverClient) HeaderReturnsOnCall(i int, result1 metadata.MD, resul
 func (fake *DeliverClient) Recv() (*orderer.DeliverResponse, error) {
 	fake.recvMutex.Lock()
 	ret, specificReturn := fake.recvReturnsOnCall[len(fake.recvArgsForCall)]
-	fake.recvArgsForCall = append(fake.recvArgsForCall, struct {
-	}{})
+	fake.recvArgsForCall = append(fake.recvArgsForCall, struct{}{})
 	fake.recordInvocation("Recv", []interface{}{})
 	fake.recvMutex.Unlock()
 	if fake.RecvStub != nil {
@@ -499,8 +490,7 @@ func (fake *DeliverClient) SendMsgReturnsOnCall(i int, result1 error) {
 func (fake *DeliverClient) Trailer() metadata.MD {
 	fake.trailerMutex.Lock()
 	ret, specificReturn := fake.trailerReturnsOnCall[len(fake.trailerArgsForCall)]
-	fake.trailerArgsForCall = append(fake.trailerArgsForCall, struct {
-	}{})
+	fake.trailerArgsForCall = append(fake.trailerArgsForCall, struct{}{})
 	fake.recordInvocation("Trailer", []interface{}{})
 	fake.trailerMutex.Unlock()
 	if fake.TrailerStub != nil {

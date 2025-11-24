@@ -9,8 +9,8 @@ package policies
 import (
 	"math"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	mspa "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	mspa "github.com/hyperledger/fabric-x-common/api/protomsp"
 
 	"github.com/hyperledger/fabric-x-common/common/policydsl"
 	"github.com/hyperledger/fabric-x-common/protoutil"

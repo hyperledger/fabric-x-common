@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
@@ -23,7 +23,7 @@ func TestBlockFileScanSmallTxOnly(t *testing.T) {
 	ledgerid := "testLedger"
 	blkfileMgrWrapper := newTestBlockfileWrapper(env, ledgerid)
 	bg, gb := testutil.NewBlockGenerator(t, ledgerid, false)
-	blocks := []*common.Block{gb}
+	blocks := []*protocommon.Block{gb}
 	blocks = append(blocks, bg.NextTestBlock(0, 0))
 	blocks = append(blocks, bg.NextTestBlock(0, 0))
 	blocks = append(blocks, bg.NextTestBlock(0, 0))
@@ -49,7 +49,7 @@ func TestBlockFileScanSmallTxLastTxIncomplete(t *testing.T) {
 	ledgerid := "testLedger"
 	blkfileMgrWrapper := newTestBlockfileWrapper(env, ledgerid)
 	bg, gb := testutil.NewBlockGenerator(t, ledgerid, false)
-	blocks := []*common.Block{gb}
+	blocks := []*protocommon.Block{gb}
 	blocks = append(blocks, bg.NextTestBlock(0, 0))
 	blocks = append(blocks, bg.NextTestBlock(0, 0))
 	blocks = append(blocks, bg.NextTestBlock(0, 0))

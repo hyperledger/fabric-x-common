@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -55,9 +55,9 @@ func TestBftHeaderReceiver_BadStatus(t *testing.T) {
 	fakeBlockVerifier.VerifyBlockAttestationReturns(fmt.Errorf("fake-verify-error"))
 
 	streamClientMock := &fake.DeliverClient{}
-	streamClientMock.RecvReturnsOnCall(0, &orderer.DeliverResponse{Type: &orderer.DeliverResponse_Status{Status: common.Status_SUCCESS}}, nil)
-	streamClientMock.RecvReturnsOnCall(1, &orderer.DeliverResponse{Type: &orderer.DeliverResponse_Status{Status: common.Status_BAD_REQUEST}}, nil)
-	streamClientMock.RecvReturnsOnCall(2, &orderer.DeliverResponse{Type: &orderer.DeliverResponse_Status{Status: common.Status_SERVICE_UNAVAILABLE}}, nil)
+	streamClientMock.RecvReturnsOnCall(0, &protoorderer.DeliverResponse{Type: &protoorderer.DeliverResponse_Status{Status: common.Status_SUCCESS}}, nil)
+	streamClientMock.RecvReturnsOnCall(1, &protoorderer.DeliverResponse{Type: &protoorderer.DeliverResponse_Status{Status: common.Status_BAD_REQUEST}}, nil)
+	streamClientMock.RecvReturnsOnCall(2, &protoorderer.DeliverResponse{Type: &protoorderer.DeliverResponse_Status{Status: common.Status_SERVICE_UNAVAILABLE}}, nil)
 	streamClientMock.CloseSendReturns(nil)
 
 	for i := 0; i < 3; i++ {
@@ -104,12 +104,12 @@ func TestBftHeaderReceiver_WithBlocks_Renew(t *testing.T) {
 
 	seqCh := make(chan uint64)
 	streamClientMock.RecvCalls(
-		func() (*orderer.DeliverResponse, error) {
+		func() (*protoorderer.DeliverResponse, error) {
 			time.Sleep(time.Millisecond)
 
 			seqNew, ok := <-seqCh
 			if ok {
-				return prepareBlock(seqNew, orderer.SeekInfo_HEADER_WITH_SIG, uint32(1)), nil
+				return prepareBlock(seqNew, protoorderer.SeekInfo_HEADER_WITH_SIG, uint32(1)), nil
 			} else {
 				return nil, errors.New("test closed")
 			}
@@ -172,12 +172,12 @@ func TestBftHeaderReceiver_WithBlocks_StopOnVerificationFailure(t *testing.T) {
 	seqCh := make(chan uint64)
 	goodSig := uint32(1)
 	streamClientMock.RecvCalls(
-		func() (*orderer.DeliverResponse, error) {
+		func() (*protoorderer.DeliverResponse, error) {
 			time.Sleep(time.Millisecond)
 
 			seqNew, ok := <-seqCh
 			if ok {
-				return prepareBlock(seqNew, orderer.SeekInfo_HEADER_WITH_SIG, atomic.LoadUint32(&goodSig)), nil
+				return prepareBlock(seqNew, protoorderer.SeekInfo_HEADER_WITH_SIG, atomic.LoadUint32(&goodSig)), nil
 			} else {
 				return nil, errors.New("test closed")
 			}
@@ -230,7 +230,7 @@ func TestBftHeaderReceiver_WithBlocks_ConfigVerification(t *testing.T) {
 
 	seqCh := make(chan uint64)
 	streamClientMock.RecvCalls(
-		func() (*orderer.DeliverResponse, error) {
+		func() (*protoorderer.DeliverResponse, error) {
 			time.Sleep(time.Millisecond)
 
 			seqNew, ok := <-seqCh
@@ -240,7 +240,7 @@ func TestBftHeaderReceiver_WithBlocks_ConfigVerification(t *testing.T) {
 					assert.True(t, protoutil.IsConfigBlock(res.GetBlock()))
 					return res, nil
 				}
-				return prepareBlock(seqNew, orderer.SeekInfo_HEADER_WITH_SIG, uint32(1)), nil
+				return prepareBlock(seqNew, protoorderer.SeekInfo_HEADER_WITH_SIG, uint32(1)), nil
 			} else {
 				return nil, errors.New("test closed")
 			}
@@ -295,12 +295,12 @@ func TestBftHeaderReceiver_VerifyOnce(t *testing.T) {
 	seqCh := make(chan uint64)
 	goodSig := uint32(1)
 	streamClientMock.RecvCalls(
-		func() (*orderer.DeliverResponse, error) {
+		func() (*protoorderer.DeliverResponse, error) {
 			time.Sleep(time.Millisecond)
 
 			seqNew, ok := <-seqCh
 			if ok {
-				return prepareBlock(seqNew, orderer.SeekInfo_HEADER_WITH_SIG, atomic.LoadUint32(&goodSig)), nil
+				return prepareBlock(seqNew, protoorderer.SeekInfo_HEADER_WITH_SIG, atomic.LoadUint32(&goodSig)), nil
 			} else {
 				return nil, errors.New("test closed")
 			}
@@ -329,7 +329,7 @@ func TestBftHeaderReceiver_VerifyOnce(t *testing.T) {
 	assert.Eventually(t, hr.IsStopped, time.Second, time.Millisecond)
 }
 
-func prepareBlock(seq uint64, contentType orderer.SeekInfo_SeekContentType, goodSignature uint32) *orderer.DeliverResponse {
+func prepareBlock(seq uint64, contentType protoorderer.SeekInfo_SeekContentType, goodSignature uint32) *protoorderer.DeliverResponse {
 	const numTx = 10
 	block := protoutil.NewBlock(seq, []byte{1, 2, 3, 4, 5, 6, 7, 8})
 	data := &common.BlockData{
@@ -339,13 +339,13 @@ func prepareBlock(seq uint64, contentType orderer.SeekInfo_SeekContentType, good
 		data.Data[i] = []byte{byte(i), byte(seq)}
 	}
 	block.Header.DataHash = protoutil.ComputeBlockDataHash(data)
-	if contentType == orderer.SeekInfo_BLOCK {
+	if contentType == protoorderer.SeekInfo_BLOCK {
 		block.Data = data
 	}
 
 	fakeSignature(block, goodSignature)
 
-	return &orderer.DeliverResponse{Type: &orderer.DeliverResponse_Block{Block: block}}
+	return &protoorderer.DeliverResponse{Type: &protoorderer.DeliverResponse_Block{Block: block}}
 }
 
 func fakeSignature(block *common.Block, goodSignature uint32) {
@@ -356,7 +356,7 @@ func fakeSignature(block *common.Block, goodSignature uint32) {
 	}
 }
 
-func prepareConfigBlock(seq uint64, goodSignature uint32) *orderer.DeliverResponse {
+func prepareConfigBlock(seq uint64, goodSignature uint32) *protoorderer.DeliverResponse {
 	block := protoutil.NewBlock(seq, []byte{1, 2, 3, 4, 5, 6, 7, 8})
 
 	env := &common.Envelope{
@@ -375,8 +375,8 @@ func prepareConfigBlock(seq uint64, goodSignature uint32) *orderer.DeliverRespon
 	block.Header.DataHash = protoutil.ComputeBlockDataHash(block.Data)
 	fakeSignature(block, goodSignature)
 
-	return &orderer.DeliverResponse{
-		Type: &orderer.DeliverResponse_Block{
+	return &protoorderer.DeliverResponse{
+		Type: &protoorderer.DeliverResponse_Block{
 			Block: block,
 		},
 	}

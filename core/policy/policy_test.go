@@ -9,7 +9,7 @@ package policy
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/policies"
@@ -32,7 +32,7 @@ func TestCheckPolicyInvalidArgs(t *testing.T) {
 	}
 	pc := &policyChecker{channelPolicyManagerGetter: policyManagerGetter}
 
-	err := pc.CheckPolicy("B", "admin", &peer.SignedProposal{})
+	err := pc.CheckPolicy("B", "admin", &protopeer.SignedProposal{})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Failed to get policy manager for channel [B]")
 }
@@ -165,7 +165,7 @@ func TestPolicyChecker(t *testing.T) {
 
 	t.Run("CheckPolicy", func(t *testing.T) {
 		// Validate Alice signatures against channel A's readers
-		sProp, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+		sProp, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &protopeer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
 		policyManagerGetter.Managers["A"].(*mocks.MockChannelPolicyManager).MockPolicy.(*mocks.MockPolicy).Deserializer.(*mocks.MockIdentityDeserializer).Msg = sProp.ProposalBytes
 		sProp.Signature = sProp.ProposalBytes
 		err := pc.CheckPolicy("A", "readers", sProp)
@@ -183,7 +183,7 @@ func TestPolicyChecker(t *testing.T) {
 	})
 
 	t.Run("CheckPolicyNoChannel", func(t *testing.T) {
-		sProp, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+		sProp, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &protopeer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
 		sProp.Signature = sProp.ProposalBytes
 
 		// Alice is a member of the local MSP, policy check must succeed
@@ -191,7 +191,7 @@ func TestPolicyChecker(t *testing.T) {
 		err := pc.CheckPolicyNoChannel(Members, sProp)
 		require.NoError(t, err)
 
-		sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Bob"), []byte("msg2"))
+		sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &protopeer.ChaincodeSpec{}, []byte("Bob"), []byte("msg2"))
 		// Bob is not a member of the local MSP, policy check must fail
 		err = pc.CheckPolicyNoChannel(Members, sProp)
 		require.Error(t, err)

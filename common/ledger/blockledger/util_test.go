@@ -9,7 +9,7 @@ package blockledger_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/deliver/mock"
@@ -19,7 +19,7 @@ import (
 func TestClose(t *testing.T) {
 	for _, testCase := range []struct {
 		name               string
-		status             common.Status
+		status             protocommon.Status
 		isIteratorNil      bool
 		expectedCloseCount int
 	}{
@@ -29,12 +29,12 @@ func TestClose(t *testing.T) {
 		},
 		{
 			name:               "Next() fails",
-			status:             common.Status_INTERNAL_SERVER_ERROR,
+			status:             protocommon.Status_INTERNAL_SERVER_ERROR,
 			expectedCloseCount: 1,
 		},
 		{
 			name:               "Next() succeeds",
-			status:             common.Status_SUCCESS,
+			status:             protocommon.Status_SUCCESS,
 			expectedCloseCount: 1,
 		},
 	} {
@@ -43,7 +43,7 @@ func TestClose(t *testing.T) {
 			reader := &mock.BlockReader{}
 			if !testCase.isIteratorNil {
 				iterator = &mock.BlockIterator{}
-				iterator.NextReturns(&common.Block{}, testCase.status)
+				iterator.NextReturns(&protocommon.Block{}, testCase.status)
 				reader.IteratorReturns(iterator, 1)
 			}
 

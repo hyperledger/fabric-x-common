@@ -9,7 +9,7 @@ package deliverclient
 import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
@@ -18,7 +18,7 @@ import (
 )
 
 func createErrorFunc(err error) protoutil.BlockVerifierFunc {
-	return func(_ *common.BlockHeader, _ *common.BlockMetadata) error {
+	return func(_ *protocommon.BlockHeader, _ *protocommon.BlockMetadata) error {
 		return errors.Wrap(err, "failed to initialize block verifier function")
 	}
 }
@@ -30,7 +30,7 @@ type BlockVerifierAssembler struct {
 }
 
 // VerifierFromConfig creates a BlockVerifier from the given configuration.
-func (bva *BlockVerifierAssembler) VerifierFromConfig(configuration *common.ConfigEnvelope, channel string) (protoutil.BlockVerifierFunc, error) {
+func (bva *BlockVerifierAssembler) VerifierFromConfig(configuration *protocommon.ConfigEnvelope, channel string) (protoutil.BlockVerifierFunc, error) {
 	bundle, err := channelconfig.NewBundle(channel, configuration.Config, bva.BCCSP)
 	if err != nil {
 		return createErrorFunc(err), err
@@ -44,7 +44,7 @@ func (bva *BlockVerifierAssembler) VerifierFromConfig(configuration *common.Conf
 
 	bftEnabled := bundle.ChannelConfig().Capabilities().ConsensusTypeBFT()
 
-	var consenters []*common.Consenter
+	var consenters []*protocommon.Consenter
 	if bftEnabled {
 		cfg, ok := bundle.OrdererConfig()
 		if !ok {

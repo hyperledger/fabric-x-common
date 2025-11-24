@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -31,14 +31,14 @@ type SignedData struct {
 // ConfigUpdateEnvelopeAsSignedData returns the set of signatures for the
 // ConfigUpdateEnvelope as SignedData or an error indicating why this was not
 // possible.
-func ConfigUpdateEnvelopeAsSignedData(ce *common.ConfigUpdateEnvelope) ([]*SignedData, error) {
+func ConfigUpdateEnvelopeAsSignedData(ce *protocommon.ConfigUpdateEnvelope) ([]*SignedData, error) {
 	if ce == nil {
 		return nil, fmt.Errorf("No signatures for nil SignedConfigItem")
 	}
 
 	result := make([]*SignedData, len(ce.Signatures))
 	for i, configSig := range ce.Signatures {
-		sigHeader := &common.SignatureHeader{}
+		sigHeader := &protocommon.SignatureHeader{}
 		err := proto.Unmarshal(configSig.SignatureHeader, sigHeader)
 		if err != nil {
 			return nil, err
@@ -57,12 +57,12 @@ func ConfigUpdateEnvelopeAsSignedData(ce *common.ConfigUpdateEnvelope) ([]*Signe
 
 // EnvelopeAsSignedData returns the signatures for the Envelope as SignedData
 // slice of length 1 or an error indicating why this was not possible.
-func EnvelopeAsSignedData(env *common.Envelope) ([]*SignedData, error) {
+func EnvelopeAsSignedData(env *protocommon.Envelope) ([]*SignedData, error) {
 	if env == nil {
 		return nil, fmt.Errorf("No signatures for nil Envelope")
 	}
 
-	payload := &common.Payload{}
+	payload := &protocommon.Payload{}
 	err := proto.Unmarshal(env.Payload, payload)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func EnvelopeAsSignedData(env *common.Envelope) ([]*SignedData, error) {
 		return nil, fmt.Errorf("Missing Header")
 	}
 
-	shdr := &common.SignatureHeader{}
+	shdr := &protocommon.SignatureHeader{}
 	err = proto.Unmarshal(payload.Header.SignatureHeader, shdr)
 	if err != nil {
 		return nil, fmt.Errorf("GetSignatureHeaderFromBytes failed, err %s", err)
@@ -89,7 +89,7 @@ func EnvelopeAsSignedData(env *common.Envelope) ([]*SignedData, error) {
 // or a string indicating why the serialized identity information cannot be returned.
 // Any errors are intentionally returned in the return strings so that the function can be used in single-line log messages with minimal clutter.
 func LogMessageForSerializedIdentity(serializedIdentity []byte) string {
-	id := &msp.SerializedIdentity{}
+	id := &protomsp.SerializedIdentity{}
 	err := proto.Unmarshal(serializedIdentity, id)
 	if err != nil {
 		return fmt.Sprintf("Could not unmarshal serialized identity: %s", err)

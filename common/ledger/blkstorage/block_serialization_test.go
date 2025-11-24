@@ -9,7 +9,7 @@ package blkstorage
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protowire"
 
@@ -21,17 +21,17 @@ func TestBlockSerialization(t *testing.T) {
 	block := testutil.ConstructTestBlock(t, 1, 10, 100)
 
 	// malformed Payload
-	block.Data.Data[1] = protoutil.MarshalOrPanic(&common.Envelope{
+	block.Data.Data[1] = protoutil.MarshalOrPanic(&protocommon.Envelope{
 		Signature: []byte{1, 2, 3},
 		Payload:   []byte("Malformed Payload"),
 	})
 
 	// empty TxID
-	block.Data.Data[2] = protoutil.MarshalOrPanic(&common.Envelope{
+	block.Data.Data[2] = protoutil.MarshalOrPanic(&protocommon.Envelope{
 		Signature: []byte{1, 2, 3},
-		Payload: protoutil.MarshalOrPanic(&common.Payload{
-			Header: &common.Header{
-				ChannelHeader: protoutil.MarshalOrPanic(&common.ChannelHeader{
+		Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
+			Header: &protocommon.Header{
+				ChannelHeader: protoutil.MarshalOrPanic(&protocommon.ChannelHeader{
 					TxId: "",
 				}),
 			},
@@ -58,13 +58,13 @@ func TestSerializedBlockInfo(t *testing.T) {
 	t.Run("txID is not present in one of the transactions", func(t *testing.T) {
 		block := testutil.ConstructTestBlock(t, 1, 10, 100)
 		// empty txid for txNum 2
-		block.Data.Data[1] = protoutil.MarshalOrPanic(&common.Envelope{
-			Payload: protoutil.MarshalOrPanic(&common.Payload{
-				Header: &common.Header{
-					ChannelHeader: protoutil.MarshalOrPanic(&common.ChannelHeader{
+		block.Data.Data[1] = protoutil.MarshalOrPanic(&protocommon.Envelope{
+			Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
+				Header: &protocommon.Header{
+					ChannelHeader: protoutil.MarshalOrPanic(&protocommon.ChannelHeader{
 						TxId: "",
 					}),
-					SignatureHeader: protoutil.MarshalOrPanic(&common.SignatureHeader{
+					SignatureHeader: protoutil.MarshalOrPanic(&protocommon.SignatureHeader{
 						Creator: []byte("fake user"),
 						Nonce:   []byte("fake nonce"),
 					}),
@@ -77,7 +77,7 @@ func TestSerializedBlockInfo(t *testing.T) {
 	t.Run("malformed tx-envelop for one of the transactions", func(t *testing.T) {
 		block := testutil.ConstructTestBlock(t, 1, 10, 100)
 		// malformed Payload for
-		block.Data.Data[1] = protoutil.MarshalOrPanic(&common.Envelope{
+		block.Data.Data[1] = protoutil.MarshalOrPanic(&protocommon.Envelope{
 			Payload: []byte("Malformed Payload"),
 		})
 		c.reset()
@@ -86,7 +86,7 @@ func TestSerializedBlockInfo(t *testing.T) {
 	})
 }
 
-func testSerializedBlockInfo(t *testing.T, block *common.Block, c *testutilTxIDComputator) {
+func testSerializedBlockInfo(t *testing.T, block *protocommon.Block, c *testutilTxIDComputator) {
 	bb, info := serializeBlock(block)
 	infoFromBB, err := extractSerializedBlockInfo(bb)
 	require.NoError(t, err)

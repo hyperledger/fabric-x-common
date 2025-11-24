@@ -13,8 +13,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
@@ -32,7 +32,7 @@ func marshalOrPanic(msg proto.Message) []byte {
 }
 
 func TestNilConfigEnvelopeAsSignedData(t *testing.T) {
-	var ce *common.ConfigUpdateEnvelope
+	var ce *protocommon.ConfigUpdateEnvelope
 	_, err := protoutil.ConfigUpdateEnvelopeAsSignedData(ce)
 	if err == nil {
 		t.Fatalf("Should have errored trying to convert a nil signed config item to signed data")
@@ -44,17 +44,17 @@ func TestConfigEnvelopeAsSignedData(t *testing.T) {
 	signatures := [][]byte{[]byte("Signature1"), []byte("Signature2")}
 	identities := [][]byte{[]byte("Identity1"), []byte("Identity2")}
 
-	configSignatures := make([]*common.ConfigSignature, len(signatures))
+	configSignatures := make([]*protocommon.ConfigSignature, len(signatures))
 	for i := range configSignatures {
-		configSignatures[i] = &common.ConfigSignature{
-			SignatureHeader: marshalOrPanic(&common.SignatureHeader{
+		configSignatures[i] = &protocommon.ConfigSignature{
+			SignatureHeader: marshalOrPanic(&protocommon.SignatureHeader{
 				Creator: identities[i],
 			}),
 			Signature: signatures[i],
 		}
 	}
 
-	ce := &common.ConfigUpdateEnvelope{
+	ce := &protocommon.ConfigUpdateEnvelope{
 		ConfigUpdate: configBytes,
 		Signatures:   configSignatures,
 	}
@@ -78,7 +78,7 @@ func TestConfigEnvelopeAsSignedData(t *testing.T) {
 }
 
 func TestNilEnvelopeAsSignedData(t *testing.T) {
-	var env *common.Envelope
+	var env *protocommon.Envelope
 	_, err := protoutil.EnvelopeAsSignedData(env)
 	if err == nil {
 		t.Fatalf("Should have errored trying to convert a nil envelope")
@@ -89,14 +89,14 @@ func TestEnvelopeAsSignedData(t *testing.T) {
 	identity := []byte("Foo")
 	sig := []byte("Bar")
 
-	shdrbytes, err := proto.Marshal(&common.SignatureHeader{Creator: identity})
+	shdrbytes, err := proto.Marshal(&protocommon.SignatureHeader{Creator: identity})
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
 
-	env := &common.Envelope{
-		Payload: marshalOrPanic(&common.Payload{
-			Header: &common.Header{
+	env := &protocommon.Envelope{
+		Payload: marshalOrPanic(&protocommon.Payload{
+			Header: &protocommon.Header{
 				SignatureHeader: shdrbytes,
 			},
 		}),
@@ -127,7 +127,7 @@ func TestLogMessageForSerializedIdentity(t *testing.T) {
 	pem, err := readPemFile(filepath.Join("testdata", "peer-expired.pem"))
 	require.NoError(t, err, "Unexpected error reading pem file")
 
-	serializedIdentity := &msp.SerializedIdentity{
+	serializedIdentity := &protomsp.SerializedIdentity{
 		Mspid:   "MyMSP",
 		IdBytes: pem,
 	}
@@ -155,9 +155,8 @@ func TestLogMessageForSerializedIdentity(t *testing.T) {
 
 	identitiesLogMessage := protoutil.LogMessageForSerializedIdentities(signedDatas)
 
-	expected =
-		"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441), " +
-			"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441)"
+	expected = "(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441), " +
+		"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441)"
 	require.Equal(t, expected, identitiesLogMessage)
 }
 

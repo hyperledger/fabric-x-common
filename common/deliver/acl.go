@@ -9,7 +9,7 @@ package deliver
 import (
 	"time"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/protoutil"

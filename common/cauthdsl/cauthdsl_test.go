@@ -9,8 +9,8 @@ package cauthdsl
 import (
 	"testing"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	mb "github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 

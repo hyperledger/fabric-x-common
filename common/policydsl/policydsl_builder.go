@@ -9,8 +9,8 @@ package policydsl
 import (
 	"sort"
 
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	cb "github.com/hyperledger/fabric-x-common/api/protocommon"
+	mb "github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 )

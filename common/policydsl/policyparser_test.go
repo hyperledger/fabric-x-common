@@ -9,8 +9,8 @@ package policydsl
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -21,21 +21,21 @@ func TestOutOf1(t *testing.T) {
 	p1, err := FromString("OutOf(1, 'A.member', 'B.member')")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "A"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "B"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
-		Rule:       NOutOf(1, []*common.SignaturePolicy{SignedBy(0), SignedBy(1)}),
+		Rule:       NOutOf(1, []*protocommon.SignaturePolicy{SignedBy(0), SignedBy(1)}),
 		Identities: principals,
 	}
 
@@ -46,21 +46,21 @@ func TestOutOf2(t *testing.T) {
 	p1, err := FromString("OutOf(2, 'A.member', 'B.member')")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "A"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "B"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
-		Rule:       NOutOf(2, []*common.SignaturePolicy{SignedBy(0), SignedBy(1)}),
+		Rule:       NOutOf(2, []*protocommon.SignaturePolicy{SignedBy(0), SignedBy(1)}),
 		Identities: principals,
 	}
 
@@ -71,19 +71,19 @@ func TestAnd(t *testing.T) {
 	p1, err := FromString("AND('A.member', 'B.member')")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "A"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "B"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
 		Rule:       And(SignedBy(0), SignedBy(1)),
 		Identities: principals,
@@ -96,19 +96,19 @@ func TestAndClientPeerOrderer(t *testing.T) {
 	p1, err := FromString("AND('A.client', 'B.peer')")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_CLIENT, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_CLIENT, MspIdentifier: "A"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_PEER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_PEER, MspIdentifier: "B"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
 		Rule:       And(SignedBy(0), SignedBy(1)),
 		Identities: principals,
@@ -121,19 +121,19 @@ func TestOr(t *testing.T) {
 	p1, err := FromString("OR('A.member', 'B.member')")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "A"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "B"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
 		Rule:       Or(SignedBy(0), SignedBy(1)),
 		Identities: principals,
@@ -146,24 +146,24 @@ func TestComplex1(t *testing.T) {
 	p1, err := FromString("OR('A.member', AND('B.member', 'C.member'))")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "B"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "C"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "C"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "A"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
 		Rule:       Or(SignedBy(2), And(SignedBy(0), SignedBy(1))),
 		Identities: principals,
@@ -176,29 +176,29 @@ func TestComplex2(t *testing.T) {
 	p1, err := FromString("OR(AND('A.member', 'B.member'), OR('C.admin', 'D.member'))")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "A"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "B"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "C"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "C"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "D"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "D"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
 		Rule:       Or(And(SignedBy(0), SignedBy(1)), Or(SignedBy(2), SignedBy(3))),
 		Identities: principals,
@@ -211,26 +211,26 @@ func TestMSPIDWIthSpecialChars(t *testing.T) {
 	p1, err := FromString("OR('MSP.member', 'MSP.WITH.DOTS.member', 'MSP-WITH-DASHES.member')")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "MSP"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "MSP"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "MSP.WITH.DOTS"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "MSP.WITH.DOTS"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "MSP-WITH-DASHES"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "MSP-WITH-DASHES"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
-		Rule:       NOutOf(1, []*common.SignaturePolicy{SignedBy(0), SignedBy(1), SignedBy(2)}),
+		Rule:       NOutOf(1, []*protocommon.SignaturePolicy{SignedBy(0), SignedBy(1), SignedBy(2)}),
 		Identities: principals,
 	}
 
@@ -252,31 +252,31 @@ func TestNodeOUs(t *testing.T) {
 	p1, err := FromString("OR('A.peer', 'B.admin', 'C.orderer', 'D.client')")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_PEER, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_PEER, MspIdentifier: "A"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_ADMIN, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_ADMIN, MspIdentifier: "B"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_ORDERER, MspIdentifier: "C"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_ORDERER, MspIdentifier: "C"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_CLIENT, MspIdentifier: "D"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_CLIENT, MspIdentifier: "D"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
-		Rule:       NOutOf(1, []*common.SignaturePolicy{SignedBy(0), SignedBy(1), SignedBy(2), SignedBy(3)}),
+		Rule:       NOutOf(1, []*protocommon.SignaturePolicy{SignedBy(0), SignedBy(1), SignedBy(2), SignedBy(3)}),
 		Identities: principals,
 	}
 
@@ -287,21 +287,21 @@ func TestOutOfNumIsString(t *testing.T) {
 	p1, err := FromString("OutOf('1', 'A.member', 'B.member')")
 	require.NoError(t, err)
 
-	principals := make([]*msp.MSPPrincipal, 0)
+	principals := make([]*protomsp.MSPPrincipal, 0)
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "A"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "A"}),
 	})
 
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "B"}),
 	})
 
-	p2 := &common.SignaturePolicyEnvelope{
+	p2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
-		Rule:       NOutOf(1, []*common.SignaturePolicy{SignedBy(0), SignedBy(1)}),
+		Rule:       NOutOf(1, []*protocommon.SignaturePolicy{SignedBy(0), SignedBy(1)}),
 		Identities: principals,
 	}
 
@@ -374,18 +374,18 @@ func TestSecondPassBoundaryCheck(t *testing.T) {
 	// There is no clear usecase of t=0, but somebody may already use it, so we don't treat as an error.
 	p1, err1 := FromString("OutOf(0, 'A.member', 'B.member')")
 	require.NoError(t, err1)
-	principals := make([]*msp.MSPPrincipal, 0)
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "A"}),
+	principals := make([]*protomsp.MSPPrincipal, 0)
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "A"}),
 	})
-	principals = append(principals, &msp.MSPPrincipal{
-		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               protoutil.MarshalOrPanic(&msp.MSPRole{Role: msp.MSPRole_MEMBER, MspIdentifier: "B"}),
+	principals = append(principals, &protomsp.MSPPrincipal{
+		PrincipalClassification: protomsp.MSPPrincipal_ROLE,
+		Principal:               protoutil.MarshalOrPanic(&protomsp.MSPRole{Role: protomsp.MSPRole_MEMBER, MspIdentifier: "B"}),
 	})
-	expected1 := &common.SignaturePolicyEnvelope{
+	expected1 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
-		Rule:       NOutOf(0, []*common.SignaturePolicy{SignedBy(0), SignedBy(1)}),
+		Rule:       NOutOf(0, []*protocommon.SignaturePolicy{SignedBy(0), SignedBy(1)}),
 		Identities: principals,
 	}
 	require.Equal(t, expected1, p1)
@@ -395,9 +395,9 @@ func TestSecondPassBoundaryCheck(t *testing.T) {
 	// Usecase: To create immutable ledger key
 	p2, err2 := FromString("OutOf(3, 'A.member', 'B.member')")
 	require.NoError(t, err2)
-	expected2 := &common.SignaturePolicyEnvelope{
+	expected2 := &protocommon.SignaturePolicyEnvelope{
 		Version:    0,
-		Rule:       NOutOf(3, []*common.SignaturePolicy{SignedBy(0), SignedBy(1)}),
+		Rule:       NOutOf(3, []*protocommon.SignaturePolicy{SignedBy(0), SignedBy(1)}),
 		Identities: principals,
 	}
 	require.Equal(t, expected2, p2)

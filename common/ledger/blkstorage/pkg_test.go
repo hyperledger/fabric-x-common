@@ -14,8 +14,8 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -68,14 +68,14 @@ func newTestBlockfileWrapper(env *testEnv, ledgerid string) *testBlockfileMgrWra
 	return &testBlockfileMgrWrapper{env.t, blkStore.fileMgr}
 }
 
-func (w *testBlockfileMgrWrapper) addBlocks(blocks []*common.Block) {
+func (w *testBlockfileMgrWrapper) addBlocks(blocks []*protocommon.Block) {
 	for _, blk := range blocks {
 		err := w.blockfileMgr.addBlock(blk)
 		require.NoError(w.t, err, "Error while adding block to blockfileMgr")
 	}
 }
 
-func (w *testBlockfileMgrWrapper) testGetBlockByHash(blocks []*common.Block) {
+func (w *testBlockfileMgrWrapper) testGetBlockByHash(blocks []*protocommon.Block) {
 	for i, block := range blocks {
 		hash := protoutil.BlockHeaderHash(block.Header)
 		b, err := w.blockfileMgr.retrieveBlockByHash(hash)
@@ -84,7 +84,7 @@ func (w *testBlockfileMgrWrapper) testGetBlockByHash(blocks []*common.Block) {
 	}
 }
 
-func (w *testBlockfileMgrWrapper) testGetBlockByNumber(blocks []*common.Block) {
+func (w *testBlockfileMgrWrapper) testGetBlockByNumber(blocks []*protocommon.Block) {
 	for i := 0; i < len(blocks); i++ {
 		b, err := w.blockfileMgr.retrieveBlockByNumber(blocks[0].Header.Number + uint64(i))
 		require.NoError(w.t, err, "Error while retrieving [%d]th block from blockfileMgr", i)
@@ -97,7 +97,7 @@ func (w *testBlockfileMgrWrapper) testGetBlockByNumber(blocks []*common.Block) {
 	require.Equal(w.t, blocks[iLastBlock], b)
 }
 
-func (w *testBlockfileMgrWrapper) testGetBlockByTxID(blocks []*common.Block) {
+func (w *testBlockfileMgrWrapper) testGetBlockByTxID(blocks []*protocommon.Block) {
 	for i, block := range blocks {
 		for _, txEnv := range block.Data.Data {
 			txID, err := protoutil.GetOrComputeTxIDFromEnvelope(txEnv)
@@ -109,7 +109,7 @@ func (w *testBlockfileMgrWrapper) testGetBlockByTxID(blocks []*common.Block) {
 	}
 }
 
-func (w *testBlockfileMgrWrapper) testGetBlockByHashNotIndexed(blocks []*common.Block) {
+func (w *testBlockfileMgrWrapper) testGetBlockByHashNotIndexed(blocks []*protocommon.Block) {
 	for _, block := range blocks {
 		hash := protoutil.BlockHeaderHash(block.Header)
 		_, err := w.blockfileMgr.retrieveBlockByHash(hash)
@@ -117,7 +117,7 @@ func (w *testBlockfileMgrWrapper) testGetBlockByHashNotIndexed(blocks []*common.
 	}
 }
 
-func (w *testBlockfileMgrWrapper) testGetBlockByTxIDNotIndexed(blocks []*common.Block) {
+func (w *testBlockfileMgrWrapper) testGetBlockByTxIDNotIndexed(blocks []*protocommon.Block) {
 	for _, block := range blocks {
 		for _, txEnv := range block.Data.Data {
 			txID, err := protoutil.GetOrComputeTxIDFromEnvelope(txEnv)
@@ -167,7 +167,7 @@ func (w *testBlockfileMgrWrapper) testGetMultipleDataByTxID(
 		fetchedData = append(fetchedData, &expectedBlkTxValidationCode{
 			blk:            blk,
 			txEnv:          txEnv,
-			validationCode: peer.TxValidationCode(v.TxValidationCode),
+			validationCode: protopeer.TxValidationCode(v.TxValidationCode),
 		})
 	}
 	require.Equal(expectedData, fetchedData)
@@ -178,7 +178,7 @@ func (w *testBlockfileMgrWrapper) close() {
 }
 
 type expectedBlkTxValidationCode struct {
-	blk            *common.Block
-	txEnv          *common.Envelope
-	validationCode peer.TxValidationCode
+	blk            *protocommon.Block
+	txEnv          *protocommon.Envelope
+	validationCode protopeer.TxValidationCode
 }

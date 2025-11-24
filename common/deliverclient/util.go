@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package deliverclient
 
 import (
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/configtx"
@@ -18,7 +18,7 @@ var ErrNotAConfig = errors.New("not a config block")
 
 // ConfigFromBlock returns a ConfigEnvelope if exists, or a *ErrNotAConfig error.
 // It may also return some other error in case parsing failed.
-func ConfigFromBlock(block *common.Block) (*common.ConfigEnvelope, error) {
+func ConfigFromBlock(block *protocommon.Block) (*protocommon.ConfigEnvelope, error) {
 	if block == nil || block.Data == nil || len(block.Data.Data) == 0 {
 		return nil, errors.New("empty block")
 	}
@@ -45,7 +45,7 @@ func ConfigFromBlock(block *common.Block) (*common.ConfigEnvelope, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	if common.HeaderType(chdr.Type) != common.HeaderType_CONFIG {
+	if protocommon.HeaderType(chdr.Type) != protocommon.HeaderType_CONFIG {
 		return nil, ErrNotAConfig
 	}
 	configEnvelope, err := configtx.UnmarshalConfigEnvelope(payload.Data)

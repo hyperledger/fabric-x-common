@@ -4,8 +4,8 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/blockledger"
 )
@@ -13,18 +13,17 @@ import (
 type BlockReader struct {
 	HeightStub        func() uint64
 	heightMutex       sync.RWMutex
-	heightArgsForCall []struct {
-	}
-	heightReturns struct {
+	heightArgsForCall []struct{}
+	heightReturns     struct {
 		result1 uint64
 	}
 	heightReturnsOnCall map[int]struct {
 		result1 uint64
 	}
-	IteratorStub        func(*orderer.SeekPosition) (blockledger.Iterator, uint64)
+	IteratorStub        func(*protoorderer.SeekPosition) (blockledger.Iterator, uint64)
 	iteratorMutex       sync.RWMutex
 	iteratorArgsForCall []struct {
-		arg1 *orderer.SeekPosition
+		arg1 *protoorderer.SeekPosition
 	}
 	iteratorReturns struct {
 		result1 blockledger.Iterator
@@ -54,8 +53,7 @@ type BlockReader struct {
 func (fake *BlockReader) Height() uint64 {
 	fake.heightMutex.Lock()
 	ret, specificReturn := fake.heightReturnsOnCall[len(fake.heightArgsForCall)]
-	fake.heightArgsForCall = append(fake.heightArgsForCall, struct {
-	}{})
+	fake.heightArgsForCall = append(fake.heightArgsForCall, struct{}{})
 	stub := fake.HeightStub
 	fakeReturns := fake.heightReturns
 	fake.recordInvocation("Height", []interface{}{})
@@ -104,11 +102,11 @@ func (fake *BlockReader) HeightReturnsOnCall(i int, result1 uint64) {
 	}{result1}
 }
 
-func (fake *BlockReader) Iterator(arg1 *orderer.SeekPosition) (blockledger.Iterator, uint64) {
+func (fake *BlockReader) Iterator(arg1 *protoorderer.SeekPosition) (blockledger.Iterator, uint64) {
 	fake.iteratorMutex.Lock()
 	ret, specificReturn := fake.iteratorReturnsOnCall[len(fake.iteratorArgsForCall)]
 	fake.iteratorArgsForCall = append(fake.iteratorArgsForCall, struct {
-		arg1 *orderer.SeekPosition
+		arg1 *protoorderer.SeekPosition
 	}{arg1})
 	stub := fake.IteratorStub
 	fakeReturns := fake.iteratorReturns
@@ -129,13 +127,13 @@ func (fake *BlockReader) IteratorCallCount() int {
 	return len(fake.iteratorArgsForCall)
 }
 
-func (fake *BlockReader) IteratorCalls(stub func(*orderer.SeekPosition) (blockledger.Iterator, uint64)) {
+func (fake *BlockReader) IteratorCalls(stub func(*protoorderer.SeekPosition) (blockledger.Iterator, uint64)) {
 	fake.iteratorMutex.Lock()
 	defer fake.iteratorMutex.Unlock()
 	fake.IteratorStub = stub
 }
 
-func (fake *BlockReader) IteratorArgsForCall(i int) *orderer.SeekPosition {
+func (fake *BlockReader) IteratorArgsForCall(i int) *protoorderer.SeekPosition {
 	fake.iteratorMutex.RLock()
 	defer fake.iteratorMutex.RUnlock()
 	argsForCall := fake.iteratorArgsForCall[i]

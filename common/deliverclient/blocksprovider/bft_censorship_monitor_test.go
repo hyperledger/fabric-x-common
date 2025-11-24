@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
+	"github.com/hyperledger/fabric-x-common/api/protoorderer"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -121,15 +121,15 @@ func TestBFTCensorshipMonitor_NoHeadersNoBlocks(t *testing.T) {
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, blockSource, tConfig)
 	require.NotNil(t, mon)
 
-	fakeEnv := &common.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
+	fakeEnv := &protocommon.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
 	s.fakeRequester.SeekInfoHeadersFromReturns(fakeEnv, nil)
 	// Connect returns a client that blocks on Recv()
 	s.fakeRequester.ConnectCalls(
-		func(envelope *common.Envelope, endpoint *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
+		func(envelope *protocommon.Envelope, endpoint *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error) {
 			index := address2index(endpoint.Address)
 			client := &fake.DeliverClient{}
 
-			client.RecvCalls(func() (*orderer.DeliverResponse, error) {
+			client.RecvCalls(func() (*protoorderer.DeliverResponse, error) {
 				resp := <-s.sourceStream[index]
 				if resp == nil {
 					return nil, errors.New("test-closing")
@@ -193,15 +193,15 @@ func TestBFTCensorshipMonitor_CensorshipDetected(t *testing.T) {
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, blockSource, tConfig)
 	require.NotNil(t, mon)
 
-	fakeEnv := &common.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
+	fakeEnv := &protocommon.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
 	s.fakeRequester.SeekInfoHeadersFromReturns(fakeEnv, nil)
 	// Connect returns a client that blocks on Recv()
 	s.fakeRequester.ConnectCalls(
-		func(envelope *common.Envelope, endpoint *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
+		func(envelope *protocommon.Envelope, endpoint *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error) {
 			index := address2index(endpoint.Address)
 			client := &fake.DeliverClient{}
 
-			client.RecvCalls(func() (*orderer.DeliverResponse, error) {
+			client.RecvCalls(func() (*protoorderer.DeliverResponse, error) {
 				resp := <-s.sourceStream[index]
 				if resp == nil {
 					return nil, errors.New("test-closing")
@@ -277,15 +277,15 @@ func TestBFTCensorshipMonitor_SuspicionsRemovedCensorshipDetected(t *testing.T) 
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, blockSource, tConfig)
 	require.NotNil(t, mon)
 
-	fakeEnv := &common.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
+	fakeEnv := &protocommon.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
 	s.fakeRequester.SeekInfoHeadersFromReturns(fakeEnv, nil)
 	// Connect returns a client that blocks on Recv()
 	s.fakeRequester.ConnectCalls(
-		func(envelope *common.Envelope, endpoint *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
+		func(envelope *protocommon.Envelope, endpoint *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error) {
 			index := address2index(endpoint.Address)
 			client := &fake.DeliverClient{}
 
-			client.RecvCalls(func() (*orderer.DeliverResponse, error) {
+			client.RecvCalls(func() (*protoorderer.DeliverResponse, error) {
 				resp := <-s.sourceStream[index]
 				if resp == nil {
 					return nil, errors.New("test-closing")
@@ -385,15 +385,15 @@ func TestBFTCensorshipMonitor_SuspicionRemoved(t *testing.T) {
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, blockSource, tConfig)
 	require.NotNil(t, mon)
 
-	fakeEnv := &common.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
+	fakeEnv := &protocommon.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
 	s.fakeRequester.SeekInfoHeadersFromReturns(fakeEnv, nil)
 	// Connect returns a client that blocks on Recv()
 	s.fakeRequester.ConnectCalls(
-		func(envelope *common.Envelope, endpoint *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
+		func(envelope *protocommon.Envelope, endpoint *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error) {
 			index := address2index(endpoint.Address)
 			client := &fake.DeliverClient{}
 
-			client.RecvCalls(func() (*orderer.DeliverResponse, error) {
+			client.RecvCalls(func() (*protoorderer.DeliverResponse, error) {
 				resp := <-s.sourceStream[index]
 				if resp == nil {
 					return nil, errors.New("test-closing")
@@ -486,11 +486,11 @@ func TestBFTCensorshipMonitor_FaultySourceIgnored(t *testing.T) {
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, blockSource, tConfig)
 	require.NotNil(t, mon)
 
-	fakeEnv := &common.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
+	fakeEnv := &protocommon.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
 	s.fakeRequester.SeekInfoHeadersFromReturns(fakeEnv, nil)
 	// Connect returns a client that blocks on Recv()
 	s.fakeRequester.ConnectCalls(
-		func(envelope *common.Envelope, endpoint *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
+		func(envelope *protocommon.Envelope, endpoint *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error) {
 			index := address2index(endpoint.Address)
 			client := &fake.DeliverClient{}
 
@@ -503,7 +503,7 @@ func TestBFTCensorshipMonitor_FaultySourceIgnored(t *testing.T) {
 			case 2:
 				return nil, nil, errors.New("test: cannot connect")
 			default:
-				client.RecvCalls(func() (*orderer.DeliverResponse, error) {
+				client.RecvCalls(func() (*protoorderer.DeliverResponse, error) {
 					resp := <-s.sourceStream[index]
 					if resp == nil {
 						return nil, errors.New("test-closing")
@@ -600,13 +600,13 @@ func TestBFTCensorshipMonitor_FaultySourceRecovery(t *testing.T) {
 	mon := blocksprovider.NewBFTCensorshipMonitor(s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, blockSource, tConfig)
 	require.NotNil(t, mon)
 
-	fakeEnv := &common.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
+	fakeEnv := &protocommon.Envelope{Payload: []byte("bogus"), Signature: []byte("bogus")}
 	s.fakeRequester.SeekInfoHeadersFromReturns(fakeEnv, nil)
 	// Connect returns a client that blocks on Recv()
 	callNum1 := 0
 	callNum2 := 0
 	s.fakeRequester.ConnectCalls(
-		func(envelope *common.Envelope, endpoint *orderers.Endpoint) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
+		func(envelope *protocommon.Envelope, endpoint *orderers.Endpoint) (protoorderer.AtomicBroadcast_DeliverClient, func(), error) {
 			index := address2index(endpoint.Address)
 			client := &fake.DeliverClient{}
 
@@ -629,7 +629,7 @@ func TestBFTCensorshipMonitor_FaultySourceRecovery(t *testing.T) {
 				return nil, nil, errors.New("test: cannot connect")
 			}
 
-			client.RecvCalls(func() (*orderer.DeliverResponse, error) {
+			client.RecvCalls(func() (*protoorderer.DeliverResponse, error) {
 				resp := <-s.sourceStream[index]
 				if resp == nil {
 					return nil, errors.New("test-closing")
@@ -706,7 +706,7 @@ type monitorTestSetup struct {
 	fakeRequester              *fake.DeliverClientRequester
 	sources                    []*orderers.Endpoint
 	sourceIndex                int
-	sourceStream               []chan *orderer.DeliverResponse
+	sourceStream               []chan *protoorderer.DeliverResponse
 }
 
 func newMonitorTestSetup(t *testing.T, numSources int) *monitorTestSetup {
@@ -726,7 +726,7 @@ func newMonitorTestSetup(t *testing.T, numSources int) *monitorTestSetup {
 			RootCerts: [][]byte{{1, 2, 3, 4}},
 			Refreshed: make(chan struct{}),
 		})
-		s.sourceStream = append(s.sourceStream, make(chan *orderer.DeliverResponse))
+		s.sourceStream = append(s.sourceStream, make(chan *protoorderer.DeliverResponse))
 	}
 
 	return s
@@ -738,11 +738,11 @@ func address2index(addr string) int {
 	return i
 }
 
-func makeDeliverResponseBlock(n uint64) *orderer.DeliverResponse {
-	return &orderer.DeliverResponse{
-		Type: &orderer.DeliverResponse_Block{
-			Block: &common.Block{
-				Header: &common.BlockHeader{
+func makeDeliverResponseBlock(n uint64) *protoorderer.DeliverResponse {
+	return &protoorderer.DeliverResponse{
+		Type: &protoorderer.DeliverResponse_Block{
+			Block: &protocommon.Block{
+				Header: &protocommon.BlockHeader{
 					Number: n,
 				},
 			},

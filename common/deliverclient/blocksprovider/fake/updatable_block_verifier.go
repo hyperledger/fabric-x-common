@@ -4,7 +4,7 @@ package fake
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
@@ -13,23 +13,22 @@ import (
 type UpdatableBlockVerifier struct {
 	CloneStub        func() deliverclient.CloneableUpdatableBlockVerifier
 	cloneMutex       sync.RWMutex
-	cloneArgsForCall []struct {
-	}
-	cloneReturns struct {
+	cloneArgsForCall []struct{}
+	cloneReturns     struct {
 		result1 deliverclient.CloneableUpdatableBlockVerifier
 	}
 	cloneReturnsOnCall map[int]struct {
 		result1 deliverclient.CloneableUpdatableBlockVerifier
 	}
-	UpdateBlockHeaderStub        func(*common.Block)
+	UpdateBlockHeaderStub        func(*protocommon.Block)
 	updateBlockHeaderMutex       sync.RWMutex
 	updateBlockHeaderArgsForCall []struct {
-		arg1 *common.Block
+		arg1 *protocommon.Block
 	}
-	UpdateConfigStub        func(*common.Block) error
+	UpdateConfigStub        func(*protocommon.Block) error
 	updateConfigMutex       sync.RWMutex
 	updateConfigArgsForCall []struct {
-		arg1 *common.Block
+		arg1 *protocommon.Block
 	}
 	updateConfigReturns struct {
 		result1 error
@@ -37,10 +36,10 @@ type UpdatableBlockVerifier struct {
 	updateConfigReturnsOnCall map[int]struct {
 		result1 error
 	}
-	VerifyBlockStub        func(*common.Block) error
+	VerifyBlockStub        func(*protocommon.Block) error
 	verifyBlockMutex       sync.RWMutex
 	verifyBlockArgsForCall []struct {
-		arg1 *common.Block
+		arg1 *protocommon.Block
 	}
 	verifyBlockReturns struct {
 		result1 error
@@ -48,10 +47,10 @@ type UpdatableBlockVerifier struct {
 	verifyBlockReturnsOnCall map[int]struct {
 		result1 error
 	}
-	VerifyBlockAttestationStub        func(*common.Block) error
+	VerifyBlockAttestationStub        func(*protocommon.Block) error
 	verifyBlockAttestationMutex       sync.RWMutex
 	verifyBlockAttestationArgsForCall []struct {
-		arg1 *common.Block
+		arg1 *protocommon.Block
 	}
 	verifyBlockAttestationReturns struct {
 		result1 error
@@ -66,8 +65,7 @@ type UpdatableBlockVerifier struct {
 func (fake *UpdatableBlockVerifier) Clone() deliverclient.CloneableUpdatableBlockVerifier {
 	fake.cloneMutex.Lock()
 	ret, specificReturn := fake.cloneReturnsOnCall[len(fake.cloneArgsForCall)]
-	fake.cloneArgsForCall = append(fake.cloneArgsForCall, struct {
-	}{})
+	fake.cloneArgsForCall = append(fake.cloneArgsForCall, struct{}{})
 	stub := fake.CloneStub
 	fakeReturns := fake.cloneReturns
 	fake.recordInvocation("Clone", []interface{}{})
@@ -116,10 +114,10 @@ func (fake *UpdatableBlockVerifier) CloneReturnsOnCall(i int, result1 delivercli
 	}{result1}
 }
 
-func (fake *UpdatableBlockVerifier) UpdateBlockHeader(arg1 *common.Block) {
+func (fake *UpdatableBlockVerifier) UpdateBlockHeader(arg1 *protocommon.Block) {
 	fake.updateBlockHeaderMutex.Lock()
 	fake.updateBlockHeaderArgsForCall = append(fake.updateBlockHeaderArgsForCall, struct {
-		arg1 *common.Block
+		arg1 *protocommon.Block
 	}{arg1})
 	stub := fake.UpdateBlockHeaderStub
 	fake.recordInvocation("UpdateBlockHeader", []interface{}{arg1})
@@ -135,24 +133,24 @@ func (fake *UpdatableBlockVerifier) UpdateBlockHeaderCallCount() int {
 	return len(fake.updateBlockHeaderArgsForCall)
 }
 
-func (fake *UpdatableBlockVerifier) UpdateBlockHeaderCalls(stub func(*common.Block)) {
+func (fake *UpdatableBlockVerifier) UpdateBlockHeaderCalls(stub func(*protocommon.Block)) {
 	fake.updateBlockHeaderMutex.Lock()
 	defer fake.updateBlockHeaderMutex.Unlock()
 	fake.UpdateBlockHeaderStub = stub
 }
 
-func (fake *UpdatableBlockVerifier) UpdateBlockHeaderArgsForCall(i int) *common.Block {
+func (fake *UpdatableBlockVerifier) UpdateBlockHeaderArgsForCall(i int) *protocommon.Block {
 	fake.updateBlockHeaderMutex.RLock()
 	defer fake.updateBlockHeaderMutex.RUnlock()
 	argsForCall := fake.updateBlockHeaderArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *UpdatableBlockVerifier) UpdateConfig(arg1 *common.Block) error {
+func (fake *UpdatableBlockVerifier) UpdateConfig(arg1 *protocommon.Block) error {
 	fake.updateConfigMutex.Lock()
 	ret, specificReturn := fake.updateConfigReturnsOnCall[len(fake.updateConfigArgsForCall)]
 	fake.updateConfigArgsForCall = append(fake.updateConfigArgsForCall, struct {
-		arg1 *common.Block
+		arg1 *protocommon.Block
 	}{arg1})
 	stub := fake.UpdateConfigStub
 	fakeReturns := fake.updateConfigReturns
@@ -173,13 +171,13 @@ func (fake *UpdatableBlockVerifier) UpdateConfigCallCount() int {
 	return len(fake.updateConfigArgsForCall)
 }
 
-func (fake *UpdatableBlockVerifier) UpdateConfigCalls(stub func(*common.Block) error) {
+func (fake *UpdatableBlockVerifier) UpdateConfigCalls(stub func(*protocommon.Block) error) {
 	fake.updateConfigMutex.Lock()
 	defer fake.updateConfigMutex.Unlock()
 	fake.UpdateConfigStub = stub
 }
 
-func (fake *UpdatableBlockVerifier) UpdateConfigArgsForCall(i int) *common.Block {
+func (fake *UpdatableBlockVerifier) UpdateConfigArgsForCall(i int) *protocommon.Block {
 	fake.updateConfigMutex.RLock()
 	defer fake.updateConfigMutex.RUnlock()
 	argsForCall := fake.updateConfigArgsForCall[i]
@@ -209,11 +207,11 @@ func (fake *UpdatableBlockVerifier) UpdateConfigReturnsOnCall(i int, result1 err
 	}{result1}
 }
 
-func (fake *UpdatableBlockVerifier) VerifyBlock(arg1 *common.Block) error {
+func (fake *UpdatableBlockVerifier) VerifyBlock(arg1 *protocommon.Block) error {
 	fake.verifyBlockMutex.Lock()
 	ret, specificReturn := fake.verifyBlockReturnsOnCall[len(fake.verifyBlockArgsForCall)]
 	fake.verifyBlockArgsForCall = append(fake.verifyBlockArgsForCall, struct {
-		arg1 *common.Block
+		arg1 *protocommon.Block
 	}{arg1})
 	stub := fake.VerifyBlockStub
 	fakeReturns := fake.verifyBlockReturns
@@ -234,13 +232,13 @@ func (fake *UpdatableBlockVerifier) VerifyBlockCallCount() int {
 	return len(fake.verifyBlockArgsForCall)
 }
 
-func (fake *UpdatableBlockVerifier) VerifyBlockCalls(stub func(*common.Block) error) {
+func (fake *UpdatableBlockVerifier) VerifyBlockCalls(stub func(*protocommon.Block) error) {
 	fake.verifyBlockMutex.Lock()
 	defer fake.verifyBlockMutex.Unlock()
 	fake.VerifyBlockStub = stub
 }
 
-func (fake *UpdatableBlockVerifier) VerifyBlockArgsForCall(i int) *common.Block {
+func (fake *UpdatableBlockVerifier) VerifyBlockArgsForCall(i int) *protocommon.Block {
 	fake.verifyBlockMutex.RLock()
 	defer fake.verifyBlockMutex.RUnlock()
 	argsForCall := fake.verifyBlockArgsForCall[i]
@@ -270,11 +268,11 @@ func (fake *UpdatableBlockVerifier) VerifyBlockReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *UpdatableBlockVerifier) VerifyBlockAttestation(arg1 *common.Block) error {
+func (fake *UpdatableBlockVerifier) VerifyBlockAttestation(arg1 *protocommon.Block) error {
 	fake.verifyBlockAttestationMutex.Lock()
 	ret, specificReturn := fake.verifyBlockAttestationReturnsOnCall[len(fake.verifyBlockAttestationArgsForCall)]
 	fake.verifyBlockAttestationArgsForCall = append(fake.verifyBlockAttestationArgsForCall, struct {
-		arg1 *common.Block
+		arg1 *protocommon.Block
 	}{arg1})
 	stub := fake.VerifyBlockAttestationStub
 	fakeReturns := fake.verifyBlockAttestationReturns
@@ -295,13 +293,13 @@ func (fake *UpdatableBlockVerifier) VerifyBlockAttestationCallCount() int {
 	return len(fake.verifyBlockAttestationArgsForCall)
 }
 
-func (fake *UpdatableBlockVerifier) VerifyBlockAttestationCalls(stub func(*common.Block) error) {
+func (fake *UpdatableBlockVerifier) VerifyBlockAttestationCalls(stub func(*protocommon.Block) error) {
 	fake.verifyBlockAttestationMutex.Lock()
 	defer fake.verifyBlockAttestationMutex.Unlock()
 	fake.VerifyBlockAttestationStub = stub
 }
 
-func (fake *UpdatableBlockVerifier) VerifyBlockAttestationArgsForCall(i int) *common.Block {
+func (fake *UpdatableBlockVerifier) VerifyBlockAttestationArgsForCall(i int) *protocommon.Block {
 	fake.verifyBlockAttestationMutex.RLock()
 	defer fake.verifyBlockAttestationMutex.RUnlock()
 	argsForCall := fake.verifyBlockAttestationArgsForCall[i]

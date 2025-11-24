@@ -12,7 +12,7 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/configtx"
@@ -21,20 +21,20 @@ import (
 
 type CloneableUpdatableBlockVerifier interface {
 	// VerifyBlock checks block integrity and its relation to the chain, and verifies the signatures.
-	VerifyBlock(block *common.Block) error
+	VerifyBlock(block *protocommon.Block) error
 
 	// VerifyBlockAttestation does the same as VerifyBlock, except it assumes block.Data = nil. It therefore does not
 	// compute the block.Data.Hash() and compares it to the block.Header.DataHash. This is used when the orderer
 	// delivers a block with header & metadata only, as an attestation of block existence.
-	VerifyBlockAttestation(block *common.Block) error
+	VerifyBlockAttestation(block *protocommon.Block) error
 
 	// UpdateConfig sets the config by which blocks are verified. It is assumed that this config block had already been
 	// verified using the VerifyBlock method immediately prior to calling this method.
-	UpdateConfig(configBlock *common.Block) error
+	UpdateConfig(configBlock *protocommon.Block) error
 
 	// UpdateBlockHeader saves the last block header that was verified and handled successfully.
 	// This must be called after VerifyBlock and VerifyBlockAttestation and successfully handling the block.
-	UpdateBlockHeader(block *common.Block)
+	UpdateBlockHeader(block *protocommon.Block)
 
 	// Clone makes a copy from the current verifier, a copy that can keep being updated independently.
 	Clone() CloneableUpdatableBlockVerifier
@@ -59,9 +59,9 @@ type BlockVerificationAssistant struct {
 	// The current config block header.
 	// It may be nil if the BlockVerificationAssistant is created from common.Config and not a config block.
 	// After 'UpdateConfig(*common.Block) error' this field is always set.
-	configBlockHeader *common.BlockHeader
+	configBlockHeader *protocommon.BlockHeader
 	// The last block header may include the number only, in case we start from common.Config.
-	lastBlockHeader *common.BlockHeader
+	lastBlockHeader *protocommon.BlockHeader
 	// The last block header hash is given when we start from common.Config, and is computed otherwise.
 	lastBlockHeaderHash []byte
 
@@ -70,7 +70,7 @@ type BlockVerificationAssistant struct {
 
 // NewBlockVerificationAssistant creates a new BlockVerificationAssistant from a config block.
 // This is used in the orderer, where we always have access to the last config block.
-func NewBlockVerificationAssistant(configBlock *common.Block, lastBlock *common.Block, cryptoProvider bccsp.BCCSP, lg *flogging.FabricLogger) (*BlockVerificationAssistant, error) {
+func NewBlockVerificationAssistant(configBlock *protocommon.Block, lastBlock *protocommon.Block, cryptoProvider bccsp.BCCSP, lg *flogging.FabricLogger) (*BlockVerificationAssistant, error) {
 	if configBlock == nil {
 		return nil, errors.Errorf("config block is nil")
 	}
@@ -153,7 +153,7 @@ func NewBlockVerificationAssistant(configBlock *common.Block, lastBlock *common.
 // NewBlockVerificationAssistantFromConfig creates a new BlockVerificationAssistant from a common.Config.
 // This is used in the peer, since when the peer starts from a snapshot we may not have access to the last config-block,
 // only to the config object.
-func NewBlockVerificationAssistantFromConfig(config *common.Config, lastBlockNumber uint64, lastBlockHeaderHash []byte, channelID string, cryptoProvider bccsp.BCCSP, lg *flogging.FabricLogger) (*BlockVerificationAssistant, error) {
+func NewBlockVerificationAssistantFromConfig(config *protocommon.Config, lastBlockNumber uint64, lastBlockHeaderHash []byte, channelID string, cryptoProvider bccsp.BCCSP, lg *flogging.FabricLogger) (*BlockVerificationAssistant, error) {
 	if config == nil {
 		return nil, errors.Errorf("config is nil")
 	}
@@ -166,7 +166,7 @@ func NewBlockVerificationAssistantFromConfig(config *common.Config, lastBlockNum
 		Logger: lg,
 		BCCSP:  cryptoProvider,
 	}
-	verifierFunc, err := bva.VerifierFromConfig(&common.ConfigEnvelope{Config: config}, channelID)
+	verifierFunc, err := bva.VerifierFromConfig(&protocommon.ConfigEnvelope{Config: config}, channelID)
 	if err != nil {
 		return nil, errors.WithMessage(err, "error creating verifier function")
 	}
@@ -175,7 +175,7 @@ func NewBlockVerificationAssistantFromConfig(config *common.Config, lastBlockNum
 		channelID:           channelID,
 		verifierAssembler:   bva,
 		sigVerifierFunc:     verifierFunc,
-		lastBlockHeader:     &common.BlockHeader{Number: lastBlockNumber},
+		lastBlockHeader:     &protocommon.BlockHeader{Number: lastBlockNumber},
 		lastBlockHeaderHash: lastBlockHeaderHash,
 		logger:              lg,
 	}
@@ -198,7 +198,7 @@ func (a *BlockVerificationAssistant) Clone() CloneableUpdatableBlockVerifier {
 
 // UpdateConfig sets the config by which blocks are verified. It is assumed that this config block had already been
 // verified using the VerifyBlock method immediately prior to calling this method.
-func (a *BlockVerificationAssistant) UpdateConfig(configBlock *common.Block) error {
+func (a *BlockVerificationAssistant) UpdateConfig(configBlock *protocommon.Block) error {
 	configTx, err := protoutil.ExtractEnvelope(configBlock, 0)
 	if err != nil {
 		return errors.WithMessage(err, "error extracting envelope")
@@ -241,7 +241,7 @@ func (a *BlockVerificationAssistant) UpdateConfig(configBlock *common.Block) err
 }
 
 // VerifyBlock checks block integrity and its relation to the chain, and verifies the signatures.
-func (a *BlockVerificationAssistant) VerifyBlock(block *common.Block) error {
+func (a *BlockVerificationAssistant) VerifyBlock(block *protocommon.Block) error {
 	if err := a.verifyHeader(block); err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func (a *BlockVerificationAssistant) VerifyBlock(block *common.Block) error {
 // VerifyBlockAttestation does the same as VerifyBlock, except it assumes block.Data = nil. It therefore does not
 // compute the block.Data.Hash() and compare it to the block.Header.DataHash. This is used when the orderer
 // delivers a block with header & metadata only, as an attestation of block existence.
-func (a *BlockVerificationAssistant) VerifyBlockAttestation(block *common.Block) error {
+func (a *BlockVerificationAssistant) VerifyBlockAttestation(block *protocommon.Block) error {
 	if err := a.verifyHeader(block); err != nil {
 		return err
 	}
@@ -296,20 +296,20 @@ func (a *BlockVerificationAssistant) VerifyBlockAttestation(block *common.Block)
 
 // UpdateBlockHeader saves the last block header that was verified and handled successfully.
 // This must be called after VerifyBlock and VerifyBlockAttestation and successfully handling the block.
-func (a *BlockVerificationAssistant) UpdateBlockHeader(block *common.Block) {
+func (a *BlockVerificationAssistant) UpdateBlockHeader(block *protocommon.Block) {
 	a.lastBlockHeader = block.Header
 	a.lastBlockHeaderHash = protoutil.BlockHeaderHash(block.Header)
 }
 
-func (a *BlockVerificationAssistant) verifyMetadata(block *common.Block) error {
-	if block.Metadata == nil || len(block.Metadata.Metadata) < len(common.BlockMetadataIndex_name) {
+func (a *BlockVerificationAssistant) verifyMetadata(block *protocommon.Block) error {
+	if block.Metadata == nil || len(block.Metadata.Metadata) < len(protocommon.BlockMetadataIndex_name) {
 		return errors.Errorf("block with id [%d] on channel [%s] does not have metadata or contains too few entries", block.Header.Number, a.channelID)
 	}
 
 	return nil
 }
 
-func (a *BlockVerificationAssistant) verifyHeader(block *common.Block) error {
+func (a *BlockVerificationAssistant) verifyHeader(block *protocommon.Block) error {
 	if block == nil {
 		return errors.Errorf("block must be different from nil, channel=%s", a.channelID)
 	}

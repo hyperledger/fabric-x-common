@@ -14,9 +14,9 @@ import (
 	"time"
 
 	smartbfttypes "github.com/hyperledger-labs/SmartBFT/pkg/types"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
 
+	"github.com/hyperledger/fabric-x-common/api/protoetcdraft"
+	"github.com/hyperledger/fabric-x-common/api/protosmartbft"
 	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
 	cf "github.com/hyperledger/fabric-x-common/core/config"
@@ -158,18 +158,18 @@ type AnchorPeer struct {
 
 // Orderer contains configuration associated to a channel.
 type Orderer struct {
-	OrdererType      string                   `yaml:"OrdererType"`
-	Addresses        []string                 `yaml:"Addresses"`
-	BatchTimeout     time.Duration            `yaml:"BatchTimeout"`
-	BatchSize        BatchSize                `yaml:"BatchSize"`
-	ConsenterMapping []*Consenter             `yaml:"ConsenterMapping"`
-	EtcdRaft         *etcdraft.ConfigMetadata `yaml:"EtcdRaft"`
-	SmartBFT         *smartbft.Options        `yaml:"SmartBFT"`
-	Arma             *ConsensusMetadata       `yaml:"Arma"`
-	Organizations    []*Organization          `yaml:"Organizations"`
-	MaxChannels      uint64                   `yaml:"MaxChannels"`
-	Capabilities     map[string]bool          `yaml:"Capabilities"`
-	Policies         map[string]*Policy       `yaml:"Policies"`
+	OrdererType      string                        `yaml:"OrdererType"`
+	Addresses        []string                      `yaml:"Addresses"`
+	BatchTimeout     time.Duration                 `yaml:"BatchTimeout"`
+	BatchSize        BatchSize                     `yaml:"BatchSize"`
+	ConsenterMapping []*Consenter                  `yaml:"ConsenterMapping"`
+	EtcdRaft         *protoetcdraft.ConfigMetadata `yaml:"EtcdRaft"`
+	SmartBFT         *protosmartbft.Options        `yaml:"SmartBFT"`
+	Arma             *ConsensusMetadata            `yaml:"Arma"`
+	Organizations    []*Organization               `yaml:"Organizations"`
+	MaxChannels      uint64                        `yaml:"MaxChannels"`
+	Capabilities     map[string]bool               `yaml:"Capabilities"`
+	Policies         map[string]*Policy            `yaml:"Policies"`
 }
 
 // BatchSize contains configuration affecting the size of batches.
@@ -202,8 +202,8 @@ var genesisDefaults = TopLevel{
 			AbsoluteMaxBytes:  10 * 1024 * 1024,
 			PreferredMaxBytes: 2 * 1024 * 1024,
 		},
-		EtcdRaft: &etcdraft.ConfigMetadata{
-			Options: &etcdraft.Options{
+		EtcdRaft: &protoetcdraft.ConfigMetadata{
+			Options: &protoetcdraft.Options{
 				TickInterval:         "500ms",
 				ElectionTick:         10,
 				HeartbeatTick:        1,
@@ -211,7 +211,7 @@ var genesisDefaults = TopLevel{
 				SnapshotIntervalSize: 16 * 1024 * 1024, // 16 MB
 			},
 		},
-		SmartBFT: &smartbft.Options{
+		SmartBFT: &protosmartbft.Options{
 			RequestBatchMaxCount:      smartbfttypes.DefaultConfig.RequestBatchMaxCount,
 			RequestBatchMaxBytes:      smartbfttypes.DefaultConfig.RequestBatchMaxBytes,
 			RequestBatchMaxInterval:   smartbfttypes.DefaultConfig.RequestBatchMaxInterval.String(),

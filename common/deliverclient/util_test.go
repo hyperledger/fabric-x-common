@@ -9,7 +9,7 @@ package deliverclient_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/deliverclient"
@@ -19,7 +19,7 @@ import (
 func TestConfigFromBlockBadInput(t *testing.T) {
 	for _, testCase := range []struct {
 		name          string
-		block         *common.Block
+		block         *protocommon.Block
 		expectedError string
 	}{
 		{
@@ -30,24 +30,24 @@ func TestConfigFromBlockBadInput(t *testing.T) {
 		{
 			name:          "nil block data",
 			expectedError: "empty block",
-			block:         &common.Block{},
+			block:         &protocommon.Block{},
 		},
 		{
 			name:          "no data in block",
 			expectedError: "empty block",
-			block:         &common.Block{Data: &common.BlockData{}},
+			block:         &protocommon.Block{Data: &protocommon.BlockData{}},
 		},
 		{
 			name:          "invalid payload",
 			expectedError: "error unmarshalling Envelope",
-			block:         &common.Block{Data: &common.BlockData{Data: [][]byte{{1, 2, 3}}}},
+			block:         &protocommon.Block{Data: &protocommon.BlockData{Data: [][]byte{{1, 2, 3}}}},
 		},
 		{
 			name:          "bad genesis block",
 			expectedError: "invalid config envelope",
-			block: &common.Block{
-				Header: &common.BlockHeader{}, Data: &common.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
-					Payload: protoutil.MarshalOrPanic(&common.Payload{
+			block: &protocommon.Block{
+				Header: &protocommon.BlockHeader{}, Data: &protocommon.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&protocommon.Envelope{
+					Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
 						Data: []byte{1, 2, 3},
 					}),
 				})}},
@@ -56,23 +56,23 @@ func TestConfigFromBlockBadInput(t *testing.T) {
 		{
 			name:          "invalid envelope in block",
 			expectedError: "error unmarshalling Envelope",
-			block:         &common.Block{Data: &common.BlockData{Data: [][]byte{{1, 2, 3}}}},
+			block:         &protocommon.Block{Data: &protocommon.BlockData{Data: [][]byte{{1, 2, 3}}}},
 		},
 		{
 			name:          "invalid payload in block envelope",
 			expectedError: "error unmarshalling Payload",
-			block: &common.Block{Data: &common.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
+			block: &protocommon.Block{Data: &protocommon.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&protocommon.Envelope{
 				Payload: []byte{1, 2, 3},
 			})}}},
 		},
 		{
 			name:          "invalid channel header",
 			expectedError: "error unmarshalling ChannelHeader",
-			block: &common.Block{
-				Header: &common.BlockHeader{Number: 1},
-				Data: &common.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
-					Payload: protoutil.MarshalOrPanic(&common.Payload{
-						Header: &common.Header{
+			block: &protocommon.Block{
+				Header: &protocommon.BlockHeader{Number: 1},
+				Data: &protocommon.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&protocommon.Envelope{
+					Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
+						Header: &protocommon.Header{
 							ChannelHeader: []byte{1, 2, 3},
 						},
 					}),
@@ -82,14 +82,14 @@ func TestConfigFromBlockBadInput(t *testing.T) {
 		{
 			name:          "invalid config block",
 			expectedError: "invalid config envelope",
-			block: &common.Block{
-				Header: &common.BlockHeader{},
-				Data: &common.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
-					Payload: protoutil.MarshalOrPanic(&common.Payload{
+			block: &protocommon.Block{
+				Header: &protocommon.BlockHeader{},
+				Data: &protocommon.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&protocommon.Envelope{
+					Payload: protoutil.MarshalOrPanic(&protocommon.Payload{
 						Data: []byte{1, 2, 3},
-						Header: &common.Header{
-							ChannelHeader: protoutil.MarshalOrPanic(&common.ChannelHeader{
-								Type: int32(common.HeaderType_CONFIG),
+						Header: &protocommon.Header{
+							ChannelHeader: protoutil.MarshalOrPanic(&protocommon.ChannelHeader{
+								Type: int32(protocommon.HeaderType_CONFIG),
 							}),
 						},
 					}),

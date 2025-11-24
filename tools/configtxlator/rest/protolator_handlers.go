@@ -14,11 +14,12 @@ import (
 	"reflect"
 
 	"github.com/gorilla/mux"
-	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+
+	"github.com/hyperledger/fabric-x-common/protolator"
 )
 
 func getMsgType(r *http.Request) (proto.Message, error) {

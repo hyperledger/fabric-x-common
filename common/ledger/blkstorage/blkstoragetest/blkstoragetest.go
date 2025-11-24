@@ -14,7 +14,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-x-common/api/protocommon"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/blkstorage"
@@ -38,7 +38,7 @@ var (
 // - create a block store using the provided blocks
 // - generate a snapshot from the block store
 // - bootstrap another block store from the snapshot
-func BootstrapBlockstoreFromSnapshot(t *testing.T, ledgerName string, blocks []*common.Block) (*blkstorage.BlockStore, func()) {
+func BootstrapBlockstoreFromSnapshot(t *testing.T, ledgerName string, blocks []*protocommon.Block) (*blkstorage.BlockStore, func()) {
 	require.NotEqual(t, 0, len(blocks))
 
 	testDir := t.TempDir()

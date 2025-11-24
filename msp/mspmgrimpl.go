@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package msp
 
 import (
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
@@ -78,7 +78,7 @@ func (mgr *mspManagerImpl) DeserializeIdentity(serializedID []byte) (Identity, e
 		return nil, errors.New("channel doesn't exist")
 	}
 	// We first deserialize to a SerializedIdentity to get the MSP ID
-	sId := &msp.SerializedIdentity{}
+	sId := &protomsp.SerializedIdentity{}
 	err := proto.Unmarshal(serializedID, sId)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not deserialize a SerializedIdentity")
@@ -100,7 +100,7 @@ func (mgr *mspManagerImpl) DeserializeIdentity(serializedID []byte) (Identity, e
 	}
 }
 
-func (mgr *mspManagerImpl) IsWellFormed(identity *msp.SerializedIdentity) error {
+func (mgr *mspManagerImpl) IsWellFormed(identity *protomsp.SerializedIdentity) error {
 	// Iterate over all the MSPs by their providers, and find at least 1 MSP that can attest
 	// that this identity is well formed
 	for _, mspList := range mgr.mspsByProviders {

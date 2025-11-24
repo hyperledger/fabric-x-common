@@ -4,19 +4,17 @@ package mock
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	common "github.com/hyperledger/fabric-x-common/api/protocommon"
 )
 
 type BlockIterator struct {
 	CloseStub        func()
 	closeMutex       sync.RWMutex
-	closeArgsForCall []struct {
-	}
-	NextStub        func() (*common.Block, common.Status)
-	nextMutex       sync.RWMutex
-	nextArgsForCall []struct {
-	}
-	nextReturns struct {
+	closeArgsForCall []struct{}
+	NextStub         func() (*common.Block, common.Status)
+	nextMutex        sync.RWMutex
+	nextArgsForCall  []struct{}
+	nextReturns      struct {
 		result1 *common.Block
 		result2 common.Status
 	}
@@ -30,8 +28,7 @@ type BlockIterator struct {
 
 func (fake *BlockIterator) Close() {
 	fake.closeMutex.Lock()
-	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
-	}{})
+	fake.closeArgsForCall = append(fake.closeArgsForCall, struct{}{})
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
 	if fake.CloseStub != nil {
@@ -54,8 +51,7 @@ func (fake *BlockIterator) CloseCalls(stub func()) {
 func (fake *BlockIterator) Next() (*common.Block, common.Status) {
 	fake.nextMutex.Lock()
 	ret, specificReturn := fake.nextReturnsOnCall[len(fake.nextArgsForCall)]
-	fake.nextArgsForCall = append(fake.nextArgsForCall, struct {
-	}{})
+	fake.nextArgsForCall = append(fake.nextArgsForCall, struct{}{})
 	fake.recordInvocation("Next", []interface{}{})
 	fake.nextMutex.Unlock()
 	if fake.NextStub != nil {

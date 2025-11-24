@@ -9,7 +9,7 @@ package channelconfig
 import (
 	"testing"
 
-	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	pb "github.com/hyperledger/fabric-x-common/api/protopeer"
 	"github.com/stretchr/testify/require"
 )
 

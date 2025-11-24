@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	fabric_protos_gomsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	fabric_protos_goprotomsp "github.com/hyperledger/fabric-x-common/api/protomsp"
 	mock "github.com/stretchr/testify/mock"
 
 	msp "github.com/hyperledger/fabric-x-common/msp"
@@ -91,11 +91,11 @@ func (_m *Identity) GetOrganizationalUnits() []*msp.OUIdentifier {
 }
 
 // SatisfiesPrincipal provides a mock function with given fields: principal
-func (_m *Identity) SatisfiesPrincipal(principal *fabric_protos_gomsp.MSPPrincipal) error {
+func (_m *Identity) SatisfiesPrincipal(principal *fabric_protos_goprotomsp.MSPPrincipal) error {
 	ret := _m.Called(principal)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*fabric_protos_gomsp.MSPPrincipal) error); ok {
+	if rf, ok := ret.Get(0).(func(*fabric_protos_goprotomsp.MSPPrincipal) error); ok {
 		r0 = rf(principal)
 	} else {
 		r0 = ret.Error(0)
