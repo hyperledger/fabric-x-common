@@ -10,10 +10,10 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/hyperledger/fabric-x-common/protolator/testprotos"
+	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/proto"
 
-	. "github.com/onsi/gomega"
+	"github.com/hyperledger/fabric-x-common/protolator/testprotos"
 )
 
 func extractNestedMsgPlainField(source []byte) string {

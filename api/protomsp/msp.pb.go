@@ -12,11 +12,12 @@
 package protomsp
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	msp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -264,14 +265,17 @@ func file_api_protomsp_msp_proto_rawDescGZIP() []byte {
 	return file_api_protomsp_msp_proto_rawDescData
 }
 
-var file_api_protomsp_msp_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_api_protomsp_msp_proto_goTypes = []interface{}{
-	(*FabricMSPConfig)(nil),         // 0: protoblocktx.FabricMSPConfig
-	(*msp.SigningIdentityInfo)(nil), // 1: msp.SigningIdentityInfo
-	(*msp.FabricOUIdentifier)(nil),  // 2: msp.FabricOUIdentifier
-	(*msp.FabricCryptoConfig)(nil),  // 3: msp.FabricCryptoConfig
-	(*msp.FabricNodeOUs)(nil),       // 4: msp.FabricNodeOUs
-}
+var (
+	file_api_protomsp_msp_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+	file_api_protomsp_msp_proto_goTypes  = []interface{}{
+		(*FabricMSPConfig)(nil),         // 0: protoblocktx.FabricMSPConfig
+		(*msp.SigningIdentityInfo)(nil), // 1: msp.SigningIdentityInfo
+		(*msp.FabricOUIdentifier)(nil),  // 2: msp.FabricOUIdentifier
+		(*msp.FabricCryptoConfig)(nil),  // 3: msp.FabricCryptoConfig
+		(*msp.FabricNodeOUs)(nil),       // 4: msp.FabricNodeOUs
+	}
+)
+
 var file_api_protomsp_msp_proto_depIdxs = []int32{
 	1, // 0: protoblocktx.FabricMSPConfig.signing_identity:type_name -> msp.SigningIdentityInfo
 	2, // 1: protoblocktx.FabricMSPConfig.organizational_unit_identifiers:type_name -> msp.FabricOUIdentifier

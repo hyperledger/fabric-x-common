@@ -14,14 +14,15 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/protoadapt"
+
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/commonext"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/ledger/rwsetext"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/mspext"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/peerext"
-	. "github.com/onsi/gomega"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/protoadapt"
 )
 
 type GenericProtoMessage struct {

@@ -8,7 +8,6 @@ package commonext_test
 
 import (
 	"github.com/hyperledger/fabric-x-common/protolator"
-
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/commonext"
 )
 

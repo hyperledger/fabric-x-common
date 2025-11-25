@@ -22,10 +22,11 @@
 package testprotos
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -631,22 +632,25 @@ func file_protolator_testprotos_sample_proto_rawDescGZIP() []byte {
 	return file_protolator_testprotos_sample_proto_rawDescData
 }
 
-var file_protolator_testprotos_sample_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
-var file_protolator_testprotos_sample_proto_goTypes = []interface{}{
-	(*SimpleMsg)(nil),               // 0: testprotos.SimpleMsg
-	(*NestedMsg)(nil),               // 1: testprotos.NestedMsg
-	(*StaticallyOpaqueMsg)(nil),     // 2: testprotos.StaticallyOpaqueMsg
-	(*VariablyOpaqueMsg)(nil),       // 3: testprotos.VariablyOpaqueMsg
-	(*DynamicMsg)(nil),              // 4: testprotos.DynamicMsg
-	(*ContextlessMsg)(nil),          // 5: testprotos.ContextlessMsg
-	(*UnmarshalableDeepFields)(nil), // 6: testprotos.UnmarshalableDeepFields
-	nil,                             // 7: testprotos.SimpleMsg.MapFieldEntry
-	nil,                             // 8: testprotos.NestedMsg.MapNestedFieldEntry
-	nil,                             // 9: testprotos.StaticallyOpaqueMsg.MapOpaqueFieldEntry
-	nil,                             // 10: testprotos.VariablyOpaqueMsg.MapOpaqueFieldEntry
-	nil,                             // 11: testprotos.DynamicMsg.MapDynamicFieldEntry
-	nil,                             // 12: testprotos.UnmarshalableDeepFields.MapOpaqueFieldEntry
-}
+var (
+	file_protolator_testprotos_sample_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+	file_protolator_testprotos_sample_proto_goTypes  = []interface{}{
+		(*SimpleMsg)(nil),               // 0: testprotos.SimpleMsg
+		(*NestedMsg)(nil),               // 1: testprotos.NestedMsg
+		(*StaticallyOpaqueMsg)(nil),     // 2: testprotos.StaticallyOpaqueMsg
+		(*VariablyOpaqueMsg)(nil),       // 3: testprotos.VariablyOpaqueMsg
+		(*DynamicMsg)(nil),              // 4: testprotos.DynamicMsg
+		(*ContextlessMsg)(nil),          // 5: testprotos.ContextlessMsg
+		(*UnmarshalableDeepFields)(nil), // 6: testprotos.UnmarshalableDeepFields
+		nil,                             // 7: testprotos.SimpleMsg.MapFieldEntry
+		nil,                             // 8: testprotos.NestedMsg.MapNestedFieldEntry
+		nil,                             // 9: testprotos.StaticallyOpaqueMsg.MapOpaqueFieldEntry
+		nil,                             // 10: testprotos.VariablyOpaqueMsg.MapOpaqueFieldEntry
+		nil,                             // 11: testprotos.DynamicMsg.MapDynamicFieldEntry
+		nil,                             // 12: testprotos.UnmarshalableDeepFields.MapOpaqueFieldEntry
+	}
+)
+
 var file_protolator_testprotos_sample_proto_depIdxs = []int32{
 	7,  // 0: testprotos.SimpleMsg.map_field:type_name -> testprotos.SimpleMsg.MapFieldEntry
 	0,  // 1: testprotos.NestedMsg.plain_nested_field:type_name -> testprotos.SimpleMsg

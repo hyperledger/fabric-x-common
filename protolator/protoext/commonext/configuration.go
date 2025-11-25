@@ -9,16 +9,16 @@ package commonext
 import (
 	"fmt"
 
-	protocommon "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/peerext"
-	"google.golang.org/protobuf/proto"
 )
 
 type DynamicChannelGroup struct {
-	*protocommon.ConfigGroup
+	*common.ConfigGroup
 }
 
 func (dcg *DynamicChannelGroup) DynamicMapFields() []string {
@@ -32,7 +32,7 @@ func (dcg *DynamicChannelGroup) Underlying() proto.Message {
 func (dcg *DynamicChannelGroup) DynamicMapFieldProto(name string, key string, base proto.Message) (proto.Message, error) {
 	switch name {
 	case "groups":
-		cg, ok := base.(*protocommon.ConfigGroup)
+		cg, ok := base.(*common.ConfigGroup)
 		if !ok {
 			return nil, fmt.Errorf("ConfigGroup groups can only contain ConfigGroup messages")
 		}
@@ -48,7 +48,7 @@ func (dcg *DynamicChannelGroup) DynamicMapFieldProto(name string, key string, ba
 			return nil, fmt.Errorf("unknown channel group sub-group '%s'", key)
 		}
 	case "values":
-		cv, ok := base.(*protocommon.ConfigValue)
+		cv, ok := base.(*common.ConfigValue)
 		if !ok {
 			return nil, fmt.Errorf("ConfigGroup values can only contain ConfigValue messages")
 		}
@@ -62,7 +62,7 @@ func (dcg *DynamicChannelGroup) DynamicMapFieldProto(name string, key string, ba
 }
 
 type DynamicChannelConfigValue struct {
-	*protocommon.ConfigValue
+	*common.ConfigValue
 	name string
 }
 
@@ -80,22 +80,22 @@ func (dccv *DynamicChannelConfigValue) StaticallyOpaqueFieldProto(name string) (
 	}
 	switch dccv.name {
 	case "HashingAlgorithm":
-		return &protocommon.HashingAlgorithm{}, nil
+		return &common.HashingAlgorithm{}, nil
 	case "BlockDataHashingStructure":
-		return &protocommon.BlockDataHashingStructure{}, nil
+		return &common.BlockDataHashingStructure{}, nil
 	case "OrdererAddresses":
-		return &protocommon.OrdererAddresses{}, nil
+		return &common.OrdererAddresses{}, nil
 	case "Consortium":
-		return &protocommon.Consortium{}, nil
+		return &common.Consortium{}, nil
 	case "Capabilities":
-		return &protocommon.Capabilities{}, nil
+		return &common.Capabilities{}, nil
 	default:
 		return nil, fmt.Errorf("unknown Channel ConfigValue name: %s", dccv.name)
 	}
 }
 
 type DynamicConsortiumsGroup struct {
-	*protocommon.ConfigGroup
+	*common.ConfigGroup
 }
 
 func (dcg *DynamicConsortiumsGroup) Underlying() proto.Message {
@@ -109,7 +109,7 @@ func (dcg *DynamicConsortiumsGroup) DynamicMapFields() []string {
 func (dcg *DynamicConsortiumsGroup) DynamicMapFieldProto(name string, key string, base proto.Message) (proto.Message, error) {
 	switch name {
 	case "groups":
-		cg, ok := base.(*protocommon.ConfigGroup)
+		cg, ok := base.(*common.ConfigGroup)
 		if !ok {
 			return nil, fmt.Errorf("ConfigGroup groups can only contain ConfigGroup messages")
 		}
@@ -125,7 +125,7 @@ func (dcg *DynamicConsortiumsGroup) DynamicMapFieldProto(name string, key string
 }
 
 type DynamicConsortiumGroup struct {
-	*protocommon.ConfigGroup
+	*common.ConfigGroup
 }
 
 func (dcg *DynamicConsortiumGroup) Underlying() proto.Message {
@@ -139,7 +139,7 @@ func (dcg *DynamicConsortiumGroup) DynamicMapFields() []string {
 func (dcg *DynamicConsortiumGroup) DynamicMapFieldProto(name string, key string, base proto.Message) (proto.Message, error) {
 	switch name {
 	case "groups":
-		cg, ok := base.(*protocommon.ConfigGroup)
+		cg, ok := base.(*common.ConfigGroup)
 		if !ok {
 			return nil, fmt.Errorf("ConfigGroup groups can only contain ConfigGroup messages")
 		}
@@ -147,7 +147,7 @@ func (dcg *DynamicConsortiumGroup) DynamicMapFieldProto(name string, key string,
 			ConfigGroup: cg,
 		}, nil
 	case "values":
-		cv, ok := base.(*protocommon.ConfigValue)
+		cv, ok := base.(*common.ConfigValue)
 		if !ok {
 			return nil, fmt.Errorf("ConfigGroup values can only contain ConfigValue messages")
 		}
@@ -162,7 +162,7 @@ func (dcg *DynamicConsortiumGroup) DynamicMapFieldProto(name string, key string,
 }
 
 type DynamicConsortiumConfigValue struct {
-	*protocommon.ConfigValue
+	*common.ConfigValue
 	name string
 }
 
@@ -180,14 +180,14 @@ func (dccv *DynamicConsortiumConfigValue) VariablyOpaqueFieldProto(name string) 
 	}
 	switch dccv.name {
 	case "ChannelCreationPolicy":
-		return &protocommon.Policy{}, nil
+		return &common.Policy{}, nil
 	default:
 		return nil, fmt.Errorf("unknown Consortium ConfigValue name: %s", dccv.name)
 	}
 }
 
 type DynamicConsortiumOrgGroup struct {
-	*protocommon.ConfigGroup
+	*common.ConfigGroup
 }
 
 func (dcg *DynamicConsortiumOrgGroup) Underlying() proto.Message {
@@ -203,7 +203,7 @@ func (dcg *DynamicConsortiumOrgGroup) DynamicMapFieldProto(name string, key stri
 	case "groups":
 		return nil, fmt.Errorf("ConsortiumOrg groups do not support sub groups")
 	case "values":
-		cv, ok := base.(*protocommon.ConfigValue)
+		cv, ok := base.(*common.ConfigValue)
 		if !ok {
 			return nil, fmt.Errorf("ConfigGroup values can only contain ConfigValue messages")
 		}
@@ -218,7 +218,7 @@ func (dcg *DynamicConsortiumOrgGroup) DynamicMapFieldProto(name string, key stri
 }
 
 type DynamicConsortiumOrgConfigValue struct {
-	*protocommon.ConfigValue
+	*common.ConfigValue
 	name string
 }
 
