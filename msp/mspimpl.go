@@ -22,9 +22,10 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
 	m "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 )
 
 // mspSetupFuncType is the prototype of the setup function
@@ -280,6 +281,7 @@ func (msp *bccspmsp) Setup(conf1 *m.MSPConfig) error {
 	return msp.internalSetupFunc(conf)
 }
 
+//nolint:ireturn //Identity is an interface.
 func (msp *bccspmsp) GetKnownDeserializedIdentity(i IdentityIdentifier) Identity {
 	return msp.knownIdentites[i]
 }

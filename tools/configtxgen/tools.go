@@ -11,14 +11,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cockroachdb/errors"
+	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/peerext"
-	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/pkg/errors"
-
-	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 

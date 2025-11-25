@@ -74,7 +74,10 @@ func (i *idemixMSPWrapper) DeserializeIdentity(serializedIdentity []byte) (Ident
 	return &idemixIdentityWrapper{id.(*idemix.Idemixidentity)}, nil
 }
 
-func (i *idemixMSPWrapper) GetKnownDeserializedIdentity(IdentityIdentifier) Identity {
+// GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
+//
+//nolint:ireturn //Identity is an interface.
+func (*idemixMSPWrapper) GetKnownDeserializedIdentity(IdentityIdentifier) Identity {
 	return nil
 }
 

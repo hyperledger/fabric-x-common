@@ -28,7 +28,10 @@ func (m *MockMSP) DeserializeIdentity(serializedIdentity []byte) (msp.Identity, 
 	return args.Get(0).(msp.Identity), args.Error(1)
 }
 
-func (m *MockMSP) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity {
+// GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
+//
+//nolint:ireturn //Identity is an interface.
+func (*MockMSP) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity {
 	return nil
 }
 

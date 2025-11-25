@@ -17,9 +17,10 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
 	m "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 )
 
 func (msp *bccspmsp) getCertifiersIdentifier(certRaw []byte) ([]byte, error) {
@@ -296,6 +297,7 @@ func (msp *bccspmsp) finalizeSetupCAs() error {
 	return nil
 }
 
+//nolint:gocognit //FIX: need to refactor setupNodeOUs to reduce the complexity.
 func (msp *bccspmsp) setupNodeOUs(config *protomsp.FabricMSPConfig) error {
 	if config.FabricNodeOus != nil {
 
@@ -328,7 +330,6 @@ func (msp *bccspmsp) setupNodeOUs(config *protomsp.FabricMSPConfig) error {
 			}
 			msp.peerOU.CertifiersIdentifier = certifiersIdentifier
 		}
-
 	} else {
 		msp.ouEnforcement = false
 	}
@@ -336,6 +337,7 @@ func (msp *bccspmsp) setupNodeOUs(config *protomsp.FabricMSPConfig) error {
 	return nil
 }
 
+//nolint:gocognit //FIX: need to refactor setupNodeOUs to reduce the complexity.
 func (msp *bccspmsp) setupNodeOUsV142(config *protomsp.FabricMSPConfig) error {
 	if config.FabricNodeOus == nil {
 		msp.ouEnforcement = false
@@ -635,7 +637,7 @@ func (msp *bccspmsp) preSetupV142(conf *protomsp.FabricMSPConfig) error {
 	return nil
 }
 
-func (msp *bccspmsp) postSetupV1(conf *protomsp.FabricMSPConfig) error {
+func (msp *bccspmsp) postSetupV1(*protomsp.FabricMSPConfig) error {
 	// make sure that admins are valid members as well
 	// this way, when we validate an admin MSP principal
 	// we can simply check for exact match of certs

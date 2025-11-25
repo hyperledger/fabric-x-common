@@ -12,13 +12,14 @@ import (
 	"path/filepath"
 
 	"github.com/IBM/idemix"
+	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
-	"github.com/pkg/errors"
 	"go.yaml.in/yaml/v3"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 )
 
 // OrganizationalUnitIdentifiersConfiguration is used to represent an OU

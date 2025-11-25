@@ -39,7 +39,10 @@ func (*MockIdentityDeserializer) IsWellFormed(_ *mb.SerializedIdentity) error {
 	return nil
 }
 
-func (*MockIdentityDeserializer) GetKnownDeserializedIdentity(i msp.IdentityIdentifier) msp.Identity {
+// GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
+//
+//nolint:ireturn //Identity is an interface.
+func (*MockIdentityDeserializer) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity {
 	return nil
 }
 
