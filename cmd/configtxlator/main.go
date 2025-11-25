@@ -17,7 +17,7 @@ import (
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/gorilla/handlers"
-	"github.com/hyperledger/fabric-config/protolator"
+	"github.com/hyperledger/fabric-x-common/protolator"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/orderer"

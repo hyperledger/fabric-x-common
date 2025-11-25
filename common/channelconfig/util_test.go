@@ -12,13 +12,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mspprotos "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -298,7 +298,6 @@ func TestValidateCapabilities(t *testing.T) {
 }
 
 func TestExtractMSPIDsForApplicationOrgs(t *testing.T) {
-	t.Skip()
 	// load test_configblock.json that contains the application group
 	// and other properties needed to build channel config and extract MSPIDs
 	blockData, err := os.ReadFile("testdata/test_configblock.json")

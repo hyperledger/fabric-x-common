@@ -11,9 +11,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hyperledger/fabric-config/protolator"
-	"github.com/hyperledger/fabric-config/protolator/protoext/ordererext"
-	"github.com/hyperledger/fabric-config/protolator/protoext/peerext"
+	"github.com/hyperledger/fabric-x-common/protolator"
+	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
+	"github.com/hyperledger/fabric-x-common/protolator/protoext/peerext"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/pkg/errors"
