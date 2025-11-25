@@ -211,6 +211,19 @@ func TestGetIdentities(t *testing.T) {
 	}
 }
 
+func TestGetKnownIdentities(t *testing.T) {
+	t.Parallel()
+	mspDir := configtest.GetDevMspDir()
+	knowncerts, err := getPemMaterialFromDir(filepath.Join(mspDir, knowncerts))
+	require.NoError(t, err)
+	for _, c := range knowncerts {
+		id, _, err := localMsp.(*bccspmsp).getIdentityFromConf(c)
+		require.NoError(t, err)
+		knownID := localMsp.GetKnownDeserializedIdentity(IdentityIdentifier{Mspid: "SampleOrg", Id: id.GetIdentifier().Id})
+		require.Equal(t, knownID.GetIdentifier(), id.GetIdentifier())
+	}
+}
+
 func TestDeserializeIdentityFails(t *testing.T) {
 	_, err := localMsp.DeserializeIdentity([]byte("barf"))
 	require.Error(t, err)
