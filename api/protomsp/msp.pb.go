@@ -82,7 +82,8 @@ type FabricMSPConfig struct {
 	// fabric_node_ous contains the configuration to distinguish clients from peers from orderers
 	// based on the OUs.
 	FabricNodeOus *msp.FabricNodeOUs `protobuf:"bytes,11,opt,name=fabric_node_ous,json=fabricNodeOus,proto3" json:"fabric_node_ous,omitempty"`
-	KnownCerts    [][]byte           `protobuf:"bytes,12,rep,name=known_certs,json=knownCerts,proto3" json:"known_certs,omitempty"`
+	// List of known certificates of this MSP.
+	KnownCerts [][]byte `protobuf:"bytes,12,rep,name=known_certs,json=knownCerts,proto3" json:"known_certs,omitempty"`
 }
 
 func (x *FabricMSPConfig) Reset() {

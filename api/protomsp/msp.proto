@@ -75,5 +75,6 @@ message FabricMSPConfig {
     // based on the OUs.
     msp.FabricNodeOUs fabric_node_ous = 11;
 
+    // List of known certificates of this MSP.
     repeated bytes known_certs = 12;
 }

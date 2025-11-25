@@ -20,6 +20,7 @@ type IdentityDeserializer interface {
 	// the deserialization.
 	DeserializeIdentity(serializedIdentity []byte) (Identity, error)
 
+	// GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
 	GetKnownDeserializedIdentity(IdentityIdentifier) Identity
 
 	// IsWellFormed checks if the given identity can be deserialized into its provider-specific form
