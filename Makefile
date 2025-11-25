@@ -69,3 +69,38 @@ lint: FORCE
 # then make imagines this target to have been updated whenever its rule is run.
 # This implies that all targets depending on this one will always have their recipe run.
 FORCE:
+
+#########################
+# Generate protos
+#########################
+
+PROTO_TARGETS ?= $(shell find ./api \
+	 -name '*.proto' -print0 | \
+	 xargs -0 -n 1 dirname | xargs -n 1 basename | \
+	 sort -u | sed -e "s/^proto/proto-/" \
+)
+
+BUILD_DIR := .build
+PROTOS_REPO := https://github.com/hyperledger/fabric-protos.git
+PROTOS_DIR := $(BUILD_DIR)/fabric-protos
+# We depend on this specific file to ensure the repo is actually cloned
+PROTOS_SENTINEL := $(PROTOS_DIR)/.git
+
+proto: $(PROTOS_SENTINEL)
+	@echo "==> Compiling protos..."
+	protoc \
+		-I=. \
+		-I=$(PROTOS_DIR) \
+		--go_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
+		--go-grpc_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		--go_out=paths=source_relative:. \
+		./api/proto*/*.proto
+
+$(PROTOS_SENTINEL):
+	@mkdir -p $(BUILD_DIR)
+	@rm -rf $(PROTOS_DIR) # Ensure we start fresh if re-cloning
+	git clone --depth 1 $(PROTOS_REPO) $(PROTOS_DIR)
+
+clean-deps:
+	rm -rf $(PROTOS_DIR)

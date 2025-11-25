@@ -74,6 +74,10 @@ func (i *idemixMSPWrapper) DeserializeIdentity(serializedIdentity []byte) (Ident
 	return &idemixIdentityWrapper{id.(*idemix.Idemixidentity)}, nil
 }
 
+func (i *idemixMSPWrapper) GetKnownDeserializedIdentity(IdentityIdentifier) Identity {
+	return nil
+}
+
 func (i *idemixMSPWrapper) GetVersion() MSPVersion {
 	return MSPVersion(i.Idemixmsp.GetVersion())
 }

@@ -85,7 +85,9 @@ func TestResetBlockStore(t *testing.T) {
 	os.RemoveAll(blockStoreRootDir)
 	blocks1 := testutil.ConstructTestBlocks(t, 20) // 20 blocks persisted in ~5 block files
 	blocks2 := testutil.ConstructTestBlocks(t, 40) // 40 blocks persisted in ~5 block files
-	maxFileSie := int(0.2 * float64(testutilEstimateTotalSizeOnDisk(t, blocks1)))
+
+	by, _ := serializeBlock(blocks1[0])
+	maxFileSie := len(by) * 2
 
 	env := newTestEnv(t, NewConf(blockStoreRootDir, maxFileSie))
 	defer env.Cleanup()

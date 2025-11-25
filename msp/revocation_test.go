@@ -26,6 +26,7 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
@@ -60,8 +61,8 @@ func TestRevocation(t *testing.T) {
 		require.NoError(t, err)
 
 		// Unmarshal the config
-		var mspConfig msp.FabricMSPConfig
-		err = proto.Unmarshal(conf.Config, &mspConfig)
+		mspConfig := &protomsp.FabricMSPConfig{}
+		err = proto.Unmarshal(conf.GetConfig(), mspConfig)
 		require.NoError(t, err)
 		require.Len(t, mspConfig.RevocationList, 1)
 		crl, err := x509.ParseCRL(mspConfig.RevocationList[0])
@@ -85,7 +86,7 @@ func TestRevocation(t *testing.T) {
 		mspConfig.RevocationList[0] = pem.EncodeToMemory(&pem.Block{Type: "X509 CRL", Bytes: crlBytes})
 
 		// Remarshal the configuration
-		conf.Config, err = proto.Marshal(&mspConfig)
+		conf.Config, err = proto.Marshal(mspConfig)
 		require.NoError(t, err)
 
 		ks, err := sw.NewFileBasedKeyStore(nil, filepath.Join("testdata/revocation", "keystore"), true)
