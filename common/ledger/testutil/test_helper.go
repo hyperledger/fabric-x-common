@@ -13,19 +13,17 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/configtx/test"
 	"github.com/hyperledger/fabric-x-common/common/crypto"
-	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil/fakes"
 	"github.com/hyperledger/fabric-x-common/msp"
 	mspmgmt "github.com/hyperledger/fabric-x-common/msp/mgmt"
 	msptesttools "github.com/hyperledger/fabric-x-common/msp/mgmt/testtools"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 )
 
 var signer msp.SigningIdentity

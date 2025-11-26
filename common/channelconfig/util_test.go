@@ -12,7 +12,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mspprotos "github.com/hyperledger/fabric-protos-go-apiv2/msp"
@@ -23,6 +22,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/capabilities"
+	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 

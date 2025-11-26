@@ -112,3 +112,13 @@ func (mgr *mspManagerImpl) IsWellFormed(identity *msp.SerializedIdentity) error 
 	}
 	return errors.New("no MSP provider recognizes the identity")
 }
+
+//nolint:ireturn //Identity is an interface.
+func (mgr *mspManagerImpl) GetKnownDeserializedIdentity(i IdentityIdentifier) Identity {
+	m := mgr.mspsMap[i.Mspid]
+	if m == nil {
+		return nil
+	}
+
+	return m.GetKnownDeserializedIdentity(i)
+}

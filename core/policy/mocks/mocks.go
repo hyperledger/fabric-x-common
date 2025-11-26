@@ -75,6 +75,13 @@ func (d *MockIdentityDeserializer) DeserializeIdentity(serializedIdentity []byte
 	return nil, errors.New("Invalid Identity")
 }
 
+// GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
+func (*MockIdentityDeserializer) GetKnownDeserializedIdentity( //nolint:ireturn //Identity is an interface.
+	msp.IdentityIdentifier,
+) msp.Identity {
+	return nil
+}
+
 func (d *MockIdentityDeserializer) IsWellFormed(_ *mspproto.SerializedIdentity) error {
 	return nil
 }

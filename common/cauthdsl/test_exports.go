@@ -39,6 +39,13 @@ func (*MockIdentityDeserializer) IsWellFormed(_ *mb.SerializedIdentity) error {
 	return nil
 }
 
+// GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
+//
+//nolint:ireturn //Identity is an interface.
+func (*MockIdentityDeserializer) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity {
+	return nil
+}
+
 // MockIdentity interface defining operations associated to a "certificate".
 type MockIdentity struct {
 	IDBytes []byte

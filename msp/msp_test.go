@@ -34,6 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
@@ -102,16 +103,16 @@ func TestMSPSetupNoCryptoConf(t *testing.T) {
 		os.Exit(-1)
 	}
 
-	mspconf := &msp.FabricMSPConfig{}
-	err = proto.Unmarshal(conf.Config, mspconf)
+	fxMSPConf := &protomsp.FabricMSPConfig{}
+	err = proto.Unmarshal(conf.Config, fxMSPConf)
 	require.NoError(t, err)
 
 	// here we test the case of an MSP configuration
 	// where the hash function to be used to obtain
 	// the identity identifier is unspecified - a
 	// sane default should be picked
-	mspconf.CryptoConfig.IdentityIdentifierHashFunction = ""
-	b, err := proto.Marshal(mspconf)
+	fxMSPConf.CryptoConfig.IdentityIdentifierHashFunction = ""
+	b, err := proto.Marshal(fxMSPConf)
 	require.NoError(t, err)
 	conf.Config = b
 	newmsp, err := newBccspMsp(MSPv1_0, factory.GetDefault())
@@ -123,8 +124,8 @@ func TestMSPSetupNoCryptoConf(t *testing.T) {
 	// where the hash function to be used to compute
 	// signatures is unspecified - a sane default
 	// should be picked
-	mspconf.CryptoConfig.SignatureHashFamily = ""
-	b, err = proto.Marshal(mspconf)
+	fxMSPConf.CryptoConfig.SignatureHashFamily = ""
+	b, err = proto.Marshal(fxMSPConf)
 	require.NoError(t, err)
 	conf.Config = b
 	newmsp, err = newBccspMsp(MSPv1_0, factory.GetDefault())
@@ -135,8 +136,8 @@ func TestMSPSetupNoCryptoConf(t *testing.T) {
 	// here we test the case of an MSP configuration
 	// that has NO crypto configuration specified;
 	// the code will use appropriate defaults
-	mspconf.CryptoConfig = nil
-	b, err = proto.Marshal(mspconf)
+	fxMSPConf.CryptoConfig = nil
+	b, err = proto.Marshal(fxMSPConf)
 	require.NoError(t, err)
 	conf.Config = b
 	newmsp, err = newBccspMsp(MSPv1_0, factory.GetDefault())
@@ -207,6 +208,23 @@ func TestGetIdentities(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetDefaultSigningIdentity failed with err %s", err)
 		return
+	}
+}
+
+func TestGetKnownIdentities(t *testing.T) {
+	t.Parallel()
+	mspDir := configtest.GetDevMspDir()
+	knowncerts, err := getPemMaterialFromDir(filepath.Join(mspDir, knowncerts))
+	require.NoError(t, err)
+	for _, c := range knowncerts {
+		m, ok := localMsp.(*bccspmsp)
+		require.True(t, ok)
+		id, _, err := m.getIdentityFromConf(c)
+		require.NoError(t, err)
+		knownID := localMsp.GetKnownDeserializedIdentity(IdentityIdentifier{
+			Mspid: "SampleOrg", Id: id.GetIdentifier().Id,
+		})
+		require.Equal(t, knownID.GetIdentifier(), id.GetIdentifier())
 	}
 }
 
@@ -419,7 +437,7 @@ func TestValidateCANameConstraintsMitigation(t *testing.T) {
 	})
 
 	t.Run("ValidationAtSetup", func(t *testing.T) {
-		fabricMSPConfig := &msp.FabricMSPConfig{
+		fabricXMSPConfig := &protomsp.FabricMSPConfig{
 			Name:      "ConstraintsMSP",
 			RootCerts: [][]byte{caCertPem},
 			SigningIdentity: &msp.SigningIdentityInfo{
@@ -431,7 +449,7 @@ func TestValidateCANameConstraintsMitigation(t *testing.T) {
 			},
 		}
 		mspConfig := &msp.MSPConfig{
-			Config: protoutil.MarshalOrPanic(fabricMSPConfig),
+			Config: protoutil.MarshalOrPanic(fabricXMSPConfig),
 		}
 
 		ks, err := sw.NewFileBasedKeyStore(nil, filepath.Join(configtest.GetDevMspDir(), "keystore"), true)

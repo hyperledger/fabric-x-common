@@ -20,9 +20,10 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/signer"
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/onsi/gomega"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/onsi/gomega"
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 )
 
 var (
@@ -177,7 +178,7 @@ func TestIdentityValidation(t *testing.T) {
 		}
 
 		mspImpl.(*bccspmsp).cryptoConfig = cryptoConfig
-		mspConfigBytes, _ := proto.Marshal(&msp.FabricMSPConfig{
+		mspConfigBytes, _ := proto.Marshal(&protomsp.FabricMSPConfig{
 			RootCerts: [][]byte{[]byte(caCertPem)},
 			Admins:    [][]byte{[]byte(ecdsaCertPem)},
 		})

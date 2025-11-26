@@ -37,6 +37,10 @@ func (_m *IdentityDeserializer) DeserializeIdentity(serializedIdentity []byte) (
 	return r0, r1
 }
 
+func (_m *IdentityDeserializer) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity {
+	return nil
+}
+
 // IsWellFormed provides a mock function with given fields: identity
 func (_m *IdentityDeserializer) IsWellFormed(identity *fabric_protos_gomsp.SerializedIdentity) error {
 	ret := _m.Called(identity)

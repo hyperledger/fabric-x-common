@@ -16,20 +16,20 @@ import (
 	"runtime"
 
 	"github.com/alecthomas/kingpin/v2"
+	"github.com/cockroachdb/errors"
 	"github.com/gorilla/handlers"
-	"github.com/hyperledger/fabric-config/protolator"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	"github.com/hyperledger/fabric-x-common/common/metadata"
 	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/tools/configtxlator/rest"
 	"github.com/hyperledger/fabric-x-common/tools/configtxlator/update"
 )

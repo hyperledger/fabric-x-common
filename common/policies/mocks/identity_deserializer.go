@@ -61,6 +61,10 @@ func (fake *IdentityDeserializer) DeserializeIdentity(arg1 []byte) (msp.Identity
 	return fakeReturns.result1, fakeReturns.result2
 }
 
+func (fake *IdentityDeserializer) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity {
+	return nil
+}
+
 func (fake *IdentityDeserializer) DeserializeIdentityCallCount() int {
 	fake.deserializeIdentityMutex.RLock()
 	defer fake.deserializeIdentityMutex.RUnlock()
