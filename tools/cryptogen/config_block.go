@@ -28,6 +28,7 @@ type ConfigBlockParameters struct {
 	ChannelID     string
 	ArmaPath      string
 	Organizations []OrganizationParameters
+	Namespaces    []string
 }
 
 // OrganizationParameters represents the properties of an organization.
@@ -132,7 +133,21 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 	}
 
 	// We generate a fake organization for the meta namespace.
-	metaSpec := OrgSpec{Name: metaNamespaceOrg, Domain: metaNamespaceOrg}
+	// The admin user will be used as the meta-namespace key.
+	// We create a user for each namespace to be used as its key.
+	metaSpec := OrgSpec{
+		Name:   metaNamespaceOrg,
+		Domain: metaNamespaceOrg,
+		Users: UsersSpec{
+			Specs: make([]UserSpec, len(conf.Namespaces)),
+		},
+	}
+	for i, ns := range conf.Namespaces {
+		metaSpec.Users.Specs[i] = UserSpec{
+			Name: ns,
+		}
+	}
+
 	cryptoConf.GenericOrgs = append(cryptoConf.GenericOrgs, metaSpec)
 	profile.Application.MetaNamespaceVerificationKeyPath = path.Join(
 		GenericOrganizationsDir, metaNamespaceOrg, MSPDir, AdminCertsDir,
