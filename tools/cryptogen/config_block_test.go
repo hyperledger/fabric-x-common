@@ -35,6 +35,7 @@ func TestMakeConfig(t *testing.T) {
 	block, err := CreateDefaultConfigBlockWithCrypto(ConfigBlockParameters{
 		TargetPath: target,
 		ChannelID:  chanName,
+		Namespaces: []string{"ns-1", "ns-2"},
 		Organizations: []OrganizationParameters{
 			{ // Joint org with two ordering parties.
 				Name:   "org-1",
@@ -99,7 +100,12 @@ func TestMakeConfig(t *testing.T) {
 
 	t.Log(test.GetTree(t, target))
 
-	var expectedDirs []string //nolint:prealloc // Hard to estimate size.
+	expectedDirs := []string{
+		filepath.Join(GenericOrganizationsDir, "meta-namespace", "msp"),
+		filepath.Join(GenericOrganizationsDir, "meta-namespace", "users", "Admin@meta-namespace"),
+		filepath.Join(GenericOrganizationsDir, "meta-namespace", "users", "ns-1@meta-namespace"),
+		filepath.Join(GenericOrganizationsDir, "meta-namespace", "users", "ns-2@meta-namespace"),
+	}
 
 	org1Dir := filepath.Join(GenericOrganizationsDir, "org-1")
 	org2Dir := filepath.Join(OrdererOrganizationsDir, "org-2")
