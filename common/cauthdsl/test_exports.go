@@ -21,7 +21,8 @@ var InvalidSignature = []byte("badsigned")
 
 // MockIdentityDeserializer is implemented by both MSPManger and MSP.
 type MockIdentityDeserializer struct {
-	Fail error
+	Fail            error
+	KnownIdentities map[msp.IdentityIdentifier]msp.Identity
 }
 
 // DeserializeIdentity deserializes an identity.
@@ -42,12 +43,16 @@ func (*MockIdentityDeserializer) IsWellFormed(_ *mb.SerializedIdentity) error {
 // GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
 //
 //nolint:ireturn //Identity is an interface.
-func (*MockIdentityDeserializer) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity {
-	return nil
+func (md *MockIdentityDeserializer) GetKnownDeserializedIdentity(id msp.IdentityIdentifier) msp.Identity {
+	if md.KnownIdentities == nil {
+		return nil
+	}
+	return md.KnownIdentities[id]
 }
 
 // MockIdentity interface defining operations associated to a "certificate".
 type MockIdentity struct {
+	MspID   string
 	IDBytes []byte
 }
 
@@ -102,7 +107,7 @@ func (*MockIdentity) Verify(_, sig []byte) error {
 
 // Serialize converts an identity to bytes.
 func (id *MockIdentity) Serialize() ([]byte, error) {
-	return id.IDBytes, nil
+	return msp.NewSerializedIdentity(id.MspID, id.IDBytes)
 }
 
 // ToIdentities convert serialized identities to msp Identity.
