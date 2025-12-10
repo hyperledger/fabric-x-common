@@ -8,6 +8,7 @@ package cryptogen
 
 import (
 	"net"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -23,11 +24,12 @@ import (
 
 // ConfigBlockParameters represents the configuration of the config block.
 type ConfigBlockParameters struct {
-	TargetPath    string
-	BaseProfile   string
-	ChannelID     string
-	ArmaPath      string
-	Organizations []OrganizationParameters
+	TargetPath                   string
+	BaseProfile                  string
+	ChannelID                    string
+	Organizations                []OrganizationParameters
+	MetaNamespaceVerificationKey []byte
+	ArmaMetaBytes                []byte
 }
 
 // OrganizationParameters represents the properties of an organization.
@@ -54,7 +56,10 @@ type OrdererEndpoint struct {
 	API     []string
 }
 
-const metaNamespaceOrg = "meta-namespace"
+const (
+	metaNamespaceFile = "meta-namespace-cert.pem"
+	armaDataFile      = "arma.pb.bin"
+)
 
 // LoadSampleConfig returns the orderer/application config combination that corresponds to
 // a given profile.
@@ -97,8 +102,6 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 		return nil, errors.Errorf("no orderer organizations in selected profile: %s", conf.BaseProfile)
 	}
 
-	profile.Orderer.Arma.Path = conf.ArmaPath
-
 	sourceOrg := *profile.Orderer.Organizations[0]
 
 	profile.Consortiums = nil
@@ -131,13 +134,16 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 		}
 	}
 
-	// We generate a fake organization for the meta namespace.
-	metaSpec := OrgSpec{Name: metaNamespaceOrg, Domain: metaNamespaceOrg}
-	cryptoConf.GenericOrgs = append(cryptoConf.GenericOrgs, metaSpec)
-	profile.Application.MetaNamespaceVerificationKeyPath = path.Join(
-		GenericOrganizationsDir, metaNamespaceOrg, MSPDir, AdminCertsDir,
-		adminUserName(metaNamespaceOrg)+CertSuffix,
-	)
+	err = os.WriteFile(path.Join(conf.TargetPath, metaNamespaceFile), conf.MetaNamespaceVerificationKey, 0o644)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to write meta namespace file")
+	}
+	profile.Application.MetaNamespaceVerificationKeyPath = metaNamespaceFile
+	err = os.WriteFile(path.Join(conf.TargetPath, armaDataFile), conf.ArmaMetaBytes, 0o644)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to write ARMA data file")
+	}
+	profile.Orderer.Arma.Path = armaDataFile
 
 	err = Generate(conf.TargetPath, cryptoConf)
 	if err != nil {

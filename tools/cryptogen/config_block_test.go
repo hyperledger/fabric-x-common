@@ -7,7 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package cryptogen
 
 import (
-	"os"
+	"crypto/x509"
+	"encoding/pem"
 	"path"
 	"path/filepath"
 	"testing"
@@ -27,10 +28,13 @@ func TestMakeConfig(t *testing.T) {
 	target := t.TempDir()
 
 	armaData := []byte("fake-arma-data")
-	armaFileName := "arma.data"
-	err := os.WriteFile(filepath.Join(target, armaFileName), armaData, 0o650)
-	require.NoError(t, err)
 	chanName := "my-chan"
+
+	key, err := generatePrivateKey(target, ECDSA)
+	require.NoError(t, err)
+	certBytes, err := x509.MarshalPKIXPublicKey(getPublicKey(key))
+	require.NoError(t, err)
+	metaKeyBytes := pem.EncodeToMemory(&pem.Block{Type: CertType, Bytes: certBytes})
 
 	block, err := CreateDefaultConfigBlockWithCrypto(ConfigBlockParameters{
 		TargetPath: target,
@@ -93,7 +97,8 @@ func TestMakeConfig(t *testing.T) {
 				},
 			},
 		},
-		ArmaPath: armaFileName,
+		ArmaMetaBytes:                armaData,
+		MetaNamespaceVerificationKey: metaKeyBytes,
 	})
 	require.NoError(t, err)
 
