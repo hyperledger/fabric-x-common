@@ -30,6 +30,7 @@ type mspTree struct {
 	KeyStore   string
 	AdminCerts string
 	SignCerts  string
+	KnownCerts string
 }
 
 // nodeParameters are used as parameters for the generating methods.
@@ -52,6 +53,7 @@ const (
 	KeyStoreDir   = "keystore"
 	AdminCertsDir = "admincerts"
 	SignCertsDir  = "signcerts"
+	KnownCertsDir = "knowncerts"
 )
 
 // Files.
@@ -82,6 +84,7 @@ func newMspTree(root string) *mspTree {
 		KeyStore:   path.Join(mspDir, KeyStoreDir),
 		AdminCerts: path.Join(mspDir, AdminCertsDir),
 		SignCerts:  path.Join(mspDir, SignCertsDir),
+		KnownCerts: path.Join(mspDir, KnownCertsDir),
 	}
 }
 
@@ -93,6 +96,8 @@ func (t *mspTree) isExist() bool {
 
 // generateLocalMSP generates a local MSP.
 func (t *mspTree) generateLocalMSP(p nodeParameters) error {
+	// Known-certs are not applicable to the local MSP.
+	defer removeAllFolders(t.KnownCerts)
 	err := t.generateMsp(p)
 	if err != nil {
 		return err
@@ -102,19 +107,16 @@ func (t *mspTree) generateLocalMSP(p nodeParameters) error {
 
 // generateVerifyingMSP generates a verifying MSP.
 func (t *mspTree) generateVerifyingMSP(p nodeParameters) error {
-	defer func() {
-		// We remove the local MSP folders.
-		for _, dir := range []string{t.KeyStore, t.SignCerts} {
-			_ = os.RemoveAll(dir)
-		}
-	}()
+	// Key-store and sign-certificates are not applicable to the verifying MSP.
+	defer removeAllFolders(t.KeyStore, t.SignCerts)
 	p.Name = p.SignCa.Name
 	return t.generateMsp(p)
 }
 
 // generateMsp generates a generic MSP.
 func (t *mspTree) generateMsp(p nodeParameters) error {
-	err := createAllFolders([]string{t.CaCerts, t.TLSCaCerts, t.AdminCerts, t.KeyStore, t.SignCerts})
+	// Note: "admincerts" and "knowncerts" are populated by the caller.
+	err := createAllFolders(t.CaCerts, t.TLSCaCerts, t.AdminCerts, t.KeyStore, t.SignCerts, t.KnownCerts)
 	if err != nil {
 		return err
 	}
@@ -157,10 +159,9 @@ func (t *mspTree) generateMsp(p nodeParameters) error {
 		// the signing identity goes into admincerts.
 		// This means that the signing identity
 		// of this MSP is also an admin of this MSP
-		// NOTE: the admincerts folder is going to be
-		// cleared up anyway by copyAdminCert, but
-		// we leave a valid admin for now for the sake
-		// of unit tests.
+		// NOTE: For an organization verifying MSP, the admincerts folder
+		// is going to be cleared up and be overwritten with its admin user folder.
+		// However, we leave it for now for the sake of unit tests.
 		err = writeCert(x509FilePath(t.AdminCerts, p.Name), cert)
 		if err != nil {
 			return err
@@ -172,7 +173,7 @@ func (t *mspTree) generateMsp(p nodeParameters) error {
 
 // generateTLS generates the TLS artifacts in the TLS folder.
 func (t *mspTree) generateTLS(p nodeParameters) error {
-	err := createAllFolders([]string{t.TLS})
+	err := createAllFolders(t.TLS)
 	if err != nil {
 		return err
 	}
@@ -270,7 +271,7 @@ func exportConfig(mspDir, caFile string, enable bool) error {
 	return errors.Wrap(err, "failed to write configuration file")
 }
 
-func createAllFolders(folders []string) error {
+func createAllFolders(folders ...string) error {
 	for _, folder := range folders {
 		err := os.MkdirAll(folder, 0o750)
 		if err != nil {
@@ -278,4 +279,10 @@ func createAllFolders(folders []string) error {
 		}
 	}
 	return nil
+}
+
+func removeAllFolders(folders ...string) {
+	for _, dir := range folders {
+		_ = os.RemoveAll(dir)
+	}
 }

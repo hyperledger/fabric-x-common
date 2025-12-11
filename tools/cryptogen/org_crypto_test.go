@@ -69,8 +69,8 @@ func TestGenerate(t *testing.T) { //nolint:gocognit // cognitive complexity 30.
 							localMsp, err := msp.LoadLocalMspDir(msp.DirLoadParameters{
 								MspDir: path.Join(nodePath, "msp"),
 							})
-							require.NoError(t, err, "Failed to load MSP")
-							require.NotNil(t, localMsp, "MSP should not be nil")
+							require.NoErrorf(t, err, "Failed to load MSP: %s", nodePath)
+							require.NotNilf(t, localMsp, "MSP should not be nil: %s", nodePath)
 						}
 					}
 				}
