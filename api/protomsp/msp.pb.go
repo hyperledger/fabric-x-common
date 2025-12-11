@@ -12,12 +12,11 @@
 package protomsp
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	msp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (

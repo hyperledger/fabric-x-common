@@ -80,7 +80,9 @@ func init() {
 }
 
 // test servers to be registered with the GRPCServer
-type emptyServiceServer struct{ testpb.EmptyServiceServer }
+type emptyServiceServer struct {
+	testpb.EmptyServiceServer
+}
 
 func (ess *emptyServiceServer) EmptyCall(context.Context, *testpb.Empty) (*testpb.Empty, error) {
 	return new(testpb.Empty), nil

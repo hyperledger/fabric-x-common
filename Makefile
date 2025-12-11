@@ -58,10 +58,6 @@ $(BUILD_DIR)/%:
 clean: ## Cleans the build area
 	-@rm -rf $(BUILD_DIR)
 
-generate:
-	go generate ./...
-	goimports -local "github.com/hyperledger/fabric-x-common" -w .
-
 lint: FORCE
 	@echo "Running Go Linters..."
 	golangci-lint run --color=always --new-from-rev=main --timeout=4m
@@ -105,6 +101,9 @@ $(PROTOS_SENTINEL):
 	@mkdir -p $(BUILD_DIR)
 	@rm -rf $(PROTOS_DIR) # Ensure we start fresh if re-cloning
 	git clone --depth 1 $(PROTOS_REPO) $(PROTOS_DIR)
+
+generate-mocks: FORCE
+	@COUNTERFEITER_NO_GENERATE_WARNING=true go generate ./...
 
 clean-deps:
 	rm -rf $(PROTOS_DIR)

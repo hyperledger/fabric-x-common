@@ -100,7 +100,7 @@ func (bg *BlockGenerator) NextBlockWithTxid(simulationResults [][]byte, txids []
 }
 
 // NextTestBlock constructs next block in sequence block with 'numTx' number of transactions for testing
-func (bg *BlockGenerator) NextTestBlock(numTx int, txSize int) *common.Block {
+func (bg *BlockGenerator) NextTestBlock(numTx, txSize int) *common.Block {
 	simulationResults := [][]byte{}
 	for i := 0; i < numTx; i++ {
 		simulationResults = append(simulationResults, ConstructRandomBytes(bg.t, txSize))
@@ -270,8 +270,9 @@ func ConstructBlock(
 	return NewBlock(envs, blockNum, previousHash)
 }
 
-// ConstructTestBlock constructs a single block with random contents
-func ConstructTestBlock(t *testing.T, blockNum uint64, numTx int, txSize int) *common.Block {
+// ConstructTestBlock constructs a single block with random contents.
+func ConstructTestBlock(t *testing.T, blockNum uint64, numTx, txSize int) *common.Block {
+	t.Helper()
 	simulationResults := [][]byte{}
 	for i := 0; i < numTx; i++ {
 		simulationResults = append(simulationResults, ConstructRandomBytes(t, txSize))
