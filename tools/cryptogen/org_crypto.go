@@ -207,11 +207,11 @@ func (c *orgCryptoTree) generateOrg() error {
 
 	// copy the admin cert to the org's MSP admincerts.
 	if !s.EnableNodeOUs {
-		err = c.copyAdminCert(c.AdminCerts, orgAdminUser.CommonName)
+		err = c.overwriteAdminCert(c.AdminCerts, orgAdminUser.CommonName)
 		if err != nil {
 			return err
 		}
-		err = c.copyAllAdminCert(orgAdminUser.CommonName)
+		err = c.overwriteNodesAdminCert(orgAdminUser.CommonName)
 		if err != nil {
 			return err
 		}
@@ -227,7 +227,6 @@ func (c *orgCryptoTree) extendOrg() error {
 	}
 
 	s := c.OrgSpec
-	orgName := s.Domain
 	signCA, err := loadCA(c.CA, s, s.CA.CommonName)
 	if err != nil {
 		return err
@@ -241,20 +240,26 @@ func (c *orgCryptoTree) extendOrg() error {
 		SignCa:    signCA,
 		TLSCa:     tlsCA,
 		EnableOUs: s.EnableNodeOUs,
+		KeyAlg:    s.CA.PublicKeyAlgorithm,
 	}
 	err = c.generateNodes(s.Specs, p)
 	if err != nil {
 		return err
 	}
 
+	err = c.generateNodes(c.generateUsers(), p)
+	if err != nil {
+		return err
+	}
+
 	if !c.OrgSpec.EnableNodeOUs {
-		err = c.copyAllAdminCert(adminUser(orgName).CommonName)
+		err = c.overwriteNodesAdminCert(adminUser(s.Domain).CommonName)
 		if err != nil {
 			return err
 		}
 	}
 
-	return c.generateNodes(c.generateUsers(), p)
+	return nil
 }
 
 func (c *orgCryptoTree) generateUsers() []NodeSpec {
@@ -279,10 +284,10 @@ func (c *orgCryptoTree) generateUsers() []NodeSpec {
 	return users
 }
 
-// copyAllAdminCert copy the admin cert to each of the org's MSP admincerts.
-func (c *orgCryptoTree) copyAllAdminCert(orgAdminUserName string) error {
+// overwriteNodesAdminCert overwrite the admin cert to each node with the org's MSP admincerts.
+func (c *orgCryptoTree) overwriteNodesAdminCert(orgAdminUserName string) error {
 	for _, spec := range c.OrgSpec.Specs {
-		err := c.copyAdminCert(c.subNodeFromSpec(&spec).AdminCerts, orgAdminUserName)
+		err := c.overwriteAdminCert(c.subNodeFromSpec(&spec).AdminCerts, orgAdminUserName)
 		if err != nil {
 			return err
 		}
@@ -290,7 +295,7 @@ func (c *orgCryptoTree) copyAllAdminCert(orgAdminUserName string) error {
 	return nil
 }
 
-func (c *orgCryptoTree) copyAdminCert(adminCertsDir, adminUserName string) error {
+func (c *orgCryptoTree) overwriteAdminCert(adminCertsDir, adminUserName string) error {
 	adminCertPath := filepath.Join(adminCertsDir, adminUserName+"-cert.pem")
 	if _, err := os.Stat(adminCertPath); !os.IsNotExist(err) {
 		return nil
@@ -325,6 +330,14 @@ func (c *orgCryptoTree) generateNodes(nodes []NodeSpec, p nodeParameters) error 
 		curParams.TLSSans = node.SANS
 		curParams.KeyAlg = node.PublicKeyAlgorithm
 		err := tree.generateLocalMSP(curParams)
+		if err != nil {
+			return err
+		}
+
+		// Add certificate to the organization's known certs.
+		srcCertPath := path.Join(tree.SignCerts, node.CommonName+"-cert.pem")
+		targetCertPath := path.Join(c.KnownCerts, node.CommonName+"-cert.pem")
+		err = copyFile(srcCertPath, targetCertPath)
 		if err != nil {
 			return err
 		}
