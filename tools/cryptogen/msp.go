@@ -96,7 +96,7 @@ func (t *mspTree) isExist() bool {
 
 // generateLocalMSP generates a local MSP.
 func (t *mspTree) generateLocalMSP(p nodeParameters) error {
-	// We remove the verifying MSP folders.
+	// Known-certs are not applicable to the local MSP.
 	defer removeAllFolders(t.KnownCerts)
 	err := t.generateMsp(p)
 	if err != nil {
@@ -107,7 +107,7 @@ func (t *mspTree) generateLocalMSP(p nodeParameters) error {
 
 // generateVerifyingMSP generates a verifying MSP.
 func (t *mspTree) generateVerifyingMSP(p nodeParameters) error {
-	// We remove the local MSP folders.
+	// Key-store and sign-certificates are not applicable to the verifying MSP.
 	defer removeAllFolders(t.KeyStore, t.SignCerts)
 	p.Name = p.SignCa.Name
 	return t.generateMsp(p)
@@ -115,6 +115,7 @@ func (t *mspTree) generateVerifyingMSP(p nodeParameters) error {
 
 // generateMsp generates a generic MSP.
 func (t *mspTree) generateMsp(p nodeParameters) error {
+	// Note: "admincerts" and "knowncerts" are populated by the caller.
 	err := createAllFolders(t.CaCerts, t.TLSCaCerts, t.AdminCerts, t.KeyStore, t.SignCerts, t.KnownCerts)
 	if err != nil {
 		return err
