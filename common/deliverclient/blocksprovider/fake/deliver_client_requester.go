@@ -180,10 +180,6 @@ func (fake *DeliverClientRequester) SeekInfoHeadersFromReturnsOnCall(i int, resu
 func (fake *DeliverClientRequester) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.connectMutex.RLock()
-	defer fake.connectMutex.RUnlock()
-	fake.seekInfoHeadersFromMutex.RLock()
-	defer fake.seekInfoHeadersFromMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

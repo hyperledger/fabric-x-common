@@ -8,7 +8,7 @@ package blocksprovider
 
 import "time"
 
-//go:generate counterfeiter -o fake/sleeper.go --fake-name Sleeper . testSleeper
+//go:generate counterfeiter -o fake/sleeper.go --fake-name Sleeper . customSleeper
 type customSleeper interface {
 	Sleep(time.Duration)
 }

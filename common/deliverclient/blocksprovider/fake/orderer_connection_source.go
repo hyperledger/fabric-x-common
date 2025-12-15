@@ -191,12 +191,6 @@ func (fake *OrdererConnectionSource) UpdateArgsForCall(i int) ([]string, map[str
 func (fake *OrdererConnectionSource) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.randomEndpointMutex.RLock()
-	defer fake.randomEndpointMutex.RUnlock()
-	fake.shuffledEndpointsMutex.RLock()
-	defer fake.shuffledEndpointsMutex.RUnlock()
-	fake.updateMutex.RLock()
-	defer fake.updateMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

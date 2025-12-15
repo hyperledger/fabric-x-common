@@ -34,15 +34,16 @@ func (fake *Inspector) Inspect(arg1 context.Context, arg2 proto.Message) error {
 		arg1 context.Context
 		arg2 proto.Message
 	}{arg1, arg2})
+	stub := fake.InspectStub
+	fakeReturns := fake.inspectReturns
 	fake.recordInvocation("Inspect", []interface{}{arg1, arg2})
 	fake.inspectMutex.Unlock()
-	if fake.InspectStub != nil {
-		return fake.InspectStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.inspectReturns
 	return fakeReturns.result1
 }
 
@@ -91,8 +92,6 @@ func (fake *Inspector) InspectReturnsOnCall(i int, result1 error) {
 func (fake *Inspector) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.inspectMutex.RLock()
-	defer fake.inspectMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

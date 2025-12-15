@@ -280,7 +280,7 @@ func TestSerializeIdentities(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.Serialize()
+	serializedID, err := id.SerializeWithCert()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded, got err %s", err)
 		return
@@ -477,7 +477,7 @@ func TestIsWellFormed(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.Serialize()
+	serializedID, err := id.SerializeWithCert()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded, got err %s", err)
 		return
@@ -610,7 +610,7 @@ func TestSerializeIdentitiesWithWrongMSP(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.Serialize()
+	serializedID, err := id.SerializeWithCert()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded, got err %s", err)
 		return
@@ -636,7 +636,7 @@ func TestSerializeIdentitiesWithMSPManager(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.Serialize()
+	serializedID, err := id.SerializeWithCert()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded, got err %s", err)
 		return
@@ -684,7 +684,7 @@ func TestSignAndVerify(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.Serialize()
+	serializedID, err := id.SerializeWithCert()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded")
 		return
@@ -782,7 +782,7 @@ func TestSignAndVerify_longMessage(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.Serialize()
+	serializedID, err := id.SerializeWithCert()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded")
 		return
@@ -1241,7 +1241,7 @@ func TestIdentityPolicyPrincipal(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	idSerialized, err := id.Serialize()
+	idSerialized, err := id.SerializeWithCert()
 	require.NoError(t, err)
 
 	principal := &msp.MSPPrincipal{
@@ -1272,7 +1272,7 @@ func TestMSPOus(t *testing.T) {
 	defer func() { localMsp.(*bccspmsp).ouIdentifiers = backup }()
 	sid, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
-	sidBytes, err := sid.Serialize()
+	sidBytes, err := sid.SerializeWithCert()
 	require.NoError(t, err)
 	id, err := localMsp.DeserializeIdentity(sidBytes)
 	require.NoError(t, err)

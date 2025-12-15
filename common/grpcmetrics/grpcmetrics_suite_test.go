@@ -15,7 +15,8 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/grpcmetrics/testpb"
 )
 
-//go:generate protoc --proto_path=testpb --go_out=plugins=grpc,paths=source_relative:testpb testpb/echo.proto
+//nolint:revive // line length exceeds 120 charcters.
+//go:generate protoc --proto_path=testpb --go_out=paths=source_relative:testpb --go-grpc_out=paths=source_relative,require_unimplemented_servers=false:testpb testpb/echo.proto
 
 func TestGrpcmetrics(t *testing.T) {
 	RegisterFailHandler(Fail)

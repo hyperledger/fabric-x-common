@@ -98,8 +98,6 @@ func (fake *DeliverStreamer) DeliverReturnsOnCall(i int, result1 orderer.AtomicB
 func (fake *DeliverStreamer) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.deliverMutex.RLock()
-	defer fake.deliverMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

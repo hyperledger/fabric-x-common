@@ -122,8 +122,8 @@ func TestGetPayloads(t *testing.T) {
 
 func TestDeduplicateEndorsements(t *testing.T) {
 	signID := &fakes.SignerSerializer{}
-	signID.SerializeReturns([]byte("signer"), nil)
-	signerBytes, err := signID.Serialize()
+	signID.SerializeWithCertReturns([]byte("signer"), nil)
+	signerBytes, err := signID.SerializeWithCert()
 	require.NoError(t, err, "Unexpected error serializing signing identity")
 
 	proposal := &pb.Proposal{
@@ -159,8 +159,8 @@ func TestCreateSignedTx(t *testing.T) {
 	prop := &pb.Proposal{}
 
 	signID := &fakes.SignerSerializer{}
-	signID.SerializeReturns([]byte("signer"), nil)
-	signerBytes, err := signID.Serialize()
+	signID.SerializeWithCertReturns([]byte("signer"), nil)
+	signerBytes, err := signID.SerializeWithCert()
 	require.NoError(t, err, "Unexpected error serializing signing identity")
 
 	ccHeaderExtensionBytes := protoutil.MarshalOrPanic(&pb.ChaincodeHeaderExtension{})
@@ -284,8 +284,8 @@ func TestCreateSignedTxStatus(t *testing.T) {
 	require.NoError(t, err)
 
 	signingID := &fakes.SignerSerializer{}
-	signingID.SerializeReturns([]byte("signer"), nil)
-	serializedSigningID, err := signingID.Serialize()
+	signingID.SerializeWithCertReturns([]byte("signer"), nil)
+	serializedSigningID, err := signingID.SerializeWithCert()
 	require.NoError(t, err)
 	serializedSignatureHeader, err := proto.Marshal(&cb.SignatureHeader{
 		Creator: serializedSigningID,
@@ -344,7 +344,7 @@ func TestCreateSignedEnvelope(t *testing.T) {
 	id := &fakes.SignerSerializer{}
 	id.SignReturnsOnCall(0, []byte("goodsig"), nil)
 	id.SignReturnsOnCall(1, nil, errors.New("bad signature"))
-	env, err := protoutil.CreateSignedEnvelope(cb.HeaderType_CONFIG, channelID,
+	env, err := protoutil.CreateSignedEnvelopeWithCert(cb.HeaderType_CONFIG, channelID,
 		id, msg, int32(1), uint64(1))
 	require.NoError(t, err, "Unexpected error creating signed envelope")
 	require.NotNil(t, env, "Envelope should not be nil")
@@ -358,7 +358,7 @@ func TestCreateSignedEnvelope(t *testing.T) {
 	require.NoError(t, err, "Expected payload data to be a config envelope")
 	require.True(t, proto.Equal(msg, data), "Payload data does not match expected value")
 
-	_, err = protoutil.CreateSignedEnvelope(cb.HeaderType_CONFIG, channelID,
+	_, err = protoutil.CreateSignedEnvelopeWithCert(cb.HeaderType_CONFIG, channelID,
 		id, &cb.ConfigEnvelope{}, int32(1), uint64(1))
 	require.Error(t, err, "Expected sign error")
 }
@@ -368,7 +368,7 @@ func TestCreateSignedEnvelopeNilSigner(t *testing.T) {
 	channelID := "mychannelID"
 	msg := &cb.ConfigEnvelope{}
 
-	env, err := protoutil.CreateSignedEnvelope(cb.HeaderType_CONFIG, channelID,
+	env, err := protoutil.CreateSignedEnvelopeWithCert(cb.HeaderType_CONFIG, channelID,
 		nil, msg, int32(1), uint64(1))
 	require.NoError(t, err, "Unexpected error creating signed envelope")
 	require.NotNil(t, env, "Envelope should not be nil")

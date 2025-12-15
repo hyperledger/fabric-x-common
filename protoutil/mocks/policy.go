@@ -92,8 +92,6 @@ func (fake *Policy) EvaluateSignedDataReturnsOnCall(i int, result1 error) {
 func (fake *Policy) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.evaluateSignedDataMutex.RLock()
-	defer fake.evaluateSignedDataMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

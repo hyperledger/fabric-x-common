@@ -495,7 +495,7 @@ func TestMain(m *testing.M) {
 		os.Exit(-1)
 	}
 
-	signerSerialized, err = signer.Serialize()
+	signerSerialized, err = signer.SerializeWithCert()
 	if err != nil {
 		fmt.Printf("Could not serialize identity")
 		os.Exit(-1)

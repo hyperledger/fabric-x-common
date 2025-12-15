@@ -65,15 +65,16 @@ func (fake *FilteredResponseSender) DataType() string {
 	ret, specificReturn := fake.dataTypeReturnsOnCall[len(fake.dataTypeArgsForCall)]
 	fake.dataTypeArgsForCall = append(fake.dataTypeArgsForCall, struct {
 	}{})
+	stub := fake.DataTypeStub
+	fakeReturns := fake.dataTypeReturns
 	fake.recordInvocation("DataType", []interface{}{})
 	fake.dataTypeMutex.Unlock()
-	if fake.DataTypeStub != nil {
-		return fake.DataTypeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.dataTypeReturns
 	return fakeReturns.result1
 }
 
@@ -117,15 +118,16 @@ func (fake *FilteredResponseSender) IsFiltered() bool {
 	ret, specificReturn := fake.isFilteredReturnsOnCall[len(fake.isFilteredArgsForCall)]
 	fake.isFilteredArgsForCall = append(fake.isFilteredArgsForCall, struct {
 	}{})
+	stub := fake.IsFilteredStub
+	fakeReturns := fake.isFilteredReturns
 	fake.recordInvocation("IsFiltered", []interface{}{})
 	fake.isFilteredMutex.Unlock()
-	if fake.IsFilteredStub != nil {
-		return fake.IsFilteredStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isFilteredReturns
 	return fakeReturns.result1
 }
 
@@ -173,15 +175,16 @@ func (fake *FilteredResponseSender) SendBlockResponse(arg1 *common.Block, arg2 s
 		arg3 deliver.Chain
 		arg4 *protoutil.SignedData
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.SendBlockResponseStub
+	fakeReturns := fake.sendBlockResponseReturns
 	fake.recordInvocation("SendBlockResponse", []interface{}{arg1, arg2, arg3, arg4})
 	fake.sendBlockResponseMutex.Unlock()
-	if fake.SendBlockResponseStub != nil {
-		return fake.SendBlockResponseStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sendBlockResponseReturns
 	return fakeReturns.result1
 }
 
@@ -233,15 +236,16 @@ func (fake *FilteredResponseSender) SendStatusResponse(arg1 common.Status) error
 	fake.sendStatusResponseArgsForCall = append(fake.sendStatusResponseArgsForCall, struct {
 		arg1 common.Status
 	}{arg1})
+	stub := fake.SendStatusResponseStub
+	fakeReturns := fake.sendStatusResponseReturns
 	fake.recordInvocation("SendStatusResponse", []interface{}{arg1})
 	fake.sendStatusResponseMutex.Unlock()
-	if fake.SendStatusResponseStub != nil {
-		return fake.SendStatusResponseStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sendStatusResponseReturns
 	return fakeReturns.result1
 }
 
@@ -290,14 +294,6 @@ func (fake *FilteredResponseSender) SendStatusResponseReturnsOnCall(i int, resul
 func (fake *FilteredResponseSender) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.dataTypeMutex.RLock()
-	defer fake.dataTypeMutex.RUnlock()
-	fake.isFilteredMutex.RLock()
-	defer fake.isFilteredMutex.RUnlock()
-	fake.sendBlockResponseMutex.RLock()
-	defer fake.sendBlockResponseMutex.RUnlock()
-	fake.sendStatusResponseMutex.RLock()
-	defer fake.sendStatusResponseMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -78,8 +78,6 @@ func (fake *DurationExceededHandler) DurationExceededHandlerReturnsOnCall(i int,
 func (fake *DurationExceededHandler) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.durationExceededHandlerMutex.RLock()
-	defer fake.durationExceededHandlerMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

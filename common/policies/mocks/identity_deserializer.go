@@ -23,6 +23,17 @@ type IdentityDeserializer struct {
 		result1 msp.Identity
 		result2 error
 	}
+	GetKnownDeserializedIdentityStub        func(msp.IdentityIdentifier) msp.Identity
+	getKnownDeserializedIdentityMutex       sync.RWMutex
+	getKnownDeserializedIdentityArgsForCall []struct {
+		arg1 msp.IdentityIdentifier
+	}
+	getKnownDeserializedIdentityReturns struct {
+		result1 msp.Identity
+	}
+	getKnownDeserializedIdentityReturnsOnCall map[int]struct {
+		result1 msp.Identity
+	}
 	IsWellFormedStub        func(*mspa.SerializedIdentity) error
 	isWellFormedMutex       sync.RWMutex
 	isWellFormedArgsForCall []struct {
@@ -49,20 +60,17 @@ func (fake *IdentityDeserializer) DeserializeIdentity(arg1 []byte) (msp.Identity
 	fake.deserializeIdentityArgsForCall = append(fake.deserializeIdentityArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.DeserializeIdentityStub
+	fakeReturns := fake.deserializeIdentityReturns
 	fake.recordInvocation("DeserializeIdentity", []interface{}{arg1Copy})
 	fake.deserializeIdentityMutex.Unlock()
-	if fake.DeserializeIdentityStub != nil {
-		return fake.DeserializeIdentityStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deserializeIdentityReturns
 	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *IdentityDeserializer) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity {
-	return nil
 }
 
 func (fake *IdentityDeserializer) DeserializeIdentityCallCount() int {
@@ -110,21 +118,83 @@ func (fake *IdentityDeserializer) DeserializeIdentityReturnsOnCall(i int, result
 	}{result1, result2}
 }
 
+func (fake *IdentityDeserializer) GetKnownDeserializedIdentity(arg1 msp.IdentityIdentifier) msp.Identity {
+	fake.getKnownDeserializedIdentityMutex.Lock()
+	ret, specificReturn := fake.getKnownDeserializedIdentityReturnsOnCall[len(fake.getKnownDeserializedIdentityArgsForCall)]
+	fake.getKnownDeserializedIdentityArgsForCall = append(fake.getKnownDeserializedIdentityArgsForCall, struct {
+		arg1 msp.IdentityIdentifier
+	}{arg1})
+	stub := fake.GetKnownDeserializedIdentityStub
+	fakeReturns := fake.getKnownDeserializedIdentityReturns
+	fake.recordInvocation("GetKnownDeserializedIdentity", []interface{}{arg1})
+	fake.getKnownDeserializedIdentityMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *IdentityDeserializer) GetKnownDeserializedIdentityCallCount() int {
+	fake.getKnownDeserializedIdentityMutex.RLock()
+	defer fake.getKnownDeserializedIdentityMutex.RUnlock()
+	return len(fake.getKnownDeserializedIdentityArgsForCall)
+}
+
+func (fake *IdentityDeserializer) GetKnownDeserializedIdentityCalls(stub func(msp.IdentityIdentifier) msp.Identity) {
+	fake.getKnownDeserializedIdentityMutex.Lock()
+	defer fake.getKnownDeserializedIdentityMutex.Unlock()
+	fake.GetKnownDeserializedIdentityStub = stub
+}
+
+func (fake *IdentityDeserializer) GetKnownDeserializedIdentityArgsForCall(i int) msp.IdentityIdentifier {
+	fake.getKnownDeserializedIdentityMutex.RLock()
+	defer fake.getKnownDeserializedIdentityMutex.RUnlock()
+	argsForCall := fake.getKnownDeserializedIdentityArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *IdentityDeserializer) GetKnownDeserializedIdentityReturns(result1 msp.Identity) {
+	fake.getKnownDeserializedIdentityMutex.Lock()
+	defer fake.getKnownDeserializedIdentityMutex.Unlock()
+	fake.GetKnownDeserializedIdentityStub = nil
+	fake.getKnownDeserializedIdentityReturns = struct {
+		result1 msp.Identity
+	}{result1}
+}
+
+func (fake *IdentityDeserializer) GetKnownDeserializedIdentityReturnsOnCall(i int, result1 msp.Identity) {
+	fake.getKnownDeserializedIdentityMutex.Lock()
+	defer fake.getKnownDeserializedIdentityMutex.Unlock()
+	fake.GetKnownDeserializedIdentityStub = nil
+	if fake.getKnownDeserializedIdentityReturnsOnCall == nil {
+		fake.getKnownDeserializedIdentityReturnsOnCall = make(map[int]struct {
+			result1 msp.Identity
+		})
+	}
+	fake.getKnownDeserializedIdentityReturnsOnCall[i] = struct {
+		result1 msp.Identity
+	}{result1}
+}
+
 func (fake *IdentityDeserializer) IsWellFormed(arg1 *mspa.SerializedIdentity) error {
 	fake.isWellFormedMutex.Lock()
 	ret, specificReturn := fake.isWellFormedReturnsOnCall[len(fake.isWellFormedArgsForCall)]
 	fake.isWellFormedArgsForCall = append(fake.isWellFormedArgsForCall, struct {
 		arg1 *mspa.SerializedIdentity
 	}{arg1})
+	stub := fake.IsWellFormedStub
+	fakeReturns := fake.isWellFormedReturns
 	fake.recordInvocation("IsWellFormed", []interface{}{arg1})
 	fake.isWellFormedMutex.Unlock()
-	if fake.IsWellFormedStub != nil {
-		return fake.IsWellFormedStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isWellFormedReturns
 	return fakeReturns.result1
 }
 
@@ -173,10 +243,6 @@ func (fake *IdentityDeserializer) IsWellFormedReturnsOnCall(i int, result1 error
 func (fake *IdentityDeserializer) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.deserializeIdentityMutex.RLock()
-	defer fake.deserializeIdentityMutex.RUnlock()
-	fake.isWellFormedMutex.RLock()
-	defer fake.isWellFormedMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

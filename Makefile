@@ -58,6 +58,10 @@ $(BUILD_DIR)/%:
 clean: ## Cleans the build area
 	-@rm -rf $(BUILD_DIR)
 
+generate:
+	go generate ./...
+	goimports -local "github.com/hyperledger/fabric-x-common" -w .
+
 lint: FORCE
 	@echo "Running Go Linters..."
 	golangci-lint run --color=always --new-from-rev=main --timeout=4m

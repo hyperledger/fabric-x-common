@@ -153,8 +153,16 @@ type Identity interface {
 	// Verify a signature over some message using this identity as reference
 	Verify(msg []byte, sig []byte) error
 
-	// Serialize converts an identity to bytes
+	// Serialize converts an identity to bytes representation of msp.SerializedIdentity.
 	Serialize() ([]byte, error)
+
+	// SerializeWithCert converts an identity to bytes representation of protomsp.Identity
+	// with plain certificate as the creator.
+	SerializeWithCert() ([]byte, error)
+
+	// SerializeWithIDOfCert converts an identity to bytes representation of protomsp.Identity
+	// with an Id of the certificate as the creator.
+	SerializeWithIDOfCert() ([]byte, error)
 
 	// SatisfiesPrincipal checks whether this instance matches
 	// the description supplied in MSPPrincipal. The check may

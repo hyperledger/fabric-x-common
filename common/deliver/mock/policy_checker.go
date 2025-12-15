@@ -33,15 +33,16 @@ func (fake *PolicyChecker) CheckPolicy(arg1 *common.Envelope, arg2 string) error
 		arg1 *common.Envelope
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.CheckPolicyStub
+	fakeReturns := fake.checkPolicyReturns
 	fake.recordInvocation("CheckPolicy", []interface{}{arg1, arg2})
 	fake.checkPolicyMutex.Unlock()
-	if fake.CheckPolicyStub != nil {
-		return fake.CheckPolicyStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkPolicyReturns
 	return fakeReturns.result1
 }
 
@@ -90,8 +91,6 @@ func (fake *PolicyChecker) CheckPolicyReturnsOnCall(i int, result1 error) {
 func (fake *PolicyChecker) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.checkPolicyMutex.RLock()
-	defer fake.checkPolicyMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -22,6 +22,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/protomsp"
 	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
@@ -157,8 +158,8 @@ func (id *identity) Anonymous() bool {
 func NewSerializedIdentity(mspID string, certPEM []byte) ([]byte, error) {
 	// We serialize identities by prepending the MSPID
 	// and appending the x509 cert in PEM format
-	sId := &msp.SerializedIdentity{Mspid: mspID, IdBytes: certPEM}
-	raw, err := proto.Marshal(sId)
+	sID := &msp.SerializedIdentity{Mspid: mspID, IdBytes: certPEM}
+	raw, err := proto.Marshal(sID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed serializing identity [%s][%X]", mspID, certPEM)
 	}
@@ -208,20 +209,46 @@ func (id *identity) Verify(msg []byte, sig []byte) error {
 
 // Serialize returns a byte array representation of this identity
 func (id *identity) Serialize() ([]byte, error) {
+	pemBytes, err := id.getCertificatePEM()
+	if err != nil {
+		return nil, err
+	}
+
+	// We serialize identities by prepending the MSPID and appending the ASN.1 DER content of the cert
+	sID := &msp.SerializedIdentity{Mspid: id.id.Mspid, IdBytes: pemBytes}
+	return marshalMessage(sID, fmt.Sprintf("could not marshal a SerializedIdentity for identity %s", id.id))
+}
+
+func (id *identity) SerializeWithIDOfCert() ([]byte, error) {
+	sID := &protomsp.Identity{MspId: id.id.Mspid, Creator: &protomsp.Identity_CertificateId{CertificateId: id.id.Id}}
+	return marshalMessage(sID, fmt.Sprintf("could not marshal a protomsp.Identity for identity %s", id.id))
+}
+
+func (id *identity) SerializeWithCert() ([]byte, error) {
+	pemBytes, err := id.getCertificatePEM()
+	if err != nil {
+		return nil, err
+	}
+
+	sID := &protomsp.Identity{MspId: id.id.Mspid, Creator: &protomsp.Identity_Certificate{Certificate: pemBytes}}
+	return marshalMessage(sID, fmt.Sprintf("could not marshal a protomsp.Identity for identity %s", id.id))
+}
+
+func (id *identity) getCertificatePEM() ([]byte, error) {
 	pb := &pem.Block{Bytes: id.cert.Raw, Type: "CERTIFICATE"}
 	pemBytes := pem.EncodeToMemory(pb)
 	if pemBytes == nil {
 		return nil, errors.New("encoding of identity failed")
 	}
+	return pemBytes, nil
+}
 
-	// We serialize identities by prepending the MSPID and appending the ASN.1 DER content of the cert
-	sId := &msp.SerializedIdentity{Mspid: id.id.Mspid, IdBytes: pemBytes}
-	idBytes, err := proto.Marshal(sId)
+func marshalMessage(msg proto.Message, errWrap string) ([]byte, error) {
+	bytes, err := proto.Marshal(msg)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not marshal a SerializedIdentity structure for identity %s", id.id)
+		return nil, errors.Wrap(err, errWrap)
 	}
-
-	return idBytes, nil
+	return bytes, nil
 }
 
 func (id *identity) getHashOpt(hashFamily string) (bccsp.HashOpts, error) {

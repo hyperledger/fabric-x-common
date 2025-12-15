@@ -6,15 +6,27 @@ import (
 )
 
 type Signer struct {
-	SerializeStub        func() ([]byte, error)
-	serializeMutex       sync.RWMutex
-	serializeArgsForCall []struct {
+	SerializeWithCertStub        func() ([]byte, error)
+	serializeWithCertMutex       sync.RWMutex
+	serializeWithCertArgsForCall []struct {
 	}
-	serializeReturns struct {
+	serializeWithCertReturns struct {
 		result1 []byte
 		result2 error
 	}
-	serializeReturnsOnCall map[int]struct {
+	serializeWithCertReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
+	SerializeWithIDOfCertStub        func() ([]byte, error)
+	serializeWithIDOfCertMutex       sync.RWMutex
+	serializeWithIDOfCertArgsForCall []struct {
+	}
+	serializeWithIDOfCertReturns struct {
+		result1 []byte
+		result2 error
+	}
+	serializeWithIDOfCertReturnsOnCall map[int]struct {
 		result1 []byte
 		result2 error
 	}
@@ -35,56 +47,113 @@ type Signer struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *Signer) Serialize() ([]byte, error) {
-	fake.serializeMutex.Lock()
-	ret, specificReturn := fake.serializeReturnsOnCall[len(fake.serializeArgsForCall)]
-	fake.serializeArgsForCall = append(fake.serializeArgsForCall, struct {
+func (fake *Signer) SerializeWithCert() ([]byte, error) {
+	fake.serializeWithCertMutex.Lock()
+	ret, specificReturn := fake.serializeWithCertReturnsOnCall[len(fake.serializeWithCertArgsForCall)]
+	fake.serializeWithCertArgsForCall = append(fake.serializeWithCertArgsForCall, struct {
 	}{})
-	fake.recordInvocation("Serialize", []interface{}{})
-	fake.serializeMutex.Unlock()
-	if fake.SerializeStub != nil {
-		return fake.SerializeStub()
+	stub := fake.SerializeWithCertStub
+	fakeReturns := fake.serializeWithCertReturns
+	fake.recordInvocation("SerializeWithCert", []interface{}{})
+	fake.serializeWithCertMutex.Unlock()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.serializeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *Signer) SerializeCallCount() int {
-	fake.serializeMutex.RLock()
-	defer fake.serializeMutex.RUnlock()
-	return len(fake.serializeArgsForCall)
+func (fake *Signer) SerializeWithCertCallCount() int {
+	fake.serializeWithCertMutex.RLock()
+	defer fake.serializeWithCertMutex.RUnlock()
+	return len(fake.serializeWithCertArgsForCall)
 }
 
-func (fake *Signer) SerializeCalls(stub func() ([]byte, error)) {
-	fake.serializeMutex.Lock()
-	defer fake.serializeMutex.Unlock()
-	fake.SerializeStub = stub
+func (fake *Signer) SerializeWithCertCalls(stub func() ([]byte, error)) {
+	fake.serializeWithCertMutex.Lock()
+	defer fake.serializeWithCertMutex.Unlock()
+	fake.SerializeWithCertStub = stub
 }
 
-func (fake *Signer) SerializeReturns(result1 []byte, result2 error) {
-	fake.serializeMutex.Lock()
-	defer fake.serializeMutex.Unlock()
-	fake.SerializeStub = nil
-	fake.serializeReturns = struct {
+func (fake *Signer) SerializeWithCertReturns(result1 []byte, result2 error) {
+	fake.serializeWithCertMutex.Lock()
+	defer fake.serializeWithCertMutex.Unlock()
+	fake.SerializeWithCertStub = nil
+	fake.serializeWithCertReturns = struct {
 		result1 []byte
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *Signer) SerializeReturnsOnCall(i int, result1 []byte, result2 error) {
-	fake.serializeMutex.Lock()
-	defer fake.serializeMutex.Unlock()
-	fake.SerializeStub = nil
-	if fake.serializeReturnsOnCall == nil {
-		fake.serializeReturnsOnCall = make(map[int]struct {
+func (fake *Signer) SerializeWithCertReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.serializeWithCertMutex.Lock()
+	defer fake.serializeWithCertMutex.Unlock()
+	fake.SerializeWithCertStub = nil
+	if fake.serializeWithCertReturnsOnCall == nil {
+		fake.serializeWithCertReturnsOnCall = make(map[int]struct {
 			result1 []byte
 			result2 error
 		})
 	}
-	fake.serializeReturnsOnCall[i] = struct {
+	fake.serializeWithCertReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *Signer) SerializeWithIDOfCert() ([]byte, error) {
+	fake.serializeWithIDOfCertMutex.Lock()
+	ret, specificReturn := fake.serializeWithIDOfCertReturnsOnCall[len(fake.serializeWithIDOfCertArgsForCall)]
+	fake.serializeWithIDOfCertArgsForCall = append(fake.serializeWithIDOfCertArgsForCall, struct {
+	}{})
+	stub := fake.SerializeWithIDOfCertStub
+	fakeReturns := fake.serializeWithIDOfCertReturns
+	fake.recordInvocation("SerializeWithIDOfCert", []interface{}{})
+	fake.serializeWithIDOfCertMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *Signer) SerializeWithIDOfCertCallCount() int {
+	fake.serializeWithIDOfCertMutex.RLock()
+	defer fake.serializeWithIDOfCertMutex.RUnlock()
+	return len(fake.serializeWithIDOfCertArgsForCall)
+}
+
+func (fake *Signer) SerializeWithIDOfCertCalls(stub func() ([]byte, error)) {
+	fake.serializeWithIDOfCertMutex.Lock()
+	defer fake.serializeWithIDOfCertMutex.Unlock()
+	fake.SerializeWithIDOfCertStub = stub
+}
+
+func (fake *Signer) SerializeWithIDOfCertReturns(result1 []byte, result2 error) {
+	fake.serializeWithIDOfCertMutex.Lock()
+	defer fake.serializeWithIDOfCertMutex.Unlock()
+	fake.SerializeWithIDOfCertStub = nil
+	fake.serializeWithIDOfCertReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *Signer) SerializeWithIDOfCertReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.serializeWithIDOfCertMutex.Lock()
+	defer fake.serializeWithIDOfCertMutex.Unlock()
+	fake.SerializeWithIDOfCertStub = nil
+	if fake.serializeWithIDOfCertReturnsOnCall == nil {
+		fake.serializeWithIDOfCertReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.serializeWithIDOfCertReturnsOnCall[i] = struct {
 		result1 []byte
 		result2 error
 	}{result1, result2}
@@ -101,15 +170,16 @@ func (fake *Signer) Sign(arg1 []byte) ([]byte, error) {
 	fake.signArgsForCall = append(fake.signArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.SignStub
+	fakeReturns := fake.signReturns
 	fake.recordInvocation("Sign", []interface{}{arg1Copy})
 	fake.signMutex.Unlock()
-	if fake.SignStub != nil {
-		return fake.SignStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.signReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -161,10 +231,6 @@ func (fake *Signer) SignReturnsOnCall(i int, result1 []byte, result2 error) {
 func (fake *Signer) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.serializeMutex.RLock()
-	defer fake.serializeMutex.RUnlock()
-	fake.signMutex.RLock()
-	defer fake.signMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

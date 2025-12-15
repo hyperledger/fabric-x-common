@@ -47,7 +47,7 @@ func NewDeliveryRequester(
 
 // SeekInfoBlocksFrom produces a signed SeekInfo envelope requesting a stream of blocks from a certain block number.
 func (dr *DeliveryRequester) SeekInfoBlocksFrom(ledgerHeight uint64) (*common.Envelope, error) {
-	return protoutil.CreateSignedEnvelopeWithTLSBinding(
+	return protoutil.CreateSignedEnvelopeWithTLSBindingWithCert(
 		common.HeaderType_DELIVER_SEEK_INFO,
 		dr.channelID,
 		dr.signer,
@@ -61,7 +61,7 @@ func (dr *DeliveryRequester) SeekInfoBlocksFrom(ledgerHeight uint64) (*common.En
 // SeekInfoHeadersFrom produces a signed SeekInfo envelope requesting a stream of headers (block attestations) from
 // a certain block number.
 func (dr *DeliveryRequester) SeekInfoHeadersFrom(ledgerHeight uint64) (*common.Envelope, error) {
-	return protoutil.CreateSignedEnvelopeWithTLSBinding(
+	return protoutil.CreateSignedEnvelopeWithTLSBindingWithCert(
 		common.HeaderType_DELIVER_SEEK_INFO,
 		dr.channelID,
 		dr.signer,

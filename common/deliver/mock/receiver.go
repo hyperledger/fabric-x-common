@@ -31,15 +31,16 @@ func (fake *Receiver) Recv() (*common.Envelope, error) {
 	ret, specificReturn := fake.recvReturnsOnCall[len(fake.recvArgsForCall)]
 	fake.recvArgsForCall = append(fake.recvArgsForCall, struct {
 	}{})
+	stub := fake.RecvStub
+	fakeReturns := fake.recvReturns
 	fake.recordInvocation("Recv", []interface{}{})
 	fake.recvMutex.Unlock()
-	if fake.RecvStub != nil {
-		return fake.RecvStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.recvReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -84,8 +85,6 @@ func (fake *Receiver) RecvReturnsOnCall(i int, result1 *common.Envelope, result2
 func (fake *Receiver) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.recvMutex.RLock()
-	defer fake.recvMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

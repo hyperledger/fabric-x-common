@@ -55,10 +55,10 @@ type DeliverClient struct {
 		result1 *orderer.DeliverResponse
 		result2 error
 	}
-	RecvMsgStub        func(interface{}) error
+	RecvMsgStub        func(any) error
 	recvMsgMutex       sync.RWMutex
 	recvMsgArgsForCall []struct {
-		arg1 interface{}
+		arg1 any
 	}
 	recvMsgReturns struct {
 		result1 error
@@ -77,10 +77,10 @@ type DeliverClient struct {
 	sendReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SendMsgStub        func(interface{}) error
+	SendMsgStub        func(any) error
 	sendMsgMutex       sync.RWMutex
 	sendMsgArgsForCall []struct {
-		arg1 interface{}
+		arg1 any
 	}
 	sendMsgReturns struct {
 		result1 error
@@ -107,15 +107,16 @@ func (fake *DeliverClient) CloseSend() error {
 	ret, specificReturn := fake.closeSendReturnsOnCall[len(fake.closeSendArgsForCall)]
 	fake.closeSendArgsForCall = append(fake.closeSendArgsForCall, struct {
 	}{})
+	stub := fake.CloseSendStub
+	fakeReturns := fake.closeSendReturns
 	fake.recordInvocation("CloseSend", []interface{}{})
 	fake.closeSendMutex.Unlock()
-	if fake.CloseSendStub != nil {
-		return fake.CloseSendStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.closeSendReturns
 	return fakeReturns.result1
 }
 
@@ -159,15 +160,16 @@ func (fake *DeliverClient) Context() context.Context {
 	ret, specificReturn := fake.contextReturnsOnCall[len(fake.contextArgsForCall)]
 	fake.contextArgsForCall = append(fake.contextArgsForCall, struct {
 	}{})
+	stub := fake.ContextStub
+	fakeReturns := fake.contextReturns
 	fake.recordInvocation("Context", []interface{}{})
 	fake.contextMutex.Unlock()
-	if fake.ContextStub != nil {
-		return fake.ContextStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.contextReturns
 	return fakeReturns.result1
 }
 
@@ -211,15 +213,16 @@ func (fake *DeliverClient) Header() (metadata.MD, error) {
 	ret, specificReturn := fake.headerReturnsOnCall[len(fake.headerArgsForCall)]
 	fake.headerArgsForCall = append(fake.headerArgsForCall, struct {
 	}{})
+	stub := fake.HeaderStub
+	fakeReturns := fake.headerReturns
 	fake.recordInvocation("Header", []interface{}{})
 	fake.headerMutex.Unlock()
-	if fake.HeaderStub != nil {
-		return fake.HeaderStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.headerReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -266,15 +269,16 @@ func (fake *DeliverClient) Recv() (*orderer.DeliverResponse, error) {
 	ret, specificReturn := fake.recvReturnsOnCall[len(fake.recvArgsForCall)]
 	fake.recvArgsForCall = append(fake.recvArgsForCall, struct {
 	}{})
+	stub := fake.RecvStub
+	fakeReturns := fake.recvReturns
 	fake.recordInvocation("Recv", []interface{}{})
 	fake.recvMutex.Unlock()
-	if fake.RecvStub != nil {
-		return fake.RecvStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.recvReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -316,21 +320,22 @@ func (fake *DeliverClient) RecvReturnsOnCall(i int, result1 *orderer.DeliverResp
 	}{result1, result2}
 }
 
-func (fake *DeliverClient) RecvMsg(arg1 interface{}) error {
+func (fake *DeliverClient) RecvMsg(arg1 any) error {
 	fake.recvMsgMutex.Lock()
 	ret, specificReturn := fake.recvMsgReturnsOnCall[len(fake.recvMsgArgsForCall)]
 	fake.recvMsgArgsForCall = append(fake.recvMsgArgsForCall, struct {
-		arg1 interface{}
+		arg1 any
 	}{arg1})
+	stub := fake.RecvMsgStub
+	fakeReturns := fake.recvMsgReturns
 	fake.recordInvocation("RecvMsg", []interface{}{arg1})
 	fake.recvMsgMutex.Unlock()
-	if fake.RecvMsgStub != nil {
-		return fake.RecvMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.recvMsgReturns
 	return fakeReturns.result1
 }
 
@@ -340,13 +345,13 @@ func (fake *DeliverClient) RecvMsgCallCount() int {
 	return len(fake.recvMsgArgsForCall)
 }
 
-func (fake *DeliverClient) RecvMsgCalls(stub func(interface{}) error) {
+func (fake *DeliverClient) RecvMsgCalls(stub func(any) error) {
 	fake.recvMsgMutex.Lock()
 	defer fake.recvMsgMutex.Unlock()
 	fake.RecvMsgStub = stub
 }
 
-func (fake *DeliverClient) RecvMsgArgsForCall(i int) interface{} {
+func (fake *DeliverClient) RecvMsgArgsForCall(i int) any {
 	fake.recvMsgMutex.RLock()
 	defer fake.recvMsgMutex.RUnlock()
 	argsForCall := fake.recvMsgArgsForCall[i]
@@ -382,15 +387,16 @@ func (fake *DeliverClient) Send(arg1 *common.Envelope) error {
 	fake.sendArgsForCall = append(fake.sendArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.SendStub
+	fakeReturns := fake.sendReturns
 	fake.recordInvocation("Send", []interface{}{arg1})
 	fake.sendMutex.Unlock()
-	if fake.SendStub != nil {
-		return fake.SendStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sendReturns
 	return fakeReturns.result1
 }
 
@@ -436,21 +442,22 @@ func (fake *DeliverClient) SendReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *DeliverClient) SendMsg(arg1 interface{}) error {
+func (fake *DeliverClient) SendMsg(arg1 any) error {
 	fake.sendMsgMutex.Lock()
 	ret, specificReturn := fake.sendMsgReturnsOnCall[len(fake.sendMsgArgsForCall)]
 	fake.sendMsgArgsForCall = append(fake.sendMsgArgsForCall, struct {
-		arg1 interface{}
+		arg1 any
 	}{arg1})
+	stub := fake.SendMsgStub
+	fakeReturns := fake.sendMsgReturns
 	fake.recordInvocation("SendMsg", []interface{}{arg1})
 	fake.sendMsgMutex.Unlock()
-	if fake.SendMsgStub != nil {
-		return fake.SendMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sendMsgReturns
 	return fakeReturns.result1
 }
 
@@ -460,13 +467,13 @@ func (fake *DeliverClient) SendMsgCallCount() int {
 	return len(fake.sendMsgArgsForCall)
 }
 
-func (fake *DeliverClient) SendMsgCalls(stub func(interface{}) error) {
+func (fake *DeliverClient) SendMsgCalls(stub func(any) error) {
 	fake.sendMsgMutex.Lock()
 	defer fake.sendMsgMutex.Unlock()
 	fake.SendMsgStub = stub
 }
 
-func (fake *DeliverClient) SendMsgArgsForCall(i int) interface{} {
+func (fake *DeliverClient) SendMsgArgsForCall(i int) any {
 	fake.sendMsgMutex.RLock()
 	defer fake.sendMsgMutex.RUnlock()
 	argsForCall := fake.sendMsgArgsForCall[i]
@@ -501,15 +508,16 @@ func (fake *DeliverClient) Trailer() metadata.MD {
 	ret, specificReturn := fake.trailerReturnsOnCall[len(fake.trailerArgsForCall)]
 	fake.trailerArgsForCall = append(fake.trailerArgsForCall, struct {
 	}{})
+	stub := fake.TrailerStub
+	fakeReturns := fake.trailerReturns
 	fake.recordInvocation("Trailer", []interface{}{})
 	fake.trailerMutex.Unlock()
-	if fake.TrailerStub != nil {
-		return fake.TrailerStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.trailerReturns
 	return fakeReturns.result1
 }
 
@@ -551,22 +559,6 @@ func (fake *DeliverClient) TrailerReturnsOnCall(i int, result1 metadata.MD) {
 func (fake *DeliverClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.closeSendMutex.RLock()
-	defer fake.closeSendMutex.RUnlock()
-	fake.contextMutex.RLock()
-	defer fake.contextMutex.RUnlock()
-	fake.headerMutex.RLock()
-	defer fake.headerMutex.RUnlock()
-	fake.recvMutex.RLock()
-	defer fake.recvMutex.RUnlock()
-	fake.recvMsgMutex.RLock()
-	defer fake.recvMsgMutex.RUnlock()
-	fake.sendMutex.RLock()
-	defer fake.sendMutex.RUnlock()
-	fake.sendMsgMutex.RLock()
-	defer fake.sendMsgMutex.RUnlock()
-	fake.trailerMutex.RLock()
-	defer fake.trailerMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

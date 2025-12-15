@@ -51,8 +51,6 @@ func (fake *Sleeper) SleepArgsForCall(i int) time.Duration {
 func (fake *Sleeper) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.sleepMutex.RLock()
-	defer fake.sleepMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

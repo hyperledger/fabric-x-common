@@ -67,7 +67,6 @@ type BlockDetails struct {
 }
 
 //go:generate counterfeiter -o fakes/signing_identity.go --fake-name SigningIdentity . signingIdentity
-
 type signingIdentity interface {
 	msp.SigningIdentity
 }
