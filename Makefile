@@ -95,7 +95,7 @@ proto: $(PROTOS_SENTINEL)
 		--go-grpc_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		--go_out=paths=source_relative:. \
-		./api/proto*/*.proto
+		./api/*/*.proto
 
 $(PROTOS_SENTINEL):
 	@mkdir -p $(BUILD_DIR)

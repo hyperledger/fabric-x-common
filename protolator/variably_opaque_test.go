@@ -13,6 +13,10 @@ import (
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+
+	"github.com/hyperledger/fabric-x-common/api/armapb"
+	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
 	"github.com/hyperledger/fabric-x-common/protolator/testprotos"
 )
 
@@ -148,4 +152,51 @@ func TestSliceVariablyOpaqueMsg(t *testing.T) {
 	err = DeepUnmarshalJSON(bytes.NewReader(buffer.Bytes()), newMsg)
 	gt.Expect(err).NotTo(HaveOccurred())
 	gt.Expect(extractNestedMsgPlainField(newMsg.SliceOpaqueField[0])).To(Equal(fromPrefix + toPrefix + extractNestedMsgPlainField(startMsg.SliceOpaqueField[0])))
+}
+
+func TestArmaSharedConfigVariablyOpaqueMsg(t *testing.T) {
+	gt := NewGomegaWithT(t)
+
+	ct := &ordererext.ConsensusType{
+		ConsensusType: &orderer.ConsensusType{
+			Type: "arma",
+			Metadata: func() []byte {
+				metadataProto := &armapb.SharedConfig{
+					BatchingConfig: &armapb.BatchingConfig{
+						BatchSize: &armapb.BatchSize{
+							MaxMessageCount:   10,
+							AbsoluteMaxBytes:  1024,
+							PreferredMaxBytes: 512,
+						},
+					},
+					PartiesConfig: []*armapb.PartyConfig{
+						{
+							PartyID: 1,
+							ConsenterConfig: &armapb.ConsenterNodeConfig{
+								Host: "localhost",
+								Port: 7050,
+							},
+						},
+					},
+					ConsensusConfig: &armapb.ConsensusConfig{
+						SmartBFTConfig: &armapb.SmartBFTConfig{
+							RequestBatchMaxCount: 1000,
+						},
+					},
+				}
+				marshaled, err := proto.Marshal(metadataProto)
+				if err != nil {
+					t.Fatalf("Failed to marshal arma ConsensusTypeMetadata: %s", err)
+				}
+				return marshaled
+			}(),
+		}}
+
+	var buffer bytes.Buffer
+	err := DeepMarshalJSON(&buffer, ct)
+	gt.Expect(err).NotTo(HaveOccurred())
+	newCt := &ordererext.ConsensusType{ConsensusType: &orderer.ConsensusType{}}
+	err = DeepUnmarshalJSON(bytes.NewReader(buffer.Bytes()), newCt)
+	gt.Expect(err).NotTo(HaveOccurred())
+	gt.Expect(proto.Equal(ct, newCt)).To(BeTrue())
 }
