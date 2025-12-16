@@ -110,6 +110,16 @@ func (id *MockIdentity) Serialize() ([]byte, error) {
 	return msp.NewSerializedIdentity(id.MspID, id.IDBytes)
 }
 
+// SerializeWithIDOfCert converts an identity to bytes.
+func (id *MockIdentity) SerializeWithIDOfCert() ([]byte, error) {
+	return id.Serialize()
+}
+
+// SerializeWithCert converts an identity to bytes.
+func (id *MockIdentity) SerializeWithCert() ([]byte, error) {
+	return id.Serialize()
+}
+
 // ToIdentities convert serialized identities to msp Identity.
 func ToIdentities(idBytesSlice [][]byte, deserializer msp.IdentityDeserializer) ([]msp.Identity, []bool) {
 	identities := make([]msp.Identity, len(idBytesSlice))

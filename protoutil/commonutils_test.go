@@ -292,8 +292,8 @@ func TestNewSignatureHeaderOrPanic(t *testing.T) {
 	var sigHeader *cb.SignatureHeader
 
 	id := &fakes.SignerSerializer{}
-	id.SerializeReturnsOnCall(0, []byte("serialized"), nil)
-	id.SerializeReturnsOnCall(1, nil, errors.New("serialize failed"))
+	id.SerializeWithCertReturnsOnCall(0, []byte("serialized"), nil)
+	id.SerializeWithCertReturnsOnCall(1, nil, errors.New("serialize failed"))
 	sigHeader = NewSignatureHeaderOrPanic(id)
 	require.NotNil(t, sigHeader, "Signature header should not be nil")
 

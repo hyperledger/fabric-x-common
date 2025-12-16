@@ -59,15 +59,16 @@ func (fake *Chain) Errored() <-chan struct{} {
 	ret, specificReturn := fake.erroredReturnsOnCall[len(fake.erroredArgsForCall)]
 	fake.erroredArgsForCall = append(fake.erroredArgsForCall, struct {
 	}{})
+	stub := fake.ErroredStub
+	fakeReturns := fake.erroredReturns
 	fake.recordInvocation("Errored", []interface{}{})
 	fake.erroredMutex.Unlock()
-	if fake.ErroredStub != nil {
-		return fake.ErroredStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.erroredReturns
 	return fakeReturns.result1
 }
 
@@ -111,15 +112,16 @@ func (fake *Chain) PolicyManager() policies.Manager {
 	ret, specificReturn := fake.policyManagerReturnsOnCall[len(fake.policyManagerArgsForCall)]
 	fake.policyManagerArgsForCall = append(fake.policyManagerArgsForCall, struct {
 	}{})
+	stub := fake.PolicyManagerStub
+	fakeReturns := fake.policyManagerReturns
 	fake.recordInvocation("PolicyManager", []interface{}{})
 	fake.policyManagerMutex.Unlock()
-	if fake.PolicyManagerStub != nil {
-		return fake.PolicyManagerStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.policyManagerReturns
 	return fakeReturns.result1
 }
 
@@ -163,15 +165,16 @@ func (fake *Chain) Reader() blockledger.Reader {
 	ret, specificReturn := fake.readerReturnsOnCall[len(fake.readerArgsForCall)]
 	fake.readerArgsForCall = append(fake.readerArgsForCall, struct {
 	}{})
+	stub := fake.ReaderStub
+	fakeReturns := fake.readerReturns
 	fake.recordInvocation("Reader", []interface{}{})
 	fake.readerMutex.Unlock()
-	if fake.ReaderStub != nil {
-		return fake.ReaderStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.readerReturns
 	return fakeReturns.result1
 }
 
@@ -215,15 +218,16 @@ func (fake *Chain) Sequence() uint64 {
 	ret, specificReturn := fake.sequenceReturnsOnCall[len(fake.sequenceArgsForCall)]
 	fake.sequenceArgsForCall = append(fake.sequenceArgsForCall, struct {
 	}{})
+	stub := fake.SequenceStub
+	fakeReturns := fake.sequenceReturns
 	fake.recordInvocation("Sequence", []interface{}{})
 	fake.sequenceMutex.Unlock()
-	if fake.SequenceStub != nil {
-		return fake.SequenceStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sequenceReturns
 	return fakeReturns.result1
 }
 
@@ -265,14 +269,6 @@ func (fake *Chain) SequenceReturnsOnCall(i int, result1 uint64) {
 func (fake *Chain) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.erroredMutex.RLock()
-	defer fake.erroredMutex.RUnlock()
-	fake.policyManagerMutex.RLock()
-	defer fake.policyManagerMutex.RUnlock()
-	fake.readerMutex.RLock()
-	defer fake.readerMutex.RUnlock()
-	fake.sequenceMutex.RLock()
-	defer fake.sequenceMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

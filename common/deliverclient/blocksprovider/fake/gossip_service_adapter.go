@@ -128,10 +128,6 @@ func (fake *GossipServiceAdapter) GossipArgsForCall(i int) *gossip.GossipMessage
 func (fake *GossipServiceAdapter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addPayloadMutex.RLock()
-	defer fake.addPayloadMutex.RUnlock()
-	fake.gossipMutex.RLock()
-	defer fake.gossipMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

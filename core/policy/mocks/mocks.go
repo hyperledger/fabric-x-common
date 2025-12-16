@@ -138,6 +138,16 @@ func (id *MockIdentity) Serialize() ([]byte, error) {
 	return []byte("cert"), nil
 }
 
+// SerializeWithIDOfCert converts identity to bytes.
+func (id *MockIdentity) SerializeWithIDOfCert() ([]byte, error) {
+	return id.Serialize()
+}
+
+// SerializeWithCert converts identity to bytes.
+func (id *MockIdentity) SerializeWithCert() ([]byte, error) {
+	return id.Serialize()
+}
+
 type MockMSPPrincipalGetter struct {
 	Principal []byte
 }

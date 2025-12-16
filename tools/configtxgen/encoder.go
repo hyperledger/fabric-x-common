@@ -707,7 +707,7 @@ func MakeChannelCreationTransactionFromTemplate(
 	}
 
 	if signer != nil {
-		sigHeader, err := protoutil.NewSignatureHeader(signer)
+		sigHeader, err := protoutil.NewSignatureHeaderWithCert(signer)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating signature header failed")
 		}
@@ -723,7 +723,8 @@ func MakeChannelCreationTransactionFromTemplate(
 
 	}
 
-	return protoutil.CreateSignedEnvelope(cb.HeaderType_CONFIG_UPDATE, channelID, signer, newConfigUpdateEnv, msgVersion, epoch)
+	return protoutil.CreateSignedEnvelopeWithCert(
+		cb.HeaderType_CONFIG_UPDATE, channelID, signer, newConfigUpdateEnv, msgVersion, epoch)
 }
 
 // HasSkippedForeignOrgs is used to detect whether a configuration includes

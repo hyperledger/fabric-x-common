@@ -119,6 +119,16 @@ func (*MockIdentity) Serialize() ([]byte, error) {
 	panic("implement me")
 }
 
+// SerializeWithIDOfCert is not implemented.
+func (*MockIdentity) SerializeWithIDOfCert() ([]byte, error) {
+	panic("implement me")
+}
+
+// SerializeWithCert is not implemented.
+func (*MockIdentity) SerializeWithCert() ([]byte, error) {
+	panic("implement me")
+}
+
 func (m *MockIdentity) SatisfiesPrincipal(principal *pmsp.MSPPrincipal) error {
 	return m.Called(principal).Error(0)
 }

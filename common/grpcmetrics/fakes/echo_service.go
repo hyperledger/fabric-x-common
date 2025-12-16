@@ -45,15 +45,16 @@ func (fake *EchoServiceServer) Echo(arg1 context.Context, arg2 *testpb.Message) 
 		arg1 context.Context
 		arg2 *testpb.Message
 	}{arg1, arg2})
+	stub := fake.EchoStub
+	fakeReturns := fake.echoReturns
 	fake.recordInvocation("Echo", []interface{}{arg1, arg2})
 	fake.echoMutex.Unlock()
-	if fake.EchoStub != nil {
-		return fake.EchoStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.echoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -108,15 +109,16 @@ func (fake *EchoServiceServer) EchoStream(arg1 testpb.EchoService_EchoStreamServ
 	fake.echoStreamArgsForCall = append(fake.echoStreamArgsForCall, struct {
 		arg1 testpb.EchoService_EchoStreamServer
 	}{arg1})
+	stub := fake.EchoStreamStub
+	fakeReturns := fake.echoStreamReturns
 	fake.recordInvocation("EchoStream", []interface{}{arg1})
 	fake.echoStreamMutex.Unlock()
-	if fake.EchoStreamStub != nil {
-		return fake.EchoStreamStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.echoStreamReturns
 	return fakeReturns.result1
 }
 
@@ -165,10 +167,6 @@ func (fake *EchoServiceServer) EchoStreamReturnsOnCall(i int, result1 error) {
 func (fake *EchoServiceServer) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.echoMutex.RLock()
-	defer fake.echoMutex.RUnlock()
-	fake.echoStreamMutex.RLock()
-	defer fake.echoStreamMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

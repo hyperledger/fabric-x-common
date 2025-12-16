@@ -7,6 +7,7 @@ package msp
 
 import (
 	"github.com/IBM/idemix"
+	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 )
 
@@ -26,6 +27,14 @@ func (i *idemixSigningIdentityWrapper) GetOrganizationalUnits() []*OUIdentifier 
 	return i.GetPublicVersion().GetOrganizationalUnits()
 }
 
+func (*idemixSigningIdentityWrapper) SerializeWithIDOfCert() ([]byte, error) {
+	return nil, errors.New("not applicable")
+}
+
+func (*idemixSigningIdentityWrapper) SerializeWithCert() ([]byte, error) {
+	return nil, errors.New("not applicable")
+}
+
 type idemixIdentityWrapper struct {
 	*idemix.Idemixidentity
 }
@@ -37,6 +46,14 @@ func (i *idemixIdentityWrapper) GetIdentifier() *IdentityIdentifier {
 		Mspid: id.Mspid,
 		Id:    id.Id,
 	}
+}
+
+func (*idemixIdentityWrapper) SerializeWithIDOfCert() ([]byte, error) {
+	return nil, errors.New("not applicable")
+}
+
+func (*idemixIdentityWrapper) SerializeWithCert() ([]byte, error) {
+	return nil, errors.New("not applicable")
 }
 
 func (i *idemixIdentityWrapper) GetOrganizationalUnits() []*OUIdentifier {

@@ -135,7 +135,7 @@ func TestIdentityPolicyPrincipalAgainstRevokedIdentity(t *testing.T) {
 	id, err := thisMSP.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	idSerialized, err := id.Serialize()
+	idSerialized, err := id.SerializeWithCert()
 	require.NoError(t, err)
 
 	principal := &msp.MSPPrincipal{

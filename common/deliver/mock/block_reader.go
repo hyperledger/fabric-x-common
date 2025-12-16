@@ -235,12 +235,6 @@ func (fake *BlockReader) RetrieveBlockByNumberReturnsOnCall(i int, result1 *comm
 func (fake *BlockReader) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.heightMutex.RLock()
-	defer fake.heightMutex.RUnlock()
-	fake.iteratorMutex.RLock()
-	defer fake.iteratorMutex.RUnlock()
-	fake.retrieveBlockByNumberMutex.RLock()
-	defer fake.retrieveBlockByNumberMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -57,9 +57,9 @@ func GetEnvelopeFromBlock(data []byte) (*common.Envelope, error) {
 	return env, nil
 }
 
-// CreateSignedEnvelope creates a signed envelope of the desired type, with
-// marshaled dataMsg and signs it
-func CreateSignedEnvelope(
+// CreateSignedEnvelopeWithIDOfCert creates a signed envelope with
+// ID of the cert in the signature header.
+func CreateSignedEnvelopeWithIDOfCert( //nolint:revive // argument-limit; max 4 but got 6
 	txType common.HeaderType,
 	channelID string,
 	signer Signer,
@@ -67,13 +67,25 @@ func CreateSignedEnvelope(
 	msgVersion int32,
 	epoch uint64,
 ) (*common.Envelope, error) {
-	return CreateSignedEnvelopeWithTLSBinding(txType, channelID, signer, dataMsg, msgVersion, epoch, nil)
+	return CreateSignedEnvelopeWithTLSBindingWithIDOfCert(txType, channelID, signer, dataMsg, msgVersion, epoch, nil)
 }
 
-// CreateSignedEnvelopeWithTLSBinding creates a signed envelope of the desired
-// type, with marshaled dataMsg and signs it. It also includes a TLS cert hash
-// into the channel header
-func CreateSignedEnvelopeWithTLSBinding(
+// CreateSignedEnvelopeWithCert creates a signed envelope with
+// cert in the signature header.
+func CreateSignedEnvelopeWithCert( //nolint:revive // argument-limit; max 4 but got 6
+	txType common.HeaderType,
+	channelID string,
+	signer Signer,
+	dataMsg proto.Message,
+	msgVersion int32,
+	epoch uint64,
+) (*common.Envelope, error) {
+	return CreateSignedEnvelopeWithTLSBindingWithCert(txType, channelID, signer, dataMsg, msgVersion, epoch, nil)
+}
+
+// CreateSignedEnvelopeWithTLSBindingWithIDOfCert creates a singed envelope with TLS cert
+// hash in the channel header and ID of cert in the signature header.
+func CreateSignedEnvelopeWithTLSBindingWithIDOfCert( //nolint:revive // argument-limit; max 4 but got 7
 	txType common.HeaderType,
 	channelID string,
 	signer Signer,
@@ -82,17 +94,60 @@ func CreateSignedEnvelopeWithTLSBinding(
 	epoch uint64,
 	tlsCertHash []byte,
 ) (*common.Envelope, error) {
-	payloadChannelHeader := MakeChannelHeader(txType, msgVersion, channelID, epoch)
-	payloadChannelHeader.TlsCertHash = tlsCertHash
-	var err error
 	payloadSignatureHeader := &common.SignatureHeader{}
-
+	var err error
 	if signer != nil {
-		payloadSignatureHeader, err = NewSignatureHeader(signer)
+		payloadSignatureHeader, err = NewSignatureHeaderWithIDOfCert(signer)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	return createSignedEnvelopeWithTLSBinding(
+		txType, channelID, signer, dataMsg, msgVersion, epoch, tlsCertHash, payloadSignatureHeader)
+}
+
+// CreateSignedEnvelopeWithTLSBindingWithCert creates a singed envelope with TLS cert
+// hash in the channel header and cert in the signature header.
+func CreateSignedEnvelopeWithTLSBindingWithCert( //nolint:revive // argument-limit; max 4 but got 7
+	txType common.HeaderType,
+	channelID string,
+	signer Signer,
+	dataMsg proto.Message,
+	msgVersion int32,
+	epoch uint64,
+	tlsCertHash []byte,
+) (*common.Envelope, error) {
+	payloadSignatureHeader := &common.SignatureHeader{}
+	var err error
+	if signer != nil {
+		payloadSignatureHeader, err = NewSignatureHeaderWithCert(signer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return createSignedEnvelopeWithTLSBinding(
+		txType, channelID, signer, dataMsg, msgVersion, epoch, tlsCertHash, payloadSignatureHeader)
+}
+
+// createSignedEnvelopeWithTLSBinding creates a signed envelope of the desired
+// type, with marshaled dataMsg and signs it. It also includes a TLS cert hash
+// into the channel header.
+func createSignedEnvelopeWithTLSBinding( //nolint:revive // argument-limit; max 4 but got 8
+	txType common.HeaderType,
+	channelID string,
+	signer Signer,
+	dataMsg proto.Message,
+	msgVersion int32,
+	epoch uint64,
+	tlsCertHash []byte,
+	signHeader *common.SignatureHeader,
+) (*common.Envelope, error) {
+	payloadChannelHeader := MakeChannelHeader(txType, msgVersion, channelID, epoch)
+	payloadChannelHeader.TlsCertHash = tlsCertHash
+	var err error
+	payloadSignatureHeader := signHeader
 
 	if !dataMsg.ProtoReflect().IsValid() {
 		return nil, errors.New("error marshaling: proto: Marshal called with nil")
@@ -128,7 +183,8 @@ func CreateSignedEnvelopeWithTLSBinding(
 // Signer is the interface needed to sign a transaction
 type Signer interface {
 	Sign(msg []byte) ([]byte, error)
-	Serialize() ([]byte, error)
+	SerializeWithCert() ([]byte, error)
+	SerializeWithIDOfCert() ([]byte, error)
 }
 
 // CreateSignedTx assembles an Envelope message from proposal, endorsements,
@@ -161,7 +217,7 @@ func CreateSignedTx(
 	}
 
 	// check that the signer is the same that is referenced in the header
-	signerBytes, err := signer.Serialize()
+	signerBytes, err := signer.SerializeWithCert()
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +342,7 @@ func CreateProposalResponse(
 	}
 
 	// serialize the signing identity
-	endorser, err := signingEndorser.Serialize()
+	endorser, err := signingEndorser.SerializeWithCert()
 	if err != nil {
 		return nil, errors.WithMessage(err, "error serializing signing identity")
 	}
@@ -406,7 +462,7 @@ func MockSignedEndorserProposal2OrPanic(
 	cs *peer.ChaincodeSpec,
 	signer Signer,
 ) (*peer.SignedProposal, *peer.Proposal) {
-	serializedSigner, err := signer.Serialize()
+	serializedSigner, err := signer.SerializeWithCert()
 	if err != nil {
 		panic(err)
 	}

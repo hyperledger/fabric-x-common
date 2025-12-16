@@ -130,6 +130,8 @@ func (p *policyChecker) CheckPolicyNoChannel(policyName string, signedProp *pb.S
 	}
 
 	// Deserialize proposal's creator with the local MSP
+	// TODO: Handle shdr.Creator that can contain protomsp.Identity instead of serialized msp.SerializedIdentity.
+	//       Unclear whether this method is useful for Fabric-X.
 	id, err := p.localMSP.DeserializeIdentity(shdr.Creator)
 	if err != nil {
 		logger.Warnw("Failed deserializing proposal creator during channelless check policy", "error", err, "policyName", policyName, "identity", protoutil.LogMessageForSerializedIdentity(shdr.Creator))

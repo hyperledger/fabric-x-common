@@ -1079,7 +1079,7 @@ var _ = ginkgo.Describe("Encoder", func() {
 
 			ginkgo.BeforeEach(func() {
 				fakeSigner = &fakes.SignerSerializer{}
-				fakeSigner.SerializeReturns([]byte("fake-creator"), nil)
+				fakeSigner.SerializeWithCertReturns([]byte("fake-creator"), nil)
 			})
 
 			ginkgo.It("returns an encoded and signed tx", func() {
@@ -1092,7 +1092,7 @@ var _ = ginkgo.Describe("Encoder", func() {
 				err = proto.Unmarshal(payload.Data, configUpdateEnv)
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 				gomega.Expect(configUpdateEnv.Signatures).To(gomega.HaveLen(1))
-				gomega.Expect(fakeSigner.SerializeCallCount()).To(gomega.Equal(2))
+				gomega.Expect(fakeSigner.SerializeWithCertCallCount()).To(gomega.Equal(2))
 				gomega.Expect(fakeSigner.SignCallCount()).To(gomega.Equal(2))
 				gomega.Expect(fakeSigner.SignArgsForCall(0)).To(gomega.Equal(
 					util.ConcatenateBytes(configUpdateEnv.Signatures[0].SignatureHeader, configUpdateEnv.ConfigUpdate),
@@ -1113,7 +1113,7 @@ var _ = ginkgo.Describe("Encoder", func() {
 
 			ginkgo.Context("when the signer cannot create the signature header", func() {
 				ginkgo.BeforeEach(func() {
-					fakeSigner.SerializeReturns(nil, errors.New("serialize-error"))
+					fakeSigner.SerializeWithCertReturns(nil, errors.New("serialize-error"))
 				})
 
 				ginkgo.It("wraps and returns the error", func() {

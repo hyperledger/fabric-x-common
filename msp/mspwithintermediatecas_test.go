@@ -35,7 +35,7 @@ func TestMSPWithIntermediateCAs(t *testing.T) {
 
 	sid, err := thisMSP.GetDefaultSigningIdentity()
 	require.NoError(t, err)
-	sidBytes, err := sid.Serialize()
+	sidBytes, err := sid.SerializeWithCert()
 	require.NoError(t, err)
 	id, err := thisMSP.DeserializeIdentity(sidBytes)
 	require.NoError(t, err)

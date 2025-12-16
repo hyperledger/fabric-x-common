@@ -69,7 +69,8 @@ func TestPolicyBase(t *testing.T) {
 
 	t.Run("Envelope", func(t *testing.T) {
 		signer := &mocks.SignerSerializer{}
-		envelope, err := protoutil.CreateSignedEnvelope(common.HeaderType_CONFIG, "myc", signer, &common.ConfigEnvelope{}, 0, 0)
+		envelope, err := protoutil.CreateSignedEnvelopeWithCert(
+			common.HeaderType_CONFIG, "myc", signer, &common.ConfigEnvelope{}, 0, 0)
 		require.NoError(t, err)
 		err = provider.CheckACL("pol", envelope)
 		require.NoError(t, err)

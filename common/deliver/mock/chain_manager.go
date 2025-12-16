@@ -29,15 +29,16 @@ func (fake *ChainManager) GetChain(arg1 string) deliver.Chain {
 	fake.getChainArgsForCall = append(fake.getChainArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetChainStub
+	fakeReturns := fake.getChainReturns
 	fake.recordInvocation("GetChain", []interface{}{arg1})
 	fake.getChainMutex.Unlock()
-	if fake.GetChainStub != nil {
-		return fake.GetChainStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getChainReturns
 	return fakeReturns.result1
 }
 
@@ -86,8 +87,6 @@ func (fake *ChainManager) GetChainReturnsOnCall(i int, result1 deliver.Chain) {
 func (fake *ChainManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getChainMutex.RLock()
-	defer fake.getChainMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
