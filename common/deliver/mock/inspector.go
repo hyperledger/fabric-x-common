@@ -5,9 +5,8 @@ import (
 	"context"
 	"sync"
 
-	"google.golang.org/protobuf/proto"
-
 	"github.com/hyperledger/fabric-x-common/common/deliver"
+	"google.golang.org/protobuf/proto"
 )
 
 type Inspector struct {

@@ -50,7 +50,6 @@ func (pe *mockPolicyEvaluatorImpl) Evaluate(polName string, sd []*protoutil.Sign
 }
 
 //go:generate counterfeiter -o mocks/signer_serializer.go --fake-name SignerSerializer . signerSerializer
-
 type signerSerializer interface {
 	identity.SignerSerializer
 }

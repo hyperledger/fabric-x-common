@@ -24,7 +24,6 @@ func TestGrpcmetrics(t *testing.T) {
 }
 
 //go:generate counterfeiter -o fakes/echo_service.go --fake-name EchoServiceServer . echoServiceServer
-
 type echoServiceServer interface {
 	testpb.EchoServiceServer
 }

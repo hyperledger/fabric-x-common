@@ -3,9 +3,8 @@
 package mocks
 
 import (
-	mock "github.com/stretchr/testify/mock"
-
 	msp "github.com/hyperledger/fabric-x-common/msp"
+	mock "github.com/stretchr/testify/mock"
 
 	protoutil "github.com/hyperledger/fabric-x-common/protoutil"
 )

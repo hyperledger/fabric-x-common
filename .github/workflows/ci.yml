@@ -27,6 +27,9 @@ jobs:
           # Apply automatic formatting.
           gofmt -w .
           goimports -local "github.com/hyperledger/fabric-x-common" -w .
+          # Re make protobufs and mocks, overwriting any formatting
+          PATH="$HOME/bin:$PATH" make proto
+          PATH="$HOME/bin:$PATH" make generate-mocks
           # Check if original code changed due to formatting.
           git diff --exit-code
           # Fetch main to only show new lint issues.

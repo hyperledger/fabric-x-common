@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 )
 

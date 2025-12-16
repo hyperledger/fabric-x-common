@@ -151,7 +151,7 @@ type Identity interface {
 	Anonymous() bool
 
 	// Verify a signature over some message using this identity as reference
-	Verify(msg []byte, sig []byte) error
+	Verify(msg, sig []byte) error
 
 	// Serialize converts an identity to bytes representation of msp.SerializedIdentity.
 	Serialize() ([]byte, error)
