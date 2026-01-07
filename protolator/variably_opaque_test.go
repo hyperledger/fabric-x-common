@@ -15,7 +15,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 
-	"github.com/hyperledger/fabric-x-common/api/armapb"
+	"github.com/hyperledger/fabric-x-common/api/ordererpb"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
 	"github.com/hyperledger/fabric-x-common/protolator/testprotos"
 )
@@ -161,25 +161,25 @@ func TestArmaSharedConfigVariablyOpaqueMsg(t *testing.T) {
 		ConsensusType: &orderer.ConsensusType{
 			Type: "arma",
 			Metadata: func() []byte {
-				metadataProto := &armapb.SharedConfig{
-					BatchingConfig: &armapb.BatchingConfig{
-						BatchSize: &armapb.BatchSize{
+				metadataProto := &ordererpb.SharedConfig{
+					BatchingConfig: &ordererpb.BatchingConfig{
+						BatchSize: &ordererpb.BatchSize{
 							MaxMessageCount:   10,
 							AbsoluteMaxBytes:  1024,
 							PreferredMaxBytes: 512,
 						},
 					},
-					PartiesConfig: []*armapb.PartyConfig{
+					PartiesConfig: []*ordererpb.PartyConfig{
 						{
 							PartyID: 1,
-							ConsenterConfig: &armapb.ConsenterNodeConfig{
+							ConsenterConfig: &ordererpb.ConsenterNodeConfig{
 								Host: "localhost",
 								Port: 7050,
 							},
 						},
 					},
-					ConsensusConfig: &armapb.ConsensusConfig{
-						SmartBFTConfig: &armapb.SmartBFTConfig{
+					ConsensusConfig: &ordererpb.ConsensusConfig{
+						SmartBFTConfig: &ordererpb.SmartBFTConfig{
 							RequestBatchMaxCount: 1000,
 						},
 					},
