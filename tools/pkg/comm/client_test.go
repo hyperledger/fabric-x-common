@@ -15,7 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -31,9 +32,7 @@ type echoServer struct {
 	testpb.UnimplementedEchoServiceServer
 }
 
-func (es *echoServer) EchoCall(ctx context.Context,
-	echo *testpb.Echo,
-) (*testpb.Echo, error) {
+func (*echoServer) EchoCall(_ context.Context, echo *testpb.Echo) (*testpb.Echo, error) {
 	return echo, nil
 }
 
@@ -43,14 +42,14 @@ func TestClientConfigDial(t *testing.T) {
 
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = l.Close()
+	})
 	badAddress := l.Addr().String()
-	defer l.Close()
 
 	certPool := x509.NewCertPool()
 	ok := certPool.AppendCertsFromPEM(testCerts.CAPEM)
-	if !ok {
-		t.Fatal("failed to create test root cert pool")
-	}
+	require.True(t, ok, "failed to create test root cert pool")
 
 	tests := []struct {
 		name          string
@@ -150,7 +149,7 @@ func TestClientConfigDial(t *testing.T) {
 				MaxVersion:   tls.VersionTLS12, // https://github.com/golang/go/issues/33368
 			},
 			success:  false,
-			errorMsg: "tls: bad certificate",
+			errorMsg: "tls: handshake failure",
 		},
 		{
 			name: "client TLS / server TLS client cert",
@@ -222,21 +221,22 @@ func TestClientConfigDial(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			lis, err := net.Listen("tcp", "127.0.0.1:0")
-			if err != nil {
-				t.Fatalf("error creating server for test: %v", err)
-			}
-			defer lis.Close()
-			serverOpts := []grpc.ServerOption{}
+			require.NoError(t, err, "error creating server for test")
+			t.Cleanup(func() {
+				_ = lis.Close()
+			})
+			var serverOpts []grpc.ServerOption
 			if test.serverTLS != nil {
 				serverOpts = append(serverOpts, grpc.Creds(credentials.NewTLS(test.serverTLS)))
 			}
 			srv := grpc.NewServer(serverOpts...)
-			defer srv.Stop()
-			go srv.Serve(lis)
+			t.Cleanup(srv.Stop)
+			go func() {
+				assert.NoError(t, srv.Serve(lis))
+			}()
 			address := lis.Addr().String()
 			if test.clientAddress != "" {
 				address = test.clientAddress
@@ -258,16 +258,14 @@ func TestSetMessageSize(t *testing.T) {
 
 	// setup test server
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("failed to create listener for test server: %v", err)
-	}
+	require.NoError(t, err, "failed to create listener for test server")
 	srv, err := comm.NewGRPCServerFromListener(lis, comm.ServerConfig{})
-	if err != nil {
-		t.Fatalf("failed to create test server: %v", err)
-	}
+	require.NoError(t, err, "failed to create test server")
 	testpb.RegisterEchoServiceServer(srv.Server(), &echoServer{})
-	defer srv.Stop()
-	go srv.Start()
+	t.Cleanup(srv.Stop)
+	go func() {
+		assert.NoError(t, srv.Start())
+	}()
 
 	tests := []struct {
 		name        string
@@ -304,7 +302,6 @@ func TestSetMessageSize(t *testing.T) {
 
 	// run tests
 	for _, test := range tests {
-		test := test
 		address := lis.Addr().String()
 		t.Run(test.name, func(t *testing.T) {
 			t.Log(test.name)
@@ -315,12 +312,14 @@ func TestSetMessageSize(t *testing.T) {
 			}
 			conn, err := config.Dial(address)
 			require.NoError(t, err)
-			defer conn.Close()
+			t.Cleanup(func() {
+				_ = conn.Close()
+			})
 			// create service client from conn
 			svcClient := testpb.NewEchoServiceClient(conn)
 			callCtx := context.Background()
 			callCtx, cancel := context.WithTimeout(callCtx, testTimeout)
-			defer cancel()
+			t.Cleanup(cancel)
 			// invoke service
 			echo := &testpb.Echo{
 				Payload: []byte{0, 0, 0, 0, 0},
