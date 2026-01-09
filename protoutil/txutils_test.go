@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
-	"github.com/hyperledger/fabric-x-common/protoutil/fakes"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/identity/mocks"
 )
 
 func TestGetPayloads(t *testing.T) {
@@ -121,9 +121,9 @@ func TestGetPayloads(t *testing.T) {
 }
 
 func TestDeduplicateEndorsements(t *testing.T) {
-	signID := &fakes.SignerSerializer{}
-	signID.SerializeWithCertReturns([]byte("signer"), nil)
-	signerBytes, err := signID.SerializeWithCert()
+	signID := &mocks.SignerSerializer{}
+	signID.SerializeReturns([]byte("signer"), nil)
+	signerBytes, err := signID.Serialize()
 	require.NoError(t, err, "Unexpected error serializing signing identity")
 
 	proposal := &pb.Proposal{
@@ -158,9 +158,9 @@ func TestCreateSignedTx(t *testing.T) {
 	var err error
 	prop := &pb.Proposal{}
 
-	signID := &fakes.SignerSerializer{}
-	signID.SerializeWithCertReturns([]byte("signer"), nil)
-	signerBytes, err := signID.SerializeWithCert()
+	signID := &mocks.SignerSerializer{}
+	signID.SerializeReturns([]byte("signer"), nil)
+	signerBytes, err := signID.Serialize()
 	require.NoError(t, err, "Unexpected error serializing signing identity")
 
 	ccHeaderExtensionBytes := protoutil.MarshalOrPanic(&pb.ChaincodeHeaderExtension{})
@@ -283,9 +283,9 @@ func TestCreateSignedTxStatus(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	signingID := &fakes.SignerSerializer{}
-	signingID.SerializeWithCertReturns([]byte("signer"), nil)
-	serializedSigningID, err := signingID.SerializeWithCert()
+	signingID := &mocks.SignerSerializer{}
+	signingID.SerializeReturns([]byte("signer"), nil)
+	serializedSigningID, err := signingID.Serialize()
 	require.NoError(t, err)
 	serializedSignatureHeader, err := proto.Marshal(&cb.SignatureHeader{
 		Creator: serializedSigningID,
@@ -341,10 +341,10 @@ func TestCreateSignedEnvelope(t *testing.T) {
 	channelID := "mychannelID"
 	msg := &cb.ConfigEnvelope{}
 
-	id := &fakes.SignerSerializer{}
+	id := &mocks.SignerSerializer{}
 	id.SignReturnsOnCall(0, []byte("goodsig"), nil)
 	id.SignReturnsOnCall(1, nil, errors.New("bad signature"))
-	env, err := protoutil.CreateSignedEnvelopeWithCert(cb.HeaderType_CONFIG, channelID,
+	env, err := protoutil.CreateSignedEnvelope(cb.HeaderType_CONFIG, channelID,
 		id, msg, int32(1), uint64(1))
 	require.NoError(t, err, "Unexpected error creating signed envelope")
 	require.NotNil(t, env, "Envelope should not be nil")
@@ -358,7 +358,7 @@ func TestCreateSignedEnvelope(t *testing.T) {
 	require.NoError(t, err, "Expected payload data to be a config envelope")
 	require.True(t, proto.Equal(msg, data), "Payload data does not match expected value")
 
-	_, err = protoutil.CreateSignedEnvelopeWithCert(cb.HeaderType_CONFIG, channelID,
+	_, err = protoutil.CreateSignedEnvelope(cb.HeaderType_CONFIG, channelID,
 		id, &cb.ConfigEnvelope{}, int32(1), uint64(1))
 	require.Error(t, err, "Expected sign error")
 }
@@ -368,7 +368,7 @@ func TestCreateSignedEnvelopeNilSigner(t *testing.T) {
 	channelID := "mychannelID"
 	msg := &cb.ConfigEnvelope{}
 
-	env, err := protoutil.CreateSignedEnvelopeWithCert(cb.HeaderType_CONFIG, channelID,
+	env, err := protoutil.CreateSignedEnvelope(cb.HeaderType_CONFIG, channelID,
 		nil, msg, int32(1), uint64(1))
 	require.NoError(t, err, "Unexpected error creating signed envelope")
 	require.NotNil(t, env, "Envelope should not be nil")
@@ -388,7 +388,7 @@ func TestGetSignedProposal(t *testing.T) {
 
 	sig := []byte("signature")
 
-	signID := &fakes.SignerSerializer{}
+	signID := &mocks.SignerSerializer{}
 	signID.SignReturns(sig, nil)
 
 	prop := &pb.Proposal{}
@@ -444,7 +444,7 @@ func TestMockSignedEndorserProposal2OrPanic(t *testing.T) {
 	cis := &pb.ChaincodeInvocationSpec{}
 	chainID := "testchannelid"
 	sig := []byte("signature")
-	signID := &fakes.SignerSerializer{}
+	signID := &mocks.SignerSerializer{}
 	signID.SignReturns(sig, nil)
 
 	signedProp, prop = protoutil.MockSignedEndorserProposal2OrPanic(chainID,

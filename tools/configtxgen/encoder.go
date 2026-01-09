@@ -707,7 +707,7 @@ func MakeChannelCreationTransactionFromTemplate(
 	}
 
 	if signer != nil {
-		sigHeader, err := protoutil.NewSignatureHeaderWithCert(signer)
+		sigHeader, err := protoutil.NewSignatureHeader(signer)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating signature header failed")
 		}
@@ -723,7 +723,7 @@ func MakeChannelCreationTransactionFromTemplate(
 
 	}
 
-	return protoutil.CreateSignedEnvelopeWithCert(
+	return protoutil.CreateSignedEnvelope(
 		cb.HeaderType_CONFIG_UPDATE, channelID, signer, newConfigUpdateEnv, msgVersion, epoch)
 }
 

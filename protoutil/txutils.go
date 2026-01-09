@@ -15,6 +15,8 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/hyperledger/fabric-x-common/tools/pkg/identity"
 )
 
 // GetPayloads gets the underlying payload objects in a TransactionAction
@@ -57,12 +59,25 @@ func GetEnvelopeFromBlock(data []byte) (*common.Envelope, error) {
 	return env, nil
 }
 
+// CreateSignedEnvelope creates a signed envelope with
+// cert in the signature header.
+func CreateSignedEnvelope( //nolint:revive // argument-limit; max 4 but got 6
+	txType common.HeaderType,
+	channelID string,
+	signer identity.SignerSerializer,
+	dataMsg proto.Message,
+	msgVersion int32,
+	epoch uint64,
+) (*common.Envelope, error) {
+	return CreateSignedEnvelopeWithTLSBinding(txType, channelID, signer, dataMsg, msgVersion, epoch, nil)
+}
+
 // CreateSignedEnvelopeWithIDOfCert creates a signed envelope with
 // ID of the cert in the signature header.
 func CreateSignedEnvelopeWithIDOfCert( //nolint:revive // argument-limit; max 4 but got 6
 	txType common.HeaderType,
 	channelID string,
-	signer Signer,
+	signer identity.ExtendedSignerSerializer,
 	dataMsg proto.Message,
 	msgVersion int32,
 	epoch uint64,
@@ -70,17 +85,28 @@ func CreateSignedEnvelopeWithIDOfCert( //nolint:revive // argument-limit; max 4 
 	return CreateSignedEnvelopeWithTLSBindingWithIDOfCert(txType, channelID, signer, dataMsg, msgVersion, epoch, nil)
 }
 
-// CreateSignedEnvelopeWithCert creates a signed envelope with
-// cert in the signature header.
-func CreateSignedEnvelopeWithCert( //nolint:revive // argument-limit; max 4 but got 6
+// CreateSignedEnvelopeWithTLSBinding creates a singed envelope with TLS cert
+// hash in the channel header and cert in the signature header.
+func CreateSignedEnvelopeWithTLSBinding( //nolint:revive // argument-limit; max 4 but got 7
 	txType common.HeaderType,
 	channelID string,
-	signer Signer,
+	signer identity.SignerSerializer,
 	dataMsg proto.Message,
 	msgVersion int32,
 	epoch uint64,
+	tlsCertHash []byte,
 ) (*common.Envelope, error) {
-	return CreateSignedEnvelopeWithTLSBindingWithCert(txType, channelID, signer, dataMsg, msgVersion, epoch, nil)
+	payloadSignatureHeader := &common.SignatureHeader{}
+	var err error
+	if signer != nil {
+		payloadSignatureHeader, err = NewSignatureHeader(signer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return createSignedEnvelopeWithTLSBinding(
+		txType, channelID, signer, dataMsg, msgVersion, epoch, tlsCertHash, payloadSignatureHeader)
 }
 
 // CreateSignedEnvelopeWithTLSBindingWithIDOfCert creates a singed envelope with TLS cert
@@ -88,7 +114,7 @@ func CreateSignedEnvelopeWithCert( //nolint:revive // argument-limit; max 4 but 
 func CreateSignedEnvelopeWithTLSBindingWithIDOfCert( //nolint:revive // argument-limit; max 4 but got 7
 	txType common.HeaderType,
 	channelID string,
-	signer Signer,
+	signer identity.ExtendedSignerSerializer,
 	dataMsg proto.Message,
 	msgVersion int32,
 	epoch uint64,
@@ -107,37 +133,13 @@ func CreateSignedEnvelopeWithTLSBindingWithIDOfCert( //nolint:revive // argument
 		txType, channelID, signer, dataMsg, msgVersion, epoch, tlsCertHash, payloadSignatureHeader)
 }
 
-// CreateSignedEnvelopeWithTLSBindingWithCert creates a singed envelope with TLS cert
-// hash in the channel header and cert in the signature header.
-func CreateSignedEnvelopeWithTLSBindingWithCert( //nolint:revive // argument-limit; max 4 but got 7
-	txType common.HeaderType,
-	channelID string,
-	signer Signer,
-	dataMsg proto.Message,
-	msgVersion int32,
-	epoch uint64,
-	tlsCertHash []byte,
-) (*common.Envelope, error) {
-	payloadSignatureHeader := &common.SignatureHeader{}
-	var err error
-	if signer != nil {
-		payloadSignatureHeader, err = NewSignatureHeaderWithCert(signer)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return createSignedEnvelopeWithTLSBinding(
-		txType, channelID, signer, dataMsg, msgVersion, epoch, tlsCertHash, payloadSignatureHeader)
-}
-
 // createSignedEnvelopeWithTLSBinding creates a signed envelope of the desired
 // type, with marshaled dataMsg and signs it. It also includes a TLS cert hash
 // into the channel header.
 func createSignedEnvelopeWithTLSBinding( //nolint:revive // argument-limit; max 4 but got 8
 	txType common.HeaderType,
 	channelID string,
-	signer Signer,
+	signer identity.SignerSerializer,
 	dataMsg proto.Message,
 	msgVersion int32,
 	epoch uint64,
@@ -180,20 +182,13 @@ func createSignedEnvelopeWithTLSBinding( //nolint:revive // argument-limit; max 
 	return env, nil
 }
 
-// Signer is the interface needed to sign a transaction
-type Signer interface {
-	Sign(msg []byte) ([]byte, error)
-	SerializeWithCert() ([]byte, error)
-	SerializeWithIDOfCert() ([]byte, error)
-}
-
 // CreateSignedTx assembles an Envelope message from proposal, endorsements,
 // and a signer. This function should be called by a client when it has
 // collected enough endorsements for a proposal to create a transaction and
 // submit it to peers for ordering
 func CreateSignedTx(
 	proposal *peer.Proposal,
-	signer Signer,
+	signer identity.SignerSerializer,
 	resps ...*peer.ProposalResponse,
 ) (*common.Envelope, error) {
 	if len(resps) == 0 {
@@ -217,7 +212,7 @@ func CreateSignedTx(
 	}
 
 	// check that the signer is the same that is referenced in the header
-	signerBytes, err := signer.SerializeWithCert()
+	signerBytes, err := signer.Serialize()
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +316,7 @@ func CreateProposalResponse(
 	results []byte,
 	events []byte,
 	ccid *peer.ChaincodeID,
-	signingEndorser Signer,
+	signingEndorser identity.SignerSerializer,
 ) (*peer.ProposalResponse, error) {
 	hdr, err := UnmarshalHeader(hdrbytes)
 	if err != nil {
@@ -342,7 +337,7 @@ func CreateProposalResponse(
 	}
 
 	// serialize the signing identity
-	endorser, err := signingEndorser.SerializeWithCert()
+	endorser, err := signingEndorser.Serialize()
 	if err != nil {
 		return nil, errors.WithMessage(err, "error serializing signing identity")
 	}
@@ -410,7 +405,7 @@ func CreateProposalResponseFailure(
 
 // GetSignedProposal returns a signed proposal given a Proposal message and a
 // signing identity
-func GetSignedProposal(prop *peer.Proposal, signer Signer) (*peer.SignedProposal, error) {
+func GetSignedProposal(prop *peer.Proposal, signer identity.SignerSerializer) (*peer.SignedProposal, error) {
 	// check for nil argument
 	if prop == nil || signer == nil {
 		return nil, errors.New("nil arguments")
@@ -460,9 +455,9 @@ func MockSignedEndorserProposalOrPanic(
 func MockSignedEndorserProposal2OrPanic(
 	channelID string,
 	cs *peer.ChaincodeSpec,
-	signer Signer,
+	signer identity.SignerSerializer,
 ) (*peer.SignedProposal, *peer.Proposal) {
-	serializedSigner, err := signer.SerializeWithCert()
+	serializedSigner, err := signer.Serialize()
 	if err != nil {
 		panic(err)
 	}

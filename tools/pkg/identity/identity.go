@@ -19,7 +19,12 @@ type Signer interface {
 //
 // Serialize converts an identity to bytes.  It returns an error on failure.
 type Serializer interface {
-	SerializeWithCert() ([]byte, error)
+	Serialize() ([]byte, error)
+}
+
+// ExtendedSerializer is an interface which wraps the Serialize and SerializeWithIDOfCert functions.
+type ExtendedSerializer interface {
+	Serialize() ([]byte, error)
 	SerializeWithIDOfCert() ([]byte, error)
 }
 
@@ -29,4 +34,10 @@ type Serializer interface {
 type SignerSerializer interface {
 	Signer
 	Serializer
+}
+
+// ExtendedSignerSerializer groups the Sign and ExtendedSignerSerializer methods.
+type ExtendedSignerSerializer interface {
+	Signer
+	ExtendedSerializer
 }

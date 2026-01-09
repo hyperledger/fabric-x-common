@@ -4,15 +4,15 @@ package mocks
 import (
 	"sync"
 
-	mspa "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/msp"
 )
 
 type IdentityDeserializer struct {
-	DeserializeIdentityStub        func([]byte) (msp.Identity, error)
+	DeserializeIdentityStub        func(*applicationpb.Identity) (msp.Identity, error)
 	deserializeIdentityMutex       sync.RWMutex
 	deserializeIdentityArgsForCall []struct {
-		arg1 []byte
+		arg1 *applicationpb.Identity
 	}
 	deserializeIdentityReturns struct {
 		result1 msp.Identity
@@ -33,10 +33,10 @@ type IdentityDeserializer struct {
 	getKnownDeserializedIdentityReturnsOnCall map[int]struct {
 		result1 msp.Identity
 	}
-	IsWellFormedStub        func(*mspa.SerializedIdentity) error
+	IsWellFormedStub        func(*applicationpb.Identity) error
 	isWellFormedMutex       sync.RWMutex
 	isWellFormedArgsForCall []struct {
-		arg1 *mspa.SerializedIdentity
+		arg1 *applicationpb.Identity
 	}
 	isWellFormedReturns struct {
 		result1 error
@@ -48,20 +48,15 @@ type IdentityDeserializer struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *IdentityDeserializer) DeserializeIdentity(arg1 []byte) (msp.Identity, error) {
-	var arg1Copy []byte
-	if arg1 != nil {
-		arg1Copy = make([]byte, len(arg1))
-		copy(arg1Copy, arg1)
-	}
+func (fake *IdentityDeserializer) DeserializeIdentity(arg1 *applicationpb.Identity) (msp.Identity, error) {
 	fake.deserializeIdentityMutex.Lock()
 	ret, specificReturn := fake.deserializeIdentityReturnsOnCall[len(fake.deserializeIdentityArgsForCall)]
 	fake.deserializeIdentityArgsForCall = append(fake.deserializeIdentityArgsForCall, struct {
-		arg1 []byte
-	}{arg1Copy})
+		arg1 *applicationpb.Identity
+	}{arg1})
 	stub := fake.DeserializeIdentityStub
 	fakeReturns := fake.deserializeIdentityReturns
-	fake.recordInvocation("DeserializeIdentity", []interface{}{arg1Copy})
+	fake.recordInvocation("DeserializeIdentity", []interface{}{arg1})
 	fake.deserializeIdentityMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
@@ -78,13 +73,13 @@ func (fake *IdentityDeserializer) DeserializeIdentityCallCount() int {
 	return len(fake.deserializeIdentityArgsForCall)
 }
 
-func (fake *IdentityDeserializer) DeserializeIdentityCalls(stub func([]byte) (msp.Identity, error)) {
+func (fake *IdentityDeserializer) DeserializeIdentityCalls(stub func(*applicationpb.Identity) (msp.Identity, error)) {
 	fake.deserializeIdentityMutex.Lock()
 	defer fake.deserializeIdentityMutex.Unlock()
 	fake.DeserializeIdentityStub = stub
 }
 
-func (fake *IdentityDeserializer) DeserializeIdentityArgsForCall(i int) []byte {
+func (fake *IdentityDeserializer) DeserializeIdentityArgsForCall(i int) *applicationpb.Identity {
 	fake.deserializeIdentityMutex.RLock()
 	defer fake.deserializeIdentityMutex.RUnlock()
 	argsForCall := fake.deserializeIdentityArgsForCall[i]
@@ -178,11 +173,11 @@ func (fake *IdentityDeserializer) GetKnownDeserializedIdentityReturnsOnCall(i in
 	}{result1}
 }
 
-func (fake *IdentityDeserializer) IsWellFormed(arg1 *mspa.SerializedIdentity) error {
+func (fake *IdentityDeserializer) IsWellFormed(arg1 *applicationpb.Identity) error {
 	fake.isWellFormedMutex.Lock()
 	ret, specificReturn := fake.isWellFormedReturnsOnCall[len(fake.isWellFormedArgsForCall)]
 	fake.isWellFormedArgsForCall = append(fake.isWellFormedArgsForCall, struct {
-		arg1 *mspa.SerializedIdentity
+		arg1 *applicationpb.Identity
 	}{arg1})
 	stub := fake.IsWellFormedStub
 	fakeReturns := fake.isWellFormedReturns
@@ -203,13 +198,13 @@ func (fake *IdentityDeserializer) IsWellFormedCallCount() int {
 	return len(fake.isWellFormedArgsForCall)
 }
 
-func (fake *IdentityDeserializer) IsWellFormedCalls(stub func(*mspa.SerializedIdentity) error) {
+func (fake *IdentityDeserializer) IsWellFormedCalls(stub func(*applicationpb.Identity) error) {
 	fake.isWellFormedMutex.Lock()
 	defer fake.isWellFormedMutex.Unlock()
 	fake.IsWellFormedStub = stub
 }
 
-func (fake *IdentityDeserializer) IsWellFormedArgsForCall(i int) *mspa.SerializedIdentity {
+func (fake *IdentityDeserializer) IsWellFormedArgsForCall(i int) *applicationpb.Identity {
 	fake.isWellFormedMutex.RLock()
 	defer fake.isWellFormedMutex.RUnlock()
 	argsForCall := fake.isWellFormedArgsForCall[i]

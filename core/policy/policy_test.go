@@ -12,6 +12,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/core/policy/mocks"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -23,7 +24,7 @@ func TestCheckPolicyInvalidArgs(t *testing.T) {
 			"A": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: []byte("Alice"),
+						Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
 						Msg:      []byte("msg1"),
 					},
 				},
@@ -43,7 +44,7 @@ func TestCheckPolicyBySignedDataInvalidArgs(t *testing.T) {
 			"A": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: []byte("Alice"),
+						Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
 						Msg:      []byte("msg1"),
 					},
 				},
@@ -78,26 +79,26 @@ func TestPolicyCheckerInvalidArgs(t *testing.T) {
 		Managers: map[string]policies.Manager{
 			"A": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{Deserializer: &mocks.MockIdentityDeserializer{
-					Identity: []byte("Alice"),
+					Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
 					Msg:      []byte("msg1"),
 				}},
 			},
 			"B": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{Deserializer: &mocks.MockIdentityDeserializer{
-					Identity: []byte("Bob"),
+					Identity: applicationpb.NewIdentity("org1", []byte("Bob")),
 					Msg:      []byte("msg2"),
 				}},
 			},
 			"C": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{Deserializer: &mocks.MockIdentityDeserializer{
-					Identity: []byte("Alice"),
+					Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
 					Msg:      []byte("msg3"),
 				}},
 			},
 		},
 	}
 	identityDeserializer := &mocks.MockIdentityDeserializer{
-		Identity: []byte("Alice"),
+		Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
 		Msg:      []byte("msg1"),
 	}
 	pc := &policyChecker{
@@ -132,13 +133,16 @@ func TestPolicyChecker(t *testing.T) {
 		Managers: map[string]policies.Manager{
 			"A": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
-					Deserializer: &mocks.MockIdentityDeserializer{Identity: []byte("Alice"), Msg: []byte("msg1")},
+					Deserializer: &mocks.MockIdentityDeserializer{
+						Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+						Msg:      []byte("msg1"),
+					},
 				},
 			},
 			"B": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: []byte("Bob"),
+						Identity: applicationpb.NewIdentity("org1", []byte("Bob")),
 						Msg:      []byte("msg2"),
 					},
 				},
@@ -146,7 +150,7 @@ func TestPolicyChecker(t *testing.T) {
 			"C": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: []byte("Alice"),
+						Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
 						Msg:      []byte("msg3"),
 					},
 				},
@@ -154,18 +158,20 @@ func TestPolicyChecker(t *testing.T) {
 		},
 	}
 	identityDeserializer := &mocks.MockIdentityDeserializer{
-		Identity: []byte("Alice"),
+		Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
 		Msg:      []byte("msg1"),
 	}
+	aliceCreator := protoutil.MarshalOrPanic(applicationpb.NewIdentity("org1", []byte("Alice")))
 	pc := &policyChecker{
 		channelPolicyManagerGetter: policyManagerGetter,
 		localMSP:                   identityDeserializer,
-		principalGetter:            &mocks.MockMSPPrincipalGetter{Principal: []byte("Alice")},
+		principalGetter:            &mocks.MockMSPPrincipalGetter{Principal: aliceCreator},
 	}
 
 	t.Run("CheckPolicy", func(t *testing.T) {
 		// Validate Alice signatures against channel A's readers
-		sProp, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+		sProp, _ := protoutil.MockSignedEndorserProposalOrPanic(
+			"A", &peer.ChaincodeSpec{}, aliceCreator, []byte("msg1"))
 		policyManagerGetter.Managers["A"].(*mocks.MockChannelPolicyManager).MockPolicy.(*mocks.MockPolicy).Deserializer.(*mocks.MockIdentityDeserializer).Msg = sProp.ProposalBytes
 		sProp.Signature = sProp.ProposalBytes
 		err := pc.CheckPolicy("A", "readers", sProp)
@@ -183,7 +189,8 @@ func TestPolicyChecker(t *testing.T) {
 	})
 
 	t.Run("CheckPolicyNoChannel", func(t *testing.T) {
-		sProp, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+		sProp, _ := protoutil.MockSignedEndorserProposalOrPanic(
+			"A", &peer.ChaincodeSpec{}, aliceCreator, []byte("msg1"))
 		sProp.Signature = sProp.ProposalBytes
 
 		// Alice is a member of the local MSP, policy check must succeed
@@ -191,7 +198,8 @@ func TestPolicyChecker(t *testing.T) {
 		err := pc.CheckPolicyNoChannel(Members, sProp)
 		require.NoError(t, err)
 
-		sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Bob"), []byte("msg2"))
+		bobCreator := protoutil.MarshalOrPanic(applicationpb.NewIdentity("org1", []byte("Bob")))
+		sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, bobCreator, []byte("msg2"))
 		// Bob is not a member of the local MSP, policy check must fail
 		err = pc.CheckPolicyNoChannel(Members, sProp)
 		require.Error(t, err)
@@ -200,7 +208,7 @@ func TestPolicyChecker(t *testing.T) {
 
 	t.Run("CheckPolicyNoChannel", func(t *testing.T) {
 		signedData := &protoutil.SignedData{
-			Identity:  []byte("Alice"),
+			Identity:  applicationpb.NewIdentity("org1", []byte("Alice")),
 			Data:      []byte("msg1"),
 			Signature: []byte("msg1"), // for testing only, signature is same as data to pass MockIdentity.Verify
 		}
@@ -213,7 +221,7 @@ func TestPolicyChecker(t *testing.T) {
 		// CheckPolicyNoChannelBySignedData iterates each signed data and returns an error if any data is invalid
 		// Bob is not a member of the local MSP, policy check must fail when deserializing the identity
 		signedData2 := &protoutil.SignedData{
-			Identity:  []byte("Bob"),
+			Identity:  applicationpb.NewIdentity("org1", []byte("Bob")),
 			Data:      []byte("msg2"),
 			Signature: []byte("msg2"),
 		}

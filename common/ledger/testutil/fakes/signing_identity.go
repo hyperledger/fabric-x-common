@@ -30,6 +30,18 @@ type SigningIdentity struct {
 	expiresAtReturnsOnCall map[int]struct {
 		result1 time.Time
 	}
+	GetCertificatePEMStub        func() ([]byte, error)
+	getCertificatePEMMutex       sync.RWMutex
+	getCertificatePEMArgsForCall []struct {
+	}
+	getCertificatePEMReturns struct {
+		result1 []byte
+		result2 error
+	}
+	getCertificatePEMReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	GetIdentifierStub        func() *msp.IdentityIdentifier
 	getIdentifierMutex       sync.RWMutex
 	getIdentifierArgsForCall []struct {
@@ -90,18 +102,6 @@ type SigningIdentity struct {
 		result2 error
 	}
 	serializeReturnsOnCall map[int]struct {
-		result1 []byte
-		result2 error
-	}
-	SerializeWithCertStub        func() ([]byte, error)
-	serializeWithCertMutex       sync.RWMutex
-	serializeWithCertArgsForCall []struct {
-	}
-	serializeWithCertReturns struct {
-		result1 []byte
-		result2 error
-	}
-	serializeWithCertReturnsOnCall map[int]struct {
 		result1 []byte
 		result2 error
 	}
@@ -260,6 +260,62 @@ func (fake *SigningIdentity) ExpiresAtReturnsOnCall(i int, result1 time.Time) {
 	fake.expiresAtReturnsOnCall[i] = struct {
 		result1 time.Time
 	}{result1}
+}
+
+func (fake *SigningIdentity) GetCertificatePEM() ([]byte, error) {
+	fake.getCertificatePEMMutex.Lock()
+	ret, specificReturn := fake.getCertificatePEMReturnsOnCall[len(fake.getCertificatePEMArgsForCall)]
+	fake.getCertificatePEMArgsForCall = append(fake.getCertificatePEMArgsForCall, struct {
+	}{})
+	stub := fake.GetCertificatePEMStub
+	fakeReturns := fake.getCertificatePEMReturns
+	fake.recordInvocation("GetCertificatePEM", []interface{}{})
+	fake.getCertificatePEMMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *SigningIdentity) GetCertificatePEMCallCount() int {
+	fake.getCertificatePEMMutex.RLock()
+	defer fake.getCertificatePEMMutex.RUnlock()
+	return len(fake.getCertificatePEMArgsForCall)
+}
+
+func (fake *SigningIdentity) GetCertificatePEMCalls(stub func() ([]byte, error)) {
+	fake.getCertificatePEMMutex.Lock()
+	defer fake.getCertificatePEMMutex.Unlock()
+	fake.GetCertificatePEMStub = stub
+}
+
+func (fake *SigningIdentity) GetCertificatePEMReturns(result1 []byte, result2 error) {
+	fake.getCertificatePEMMutex.Lock()
+	defer fake.getCertificatePEMMutex.Unlock()
+	fake.GetCertificatePEMStub = nil
+	fake.getCertificatePEMReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *SigningIdentity) GetCertificatePEMReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.getCertificatePEMMutex.Lock()
+	defer fake.getCertificatePEMMutex.Unlock()
+	fake.GetCertificatePEMStub = nil
+	if fake.getCertificatePEMReturnsOnCall == nil {
+		fake.getCertificatePEMReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.getCertificatePEMReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *SigningIdentity) GetIdentifier() *msp.IdentityIdentifier {
@@ -586,62 +642,6 @@ func (fake *SigningIdentity) SerializeReturnsOnCall(i int, result1 []byte, resul
 		})
 	}
 	fake.serializeReturnsOnCall[i] = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *SigningIdentity) SerializeWithCert() ([]byte, error) {
-	fake.serializeWithCertMutex.Lock()
-	ret, specificReturn := fake.serializeWithCertReturnsOnCall[len(fake.serializeWithCertArgsForCall)]
-	fake.serializeWithCertArgsForCall = append(fake.serializeWithCertArgsForCall, struct {
-	}{})
-	stub := fake.SerializeWithCertStub
-	fakeReturns := fake.serializeWithCertReturns
-	fake.recordInvocation("SerializeWithCert", []interface{}{})
-	fake.serializeWithCertMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *SigningIdentity) SerializeWithCertCallCount() int {
-	fake.serializeWithCertMutex.RLock()
-	defer fake.serializeWithCertMutex.RUnlock()
-	return len(fake.serializeWithCertArgsForCall)
-}
-
-func (fake *SigningIdentity) SerializeWithCertCalls(stub func() ([]byte, error)) {
-	fake.serializeWithCertMutex.Lock()
-	defer fake.serializeWithCertMutex.Unlock()
-	fake.SerializeWithCertStub = stub
-}
-
-func (fake *SigningIdentity) SerializeWithCertReturns(result1 []byte, result2 error) {
-	fake.serializeWithCertMutex.Lock()
-	defer fake.serializeWithCertMutex.Unlock()
-	fake.SerializeWithCertStub = nil
-	fake.serializeWithCertReturns = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *SigningIdentity) SerializeWithCertReturnsOnCall(i int, result1 []byte, result2 error) {
-	fake.serializeWithCertMutex.Lock()
-	defer fake.serializeWithCertMutex.Unlock()
-	fake.SerializeWithCertStub = nil
-	if fake.serializeWithCertReturnsOnCall == nil {
-		fake.serializeWithCertReturnsOnCall = make(map[int]struct {
-			result1 []byte
-			result2 error
-		})
-	}
-	fake.serializeWithCertReturnsOnCall[i] = struct {
 		result1 []byte
 		result2 error
 	}{result1, result2}

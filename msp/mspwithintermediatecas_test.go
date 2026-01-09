@@ -21,6 +21,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestMSPWithIntermediateCAs(t *testing.T) {
@@ -35,16 +37,19 @@ func TestMSPWithIntermediateCAs(t *testing.T) {
 
 	sid, err := thisMSP.GetDefaultSigningIdentity()
 	require.NoError(t, err)
-	sidBytes, err := sid.SerializeWithCert()
+	sidBytes, err := sid.Serialize()
 	require.NoError(t, err)
-	id, err := thisMSP.DeserializeIdentity(sidBytes)
+
+	idty, err := protoutil.UnmarshalIdentity(sidBytes)
+	require.NoError(t, err)
+	id, err := thisMSP.DeserializeIdentity(idty)
 	require.NoError(t, err)
 
 	// ensure that we validate correctly the identity
 	err = thisMSP.Validate(id)
 	require.NoError(t, err)
 
-	id, err = thisMSP.DeserializeIdentity(sidBytes)
+	id, err = thisMSP.DeserializeIdentity(idty)
 	require.NoError(t, err)
 
 	// ensure that validation of an identity of the MSP with intermediate CAs

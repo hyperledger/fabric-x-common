@@ -76,7 +76,7 @@ func TestDigest(t *testing.T) {
 			name:          "Invalid PEM Content",
 			filePath:      invalidPemPath,
 			hashFunc:      bccsp.SHA256,
-			expectedError: "no pem content for file",
+			expectedError: "no PEM content in file",
 		},
 		{
 			name:          "Unsupported Hash Function",
@@ -89,7 +89,7 @@ func TestDigest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			digest, err := Digest(tt.filePath, tt.hashFunc)
+			digest, err := DigestFromFile(tt.filePath, tt.hashFunc)
 
 			if tt.expectedError != "" {
 				require.ErrorContains(t, err, tt.expectedError)

@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/msp/mocks"
 )
@@ -109,8 +110,8 @@ func TestDeserializeIdentity(t *testing.T) {
 	// Check id is cached
 	mockIdentity := &mocks.MockIdentity{ID: "Alice"}
 	mockIdentity2 := &mocks.MockIdentity{ID: "Bob"}
-	serializedIdentity := []byte{1, 2, 3}
-	serializedIdentity2 := []byte{4, 5, 6}
+	serializedIdentity := &applicationpb.Identity{MspId: "org1"}
+	serializedIdentity2 := &applicationpb.Identity{MspId: "org2"}
 	mockMSP.On("DeserializeIdentity", serializedIdentity).Return(mockIdentity, nil)
 	mockMSP.On("DeserializeIdentity", serializedIdentity2).Return(mockIdentity2, nil)
 	// Prime the cache
@@ -139,7 +140,9 @@ func TestDeserializeIdentity(t *testing.T) {
 
 	mockMSP.AssertExpectations(t)
 	// Check the cache
-	_, ok := wrappedMSP.(*cachedMSP).deserializeIdentityCache.get(string(serializedIdentity))
+	cMsp, ok := wrappedMSP.(*cachedMSP)
+	require.True(t, ok)
+	_, ok = cMsp.deserializeIdentityCache.get(serializedIdentity.String())
 	require.True(t, ok)
 
 	// Check the same object is returned
@@ -150,14 +153,16 @@ func TestDeserializeIdentity(t *testing.T) {
 
 	// Check id is not cached
 	mockIdentity = &mocks.MockIdentity{ID: "Bob"}
-	serializedIdentity = []byte{1, 2, 3, 4}
+	serializedIdentity = &applicationpb.Identity{MspId: "org3"}
 	mockMSP.On("DeserializeIdentity", serializedIdentity).Return(mockIdentity, errors.New("Invalid identity"))
 	_, err = wrappedMSP.DeserializeIdentity(serializedIdentity)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Invalid identity")
 	mockMSP.AssertExpectations(t)
 
-	_, ok = wrappedMSP.(*cachedMSP).deserializeIdentityCache.get(string(serializedIdentity))
+	cMsp, ok = wrappedMSP.(*cachedMSP)
+	require.True(t, ok)
+	_, ok = cMsp.deserializeIdentityCache.get(serializedIdentity.String())
 	require.False(t, ok)
 }
 
@@ -220,7 +225,7 @@ func TestSatisfiesValidateIndirectCall(t *testing.T) {
 	mockMSP.AssertNumberOfCalls(t, "Validate", 1)
 	require.NoError(t, err)
 	// Get the identity we test the caching on
-	identity, err := cache.DeserializeIdentity([]byte{1, 2, 3})
+	identity, err := cache.DeserializeIdentity(&applicationpb.Identity{MspId: "org1"})
 	require.NoError(t, err)
 	// Ensure the identity returned answers what the cached MSP answers.
 	err = identity.Validate()
@@ -252,7 +257,7 @@ func TestSatisfiesPrincipalIndirectCall(t *testing.T) {
 	err = cache.SatisfiesPrincipal(mockIdentity, mockMSPPrincipal)
 	require.Equal(t, "error: foo", err.Error())
 	// Get the identity we test the caching on
-	identity, err := cache.DeserializeIdentity([]byte{1, 2, 3})
+	identity, err := cache.DeserializeIdentity(&applicationpb.Identity{MspId: "org1"})
 	require.NoError(t, err)
 	// Ensure the identity returned answers what the cached MSP answers.
 	// If the invocation doesn't hit the cache, it will return nil instead of an error.

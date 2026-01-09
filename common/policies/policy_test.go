@@ -20,6 +20,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric-x-common/common/policies/mocks"
 	mspi "github.com/hyperledger/fabric-x-common/msp"
@@ -254,15 +255,16 @@ func TestPrincipalSetContainingOnly(t *testing.T) {
 }
 
 func TestSignatureSetToValidIdentities(t *testing.T) {
+	id := applicationpb.NewIdentity("org1", []byte("identity1"))
 	sd := []*protoutil.SignedData{
 		{
 			Data:      []byte("data1"),
-			Identity:  []byte("identity1"),
+			Identity:  id,
 			Signature: []byte("signature1"),
 		},
 		{
 			Data:      []byte("data1"),
-			Identity:  []byte("identity1"),
+			Identity:  id,
 			Signature: []byte("signature1"),
 		},
 	}
@@ -285,7 +287,7 @@ func TestSignatureSetToValidIdentities(t *testing.T) {
 	require.Equal(t, []byte("data1"), data)
 	require.Equal(t, []byte("signature1"), sig)
 	sidBytes := fIDDs.DeserializeIdentityArgsForCall(0)
-	require.Equal(t, []byte("identity1"), sidBytes)
+	require.True(t, proto.Equal(id, sidBytes))
 }
 
 func TestSignatureSetToValidIdentitiesDeserializeErr(t *testing.T) {
@@ -302,13 +304,8 @@ func TestSignatureSetToValidIdentitiesDeserializeErr(t *testing.T) {
 	require.NoError(t, err)
 	client1, err := ca.NewClientCertKeyPair()
 	require.NoError(t, err)
-	id := &msp.SerializedIdentity{
-		Mspid:   "MyMSP",
-		IdBytes: client1.Cert,
-	}
-	idBytes, err := proto.Marshal(id)
-	require.NoError(t, err)
 
+	invalidCertIdentity := applicationpb.NewIdentity("org1", []byte("identity1"))
 	tests := []struct {
 		spec                     string
 		signedData               []*protoutil.SignedData
@@ -318,19 +315,26 @@ func TestSignatureSetToValidIdentitiesDeserializeErr(t *testing.T) {
 			spec: "deserialize identity error - identity is random bytes",
 			signedData: []*protoutil.SignedData{
 				{
-					Identity: []byte("identity1"),
+					Identity: invalidCertIdentity,
 				},
 			},
-			expectedLogEntryContains: []string{"invalid identity", fmt.Sprintf("serialized-identity=%x", []byte("identity1")), "error=mango"},
+			expectedLogEntryContains: []string{
+				"invalid identity", fmt.Sprintf("serialized-identity=%x", invalidCertIdentity), "error=mango",
+			},
 		},
 		{
 			spec: "deserialize identity error - actual certificate",
 			signedData: []*protoutil.SignedData{
 				{
-					Identity: idBytes,
+					Identity: applicationpb.NewIdentity("org1", client1.Cert),
 				},
 			},
-			expectedLogEntryContains: []string{"invalid identity", fmt.Sprintf("mspid=MyMSP subject=%s issuer=%s serialnumber=%d", client1.TLSCert.Subject, client1.TLSCert.Issuer, client1.TLSCert.SerialNumber), "error=mango"},
+			expectedLogEntryContains: []string{
+				"invalid identity",
+				fmt.Sprintf("mspid=org1 subject=%s issuer=%s serialnumber=%d",
+					client1.TLSCert.Subject, client1.TLSCert.Issuer, client1.TLSCert.SerialNumber),
+				"error=mango",
+			},
 		},
 	}
 
@@ -344,10 +348,11 @@ func TestSignatureSetToValidIdentitiesDeserializeErr(t *testing.T) {
 }
 
 func TestSignatureSetToValidIdentitiesVerifyErr(t *testing.T) {
+	id := applicationpb.NewIdentity("org1", []byte("identity1"))
 	sd := []*protoutil.SignedData{
 		{
 			Data:      []byte("data1"),
-			Identity:  []byte("identity1"),
+			Identity:  id,
 			Signature: []byte("signature1"),
 		},
 	}
@@ -367,7 +372,7 @@ func TestSignatureSetToValidIdentitiesVerifyErr(t *testing.T) {
 	require.Equal(t, []byte("data1"), data)
 	require.Equal(t, []byte("signature1"), sig)
 	sidBytes := fIDDs.DeserializeIdentityArgsForCall(0)
-	require.Equal(t, []byte("identity1"), sidBytes)
+	require.True(t, proto.Equal(id, sidBytes))
 }
 
 func assertLogContains(t *testing.T, r *floggingtest.Recorder, ss ...string) {

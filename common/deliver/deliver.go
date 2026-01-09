@@ -15,9 +15,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/crypto"
@@ -340,7 +340,11 @@ func (h *Handler) deliverBlocks(ctx context.Context, srv *Server, envelope *cb.E
 			}
 		}
 
-		signedData := &protoutil.SignedData{Data: envelope.Payload, Identity: shdr.Creator, Signature: envelope.Signature}
+		id, err := protoutil.UnmarshalIdentity(shdr.GetCreator())
+		if err != nil {
+			return cb.Status_INTERNAL_SERVER_ERROR, err
+		}
+		signedData := &protoutil.SignedData{Data: envelope.Payload, Identity: id, Signature: envelope.Signature}
 		if err := srv.SendBlockResponse(block2send, chdr.ChannelId, chain, signedData); err != nil {
 			logger.Warningf("[channel: %s] Error sending to %s: %s", chdr.ChannelId, addr, err)
 			return cb.Status_INTERNAL_SERVER_ERROR, err

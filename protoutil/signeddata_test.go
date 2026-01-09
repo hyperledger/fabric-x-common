@@ -14,11 +14,11 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
@@ -42,13 +42,16 @@ func TestNilConfigEnvelopeAsSignedData(t *testing.T) {
 func TestConfigEnvelopeAsSignedData(t *testing.T) {
 	configBytes := []byte("Foo")
 	signatures := [][]byte{[]byte("Signature1"), []byte("Signature2")}
-	identities := [][]byte{[]byte("Identity1"), []byte("Identity2")}
+	identities := []*applicationpb.Identity{
+		applicationpb.NewIdentity("org1", []byte("Identity1")),
+		applicationpb.NewIdentity("org2", []byte("Identity2")),
+	}
 
 	configSignatures := make([]*common.ConfigSignature, len(signatures))
 	for i := range configSignatures {
 		configSignatures[i] = &common.ConfigSignature{
 			SignatureHeader: marshalOrPanic(&common.SignatureHeader{
-				Creator: identities[i],
+				Creator: protoutil.MarshalOrPanic(identities[i]),
 			}),
 			Signature: signatures[i],
 		}
@@ -65,7 +68,7 @@ func TestConfigEnvelopeAsSignedData(t *testing.T) {
 	}
 
 	for i, sigData := range signedData {
-		if !bytes.Equal(sigData.Identity, identities[i]) {
+		if !proto.Equal(sigData.Identity, identities[i]) {
 			t.Errorf("Expected identity to match at index %d", i)
 		}
 		if !bytes.Equal(sigData.Data, append(configSignatures[i].SignatureHeader, configBytes...)) {
@@ -86,10 +89,10 @@ func TestNilEnvelopeAsSignedData(t *testing.T) {
 }
 
 func TestEnvelopeAsSignedData(t *testing.T) {
-	identity := []byte("Foo")
+	identity := applicationpb.NewIdentity("org1", []byte("Identity1"))
 	sig := []byte("Bar")
 
-	shdrbytes, err := proto.Marshal(&common.SignatureHeader{Creator: identity})
+	shdrbytes, err := proto.Marshal(&common.SignatureHeader{Creator: protoutil.MarshalOrPanic(identity)})
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -112,7 +115,7 @@ func TestEnvelopeAsSignedData(t *testing.T) {
 		t.Fatalf("Expected 1 entry of signed data, but got %d", len(signedData))
 	}
 
-	if !bytes.Equal(signedData[0].Identity, identity) {
+	if !proto.Equal(signedData[0].Identity, identity) {
 		t.Errorf("Wrong identity bytes")
 	}
 	if !bytes.Equal(signedData[0].Data, env.Payload) {
@@ -123,19 +126,14 @@ func TestEnvelopeAsSignedData(t *testing.T) {
 	}
 }
 
-func TestLogMessageForSerializedIdentity(t *testing.T) {
+func TestLogMessageForIdentity(t *testing.T) {
+	t.Parallel()
 	pem, err := readPemFile(filepath.Join("testdata", "peer-expired.pem"))
 	require.NoError(t, err, "Unexpected error reading pem file")
 
-	serializedIdentity := &msp.SerializedIdentity{
-		Mspid:   "MyMSP",
-		IdBytes: pem,
-	}
+	id := applicationpb.NewIdentity("MyMSP", pem)
 
-	serializedIdentityBytes, err := proto.Marshal(serializedIdentity)
-	require.NoError(t, err, "Unexpected error marshaling")
-
-	identityLogMessage := protoutil.LogMessageForSerializedIdentity(serializedIdentityBytes)
+	identityLogMessage := protoutil.LogMessageForIdentity(id)
 
 	expected := "(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441)"
 	require.Equal(t, expected, identityLogMessage)
@@ -143,21 +141,24 @@ func TestLogMessageForSerializedIdentity(t *testing.T) {
 	signedDatas := []*protoutil.SignedData{
 		{
 			Data:      nil,
-			Identity:  serializedIdentityBytes,
+			Identity:  id,
 			Signature: nil,
 		},
 		{
 			Data:      nil,
-			Identity:  serializedIdentityBytes,
+			Identity:  id,
 			Signature: nil,
 		},
 	}
 
-	identitiesLogMessage := protoutil.LogMessageForSerializedIdentities(signedDatas)
+	identitiesLogMessage := protoutil.LogMessageForIdentities(signedDatas)
 
-	expected =
-		"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441), " +
-			"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441)"
+	expected = "(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US" +
+		" issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US" +
+		" serialnumber=216422593083731187380743188920914963441), " +
+		"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US" +
+		" issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US" +
+		" serialnumber=216422593083731187380743188920914963441)"
 	require.Equal(t, expected, identitiesLogMessage)
 }
 

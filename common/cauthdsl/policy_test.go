@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/common/policydsl"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -70,9 +71,7 @@ func TestAccept(t *testing.T) {
 
 	policy, ok := m.GetPolicy(policyID)
 	require.True(t, ok, "Should have found policy which was just added, but did not")
-	err = policy.EvaluateSignedData([]*protoutil.SignedData{
-		{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")},
-	})
+	err = policy.EvaluateSignedData(newSignedData(t, "org1", "identity", "data", "sign"))
 	require.NoError(t, err, "Should not have errored evaluating an acceptAll policy")
 }
 
@@ -88,9 +87,7 @@ func TestReject(t *testing.T) {
 	require.NotNil(t, m)
 	policy, ok := m.GetPolicy(policyID)
 	require.True(t, ok, "Should have found policy which was just added, but did not")
-	err = policy.EvaluateSignedData([]*protoutil.SignedData{
-		{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")},
-	})
+	err = policy.EvaluateSignedData(newSignedData(t, "org1", "identity", "data", "sign"))
 	require.Error(t, err, "Should have errored evaluating an rejectAll policy")
 }
 
@@ -101,9 +98,7 @@ func TestRejectOnUnknown(t *testing.T) {
 	require.NotNil(t, m)
 	policy, ok := m.GetPolicy("FakePolicyID")
 	require.False(t, ok, "Should not have found policy which was never added, but did")
-	err = policy.EvaluateSignedData([]*protoutil.SignedData{
-		{Identity: []byte("identity"), Data: []byte("data"), Signature: []byte("sig")},
-	})
+	err = policy.EvaluateSignedData(newSignedData(t, "org1", "identity", "data", "sign"))
 	require.Error(t, err, "Should have errored evaluating the default policy")
 }
 
@@ -164,4 +159,13 @@ func TestConverter(t *testing.T) {
 	require.NotNil(t, cp)
 	require.NoError(t, err)
 	require.Equal(t, cp, policydsl.RejectAllPolicy)
+}
+
+//nolint:revive // argument-limit - max 4 but got 5
+func newSignedData(t *testing.T, mspID, cert, data, sign string) []*protoutil.SignedData {
+	t.Helper()
+	return []*protoutil.SignedData{{
+		Identity: applicationpb.NewIdentity(mspID, []byte(cert)),
+		Data:     []byte(data), Signature: []byte(sign),
+	}}
 }

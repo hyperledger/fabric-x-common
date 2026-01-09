@@ -31,6 +31,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/identity/mocks"
 )
 
 type bftDelivererTestSetup struct {
@@ -43,7 +44,7 @@ type bftDelivererTestSetup struct {
 	fakeOrdererConnectionSourceFactory *fake.OrdererConnectionSourceFactory
 	fakeLedgerInfo                     *fake.LedgerInfo
 	fakeUpdatableBlockVerifier         *fake.UpdatableBlockVerifier
-	fakeSigner                         *fake.Signer
+	fakeSigner                         *mocks.SignerSerializer
 	fakeDeliverStreamer                *fake.DeliverStreamer
 	fakeDeliverClient                  *fake.DeliverClient
 	fakeCensorshipMonFactory           *fake.CensorshipDetectorFactory
@@ -75,7 +76,7 @@ func newBFTDelivererTestSetup(t *testing.T) *bftDelivererTestSetup {
 		fakeOrdererConnectionSourceFactory: &fake.OrdererConnectionSourceFactory{},
 		fakeLedgerInfo:                     &fake.LedgerInfo{},
 		fakeUpdatableBlockVerifier:         &fake.UpdatableBlockVerifier{},
-		fakeSigner:                         &fake.Signer{},
+		fakeSigner:                         &mocks.SignerSerializer{},
 		fakeDeliverStreamer:                &fake.DeliverStreamer{},
 		fakeDeliverClient:                  &fake.DeliverClient{},
 		fakeCensorshipMonFactory:           &fake.CensorshipDetectorFactory{},

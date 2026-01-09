@@ -16,7 +16,6 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
 	"github.com/hyperledger/fabric-lib-go/common/metrics/metricsfakes"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -47,7 +46,6 @@ var _ = ginkgo.Describe("Deliver", func() {
 		var fakeChainManager *mock.ChainManager
 		var cert *x509.Certificate
 		var certBytes []byte
-		var serializedIdentity []byte
 		ginkgo.BeforeEach(func() {
 			fakeChainManager = &mock.ChainManager{}
 
@@ -59,8 +57,6 @@ var _ = ginkgo.Describe("Deliver", func() {
 			der, _ := pem.Decode(ca.CertBytes())
 			cert, err = x509.ParseCertificate(der.Bytes)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-			serializedIdentity = protoutil.MarshalOrPanic(&msp.SerializedIdentity{IdBytes: certBytes})
 		})
 
 		ginkgo.It("returns a new handler", func() {
@@ -87,7 +83,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 					deliver.NewMetrics(&disabled.Provider{}),
 					false)
 
-				gomega.Expect(handler.ExpirationCheckFunc(serializedIdentity)).To(gomega.Equal(cert.NotAfter))
+				gomega.Expect(handler.ExpirationCheckFunc(certBytes)).To(gomega.Equal(cert.NotAfter))
 			})
 		})
 
@@ -100,7 +96,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 					deliver.NewMetrics(&disabled.Provider{}),
 					true)
 
-				gomega.Expect(handler.ExpirationCheckFunc(serializedIdentity)).NotTo(gomega.Equal(cert.NotAfter))
+				gomega.Expect(handler.ExpirationCheckFunc(certBytes)).NotTo(gomega.Equal(cert.NotAfter))
 			})
 		})
 	})

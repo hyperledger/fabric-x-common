@@ -52,6 +52,36 @@ func (_m *Identity) ExpiresAt() time.Time {
 	return r0
 }
 
+// GetCertificatePEM provides a mock function with no fields
+func (_m *Identity) GetCertificatePEM() ([]byte, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCertificatePEM")
+	}
+
+	var r0 []byte
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]byte, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []byte); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetIdentifier provides a mock function with no fields
 func (_m *Identity) GetIdentifier() *msp.IdentityIdentifier {
 	ret := _m.Called()
@@ -134,36 +164,6 @@ func (_m *Identity) Serialize() ([]byte, error) {
 
 	if len(ret) == 0 {
 		panic("no return value specified for Serialize")
-	}
-
-	var r0 []byte
-	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]byte, error)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() []byte); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SerializeWithCert provides a mock function with no fields
-func (_m *Identity) SerializeWithCert() ([]byte, error) {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for SerializeWithCert")
 	}
 
 	var r0 []byte

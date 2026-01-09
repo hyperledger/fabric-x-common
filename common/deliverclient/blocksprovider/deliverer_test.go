@@ -31,6 +31,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/identity/mocks"
 	"github.com/hyperledger/fabric-x-common/tools/test"
 )
 
@@ -46,7 +47,7 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 		fakeOrdererConnectionSourceFactory *fake.OrdererConnectionSourceFactory
 		fakeLedgerInfo                     *fake.LedgerInfo
 		fakeUpdatableBlockVerifier         *fake.UpdatableBlockVerifier
-		fakeSigner                         *fake.Signer
+		fakeSigner                         *mocks.SignerSerializer
 		fakeDeliverStreamer                *fake.DeliverStreamer
 		fakeDeliverClient                  *fake.DeliverClient
 		fakeSleeper                        *fake.Sleeper
@@ -86,7 +87,7 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 
 		fakeBlockHandler = &fake.BlockHandler{}
 		fakeUpdatableBlockVerifier = &fake.UpdatableBlockVerifier{}
-		fakeSigner = &fake.Signer{}
+		fakeSigner = &mocks.SignerSerializer{}
 
 		fakeLedgerInfo = &fake.LedgerInfo{}
 		fakeLedgerInfo.LedgerHeightReturns(7, nil)

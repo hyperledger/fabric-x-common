@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/common/cauthdsl"
 	"github.com/hyperledger/fabric-x-common/common/policydsl"
 	"github.com/hyperledger/fabric-x-common/core/policy/mocks"
@@ -41,12 +42,13 @@ func TestComponentIntegrationSignaturePolicyEnv(t *testing.T) {
 		},
 	})
 
-	idds.On("DeserializeIdentity", []byte("guess who")).Return(id, nil)
+	idty := applicationpb.NewIdentity("org1", []byte("guess who"))
+	idds.On("DeserializeIdentity", idty).Return(id, nil)
 	id.On("GetIdentifier").Return(&msp.IdentityIdentifier{Id: "id", Mspid: "msp"})
 	id.On("SatisfiesPrincipal", mock.Anything).Return(nil)
 	id.On("Verify", []byte("batti"), []byte("lei")).Return(nil)
 	err := ev.Evaluate(mspenv, []*protoutil.SignedData{{
-		Identity:  []byte("guess who"),
+		Identity:  idty,
 		Data:      []byte("batti"),
 		Signature: []byte("lei"),
 	}})
