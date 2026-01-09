@@ -18,6 +18,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestGetManagerForChains(t *testing.T) {
@@ -87,13 +88,16 @@ func TestNewMSPMgmtMgr(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, id)
 
-	serializedID, err := id.Serialize()
+	serializedID, err := id.SerializeWithCert()
+	require.NoError(t, err)
+
+	idty, err := protoutil.UnmarshalIdentity(serializedID)
 	require.NoError(t, err)
 
 	// test for nonexistent channel
 	mspMgmtMgr := GetManagerForChain("fake")
 
-	idBack, err := mspMgmtMgr.DeserializeIdentity(serializedID)
+	idBack, err := mspMgmtMgr.DeserializeIdentity(idty)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "channel doesn't exist")
 	require.Nil(t, idBack, "deserialized identity should have been nil")
@@ -101,7 +105,7 @@ func TestNewMSPMgmtMgr(t *testing.T) {
 	// test for existing channel
 	mspMgmtMgr = GetManagerForChain("testchannelid")
 
-	idBack, err = mspMgmtMgr.DeserializeIdentity(serializedID)
+	idBack, err = mspMgmtMgr.DeserializeIdentity(idty)
 	require.NoError(t, err)
 	require.NotNil(t, idBack, "deserialized identity should not have been nil")
 }

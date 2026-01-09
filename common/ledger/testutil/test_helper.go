@@ -317,7 +317,7 @@ func NewBlock(env []*common.Envelope, blockNum uint64, previousHash []byte) *com
 
 // constructBytesProposalResponsePayload constructs a ProposalResponsePayload byte for tests with a default signer.
 func constructBytesProposalResponsePayload(channelID string, ccid *pb.ChaincodeID, pResponse *pb.Response, simulationResults []byte) ([]byte, error) {
-	ss, err := signer.Serialize()
+	ss, err := signer.SerializeWithCert()
 	if err != nil {
 		return nil, err
 	}
@@ -398,7 +398,7 @@ func ConstructSignedTxEnv(
 	signer msp.SigningIdentity,
 	headerType common.HeaderType,
 ) (*common.Envelope, string, error) {
-	ss, err := signer.Serialize()
+	ss, err := signer.SerializeWithCert()
 	if err != nil {
 		return nil, "", err
 	}

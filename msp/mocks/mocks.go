@@ -12,6 +12,7 @@ import (
 	pmsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/msp"
 )
 
@@ -19,12 +20,14 @@ type MockMSP struct {
 	mock.Mock
 }
 
-func (m *MockMSP) IsWellFormed(_ *pmsp.SerializedIdentity) error {
+// IsWellFormed checks whether the certificate present in the identity is valid.
+func (*MockMSP) IsWellFormed(*applicationpb.Identity) error {
 	return nil
 }
 
-func (m *MockMSP) DeserializeIdentity(serializedIdentity []byte) (msp.Identity, error) {
-	args := m.Called(serializedIdentity)
+// DeserializeIdentity converts the proto identity to msp identity.
+func (m *MockMSP) DeserializeIdentity(identity *applicationpb.Identity) (msp.Identity, error) { //nolint:ireturn
+	args := m.Called(identity)
 	return args.Get(0).(msp.Identity), args.Error(1)
 }
 
@@ -113,10 +116,6 @@ func (*MockIdentity) GetOrganizationalUnits() []*msp.OUIdentifier {
 
 func (*MockIdentity) Verify(msg []byte, sig []byte) error {
 	return nil
-}
-
-func (*MockIdentity) Serialize() ([]byte, error) {
-	panic("implement me")
 }
 
 // SerializeWithIDOfCert is not implemented.

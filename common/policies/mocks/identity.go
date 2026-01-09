@@ -71,18 +71,6 @@ type Identity struct {
 	satisfiesPrincipalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SerializeStub        func() ([]byte, error)
-	serializeMutex       sync.RWMutex
-	serializeArgsForCall []struct {
-	}
-	serializeReturns struct {
-		result1 []byte
-		result2 error
-	}
-	serializeReturnsOnCall map[int]struct {
-		result1 []byte
-		result2 error
-	}
 	SerializeWithCertStub        func() ([]byte, error)
 	serializeWithCertMutex       sync.RWMutex
 	serializeWithCertArgsForCall []struct {
@@ -457,62 +445,6 @@ func (fake *Identity) SatisfiesPrincipalReturnsOnCall(i int, result1 error) {
 	fake.satisfiesPrincipalReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
-}
-
-func (fake *Identity) Serialize() ([]byte, error) {
-	fake.serializeMutex.Lock()
-	ret, specificReturn := fake.serializeReturnsOnCall[len(fake.serializeArgsForCall)]
-	fake.serializeArgsForCall = append(fake.serializeArgsForCall, struct {
-	}{})
-	stub := fake.SerializeStub
-	fakeReturns := fake.serializeReturns
-	fake.recordInvocation("Serialize", []interface{}{})
-	fake.serializeMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *Identity) SerializeCallCount() int {
-	fake.serializeMutex.RLock()
-	defer fake.serializeMutex.RUnlock()
-	return len(fake.serializeArgsForCall)
-}
-
-func (fake *Identity) SerializeCalls(stub func() ([]byte, error)) {
-	fake.serializeMutex.Lock()
-	defer fake.serializeMutex.Unlock()
-	fake.SerializeStub = stub
-}
-
-func (fake *Identity) SerializeReturns(result1 []byte, result2 error) {
-	fake.serializeMutex.Lock()
-	defer fake.serializeMutex.Unlock()
-	fake.SerializeStub = nil
-	fake.serializeReturns = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *Identity) SerializeReturnsOnCall(i int, result1 []byte, result2 error) {
-	fake.serializeMutex.Lock()
-	defer fake.serializeMutex.Unlock()
-	fake.SerializeStub = nil
-	if fake.serializeReturnsOnCall == nil {
-		fake.serializeReturnsOnCall = make(map[int]struct {
-			result1 []byte
-			result2 error
-		})
-	}
-	fake.serializeReturnsOnCall[i] = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *Identity) SerializeWithCert() ([]byte, error) {

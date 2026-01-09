@@ -67,7 +67,8 @@ func (pe *policyEvaluatorImpl) Evaluate(polName string, sd []*protoutil.SignedDa
 
 	err := policy.EvaluateSignedData(sd)
 	if err != nil {
-		aclLogger.Warnw("EvaluateSignedData policy check failed", "error", err, "policyName", polName, policy, "policy", "signingIdentities", protoutil.LogMessageForSerializedIdentities(sd))
+		aclLogger.Warnw("EvaluateSignedData policy check failed", "error", err, "policyName", polName,
+			policy, "policy", "signingIdentities", protoutil.LogMessageForIdentities(sd))
 	}
 	return err
 }
@@ -118,9 +119,14 @@ func (rp *aclmgmtPolicyProviderImpl) CheckACL(polName string, idinfo interface{}
 			return fmt.Errorf("Invalid Proposal's SignatureHeader during check policy [%s]: [%s]", polName, err)
 		}
 
+		idty, err := protoutil.UnmarshalIdentity(shdr.GetCreator())
+		if err != nil {
+			return err
+		}
+
 		sd = []*protoutil.SignedData{{
 			Data:      signedProp.ProposalBytes,
-			Identity:  shdr.Creator,
+			Identity:  idty,
 			Signature: signedProp.Signature,
 		}}
 

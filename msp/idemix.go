@@ -9,6 +9,9 @@ import (
 	"github.com/IBM/idemix"
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 )
 
 type idemixSigningIdentityWrapper struct {
@@ -82,8 +85,13 @@ func (i *idemixMSPWrapper) deserializeIdentityInternal(serializedIdentity []byte
 	return &idemixIdentityWrapper{id.(*idemix.Idemixidentity)}, nil
 }
 
-func (i *idemixMSPWrapper) DeserializeIdentity(serializedIdentity []byte) (Identity, error) {
-	id, err := i.Idemixmsp.DeserializeIdentity(serializedIdentity)
+func (i *idemixMSPWrapper) DeserializeIdentity(identity *applicationpb.Identity) (Identity, error) { //nolint:ireturn
+	si := msp.SerializedIdentity{Mspid: identity.MspId, IdBytes: identity.GetCertificate()}
+	siBytes, err := proto.Marshal(&si)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal serialized identity")
+	}
+	id, err := i.Idemixmsp.DeserializeIdentity(siBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +104,10 @@ func (i *idemixMSPWrapper) DeserializeIdentity(serializedIdentity []byte) (Ident
 //nolint:ireturn //Identity is an interface.
 func (*idemixMSPWrapper) GetKnownDeserializedIdentity(IdentityIdentifier) Identity {
 	return nil
+}
+
+func (i *idemixMSPWrapper) IsWellFormed(identity *applicationpb.Identity) error {
+	return i.Idemixmsp.IsWellFormed(&msp.SerializedIdentity{Mspid: identity.MspId, IdBytes: identity.GetCertificate()})
 }
 
 func (i *idemixMSPWrapper) GetVersion() MSPVersion {

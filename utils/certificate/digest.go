@@ -20,13 +20,18 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 )
 
-// Digest creates a hash of the content of the passed file.
-func Digest(pemCertPath, hashFunc string) ([]byte, error) {
+// DigestCertFromFile creates a hash of the content of the passed file.
+func DigestCertFromFile(pemCertPath, hashFunc string) ([]byte, error) {
 	cert, err := GetCert(pemCertPath)
 	if err != nil {
 		return nil, err
 	}
 
+	return DigestCertBytes(cert.Raw, hashFunc)
+}
+
+// DigestCertBytes creates a hash of the given certificate.
+func DigestCertBytes(cert []byte, hashFunc string) ([]byte, error) {
 	var hasher hash.Hash
 	switch hashFunc {
 	case bccsp.SHA256:
@@ -41,7 +46,7 @@ func Digest(pemCertPath, hashFunc string) ([]byte, error) {
 		return nil, errors.Newf("unsupported hash function: %s", hashFunc)
 	}
 
-	if _, err := hasher.Write(cert.Raw); err != nil {
+	if _, err := hasher.Write(cert); err != nil {
 		return nil, err
 	}
 	return hasher.Sum(nil), nil
