@@ -18,6 +18,12 @@ GO_TAGS ?=
 
 go_cmd          ?= go
 go_test         ?= $(go_cmd) test -json -v -timeout 30m
+project_dir     := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+proto_flags    ?=
+
+ifneq ("$(wildcard /usr/include)","")
+    proto_flags += --proto_path="/usr/include"
+endif
 
 TOOLS_EXES = configtxgen configtxlator cryptogen
 
@@ -58,7 +64,7 @@ $(BUILD_DIR)/%:
 clean: ## Cleans the build area
 	-@rm -rf $(BUILD_DIR)
 
-lint: FORCE
+lint: lint-proto FORCE
 	@echo "Running Go Linters..."
 	golangci-lint run --color=always --new-from-rev=main --timeout=4m
 	@echo "Running License Header Linters..."
@@ -74,28 +80,35 @@ FORCE:
 # Generate protos
 #########################
 
-PROTO_TARGETS ?= $(shell find ./api \
-	 -name '*.proto' -print0 | \
-	 xargs -0 -n 1 dirname | xargs -n 1 basename | \
-	 sort -u | sed -e "s/^proto/proto-/" \
-)
-
 BUILD_DIR := .build
 PROTOS_REPO := https://github.com/hyperledger/fabric-protos.git
 PROTOS_DIR := $(BUILD_DIR)/fabric-protos
 # We depend on this specific file to ensure the repo is actually cloned
 PROTOS_SENTINEL := $(PROTOS_DIR)/.git
 
-proto: $(PROTOS_SENTINEL)
-	@echo "==> Compiling protos..."
-	protoc \
-		-I=. \
+proto: FORCE $(PROTOS_SENTINEL)
+	@echo "Generating protobufs: $(shell find ${project_dir}/api -name '*.proto' -print0 \
+    		| xargs -0 -n 1 dirname | xargs -n 1 basename | sort -u)"
+	@protoc \
+		-I=${project_dir} \
 		-I=$(PROTOS_DIR) \
 		--go_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
 		--go-grpc_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		--go-grpc_out=. \
+		--go-grpc_opt=paths=source_relative \
 		--go_out=paths=source_relative:. \
-		./api/*/*.proto
+		${proto_flags} \
+		${project_dir}/api/*/*.proto
+
+lint-proto: FORCE $(PROTOS_SENTINEL)
+	@echo "Running protobuf linters..."
+	@api-linter \
+		-I="${project_dir}/api" \
+		-I="$(PROTOS_DIR)" \
+		--config .apilinter.yaml \
+		--set-exit-status \
+		--output-format github \
+		$(shell find ${project_dir}/api -name '*.proto' -exec realpath --relative-to ${project_dir}/api {} \;)
 
 $(PROTOS_SENTINEL):
 	@mkdir -p $(BUILD_DIR)

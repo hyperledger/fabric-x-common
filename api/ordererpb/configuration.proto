@@ -4,8 +4,16 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
+
+// The following rule disables snake names requirements for the entire file.
+// It should be removed once this issue is solved.
+// (-- api-linter: core::0140::lower-snake=disabled --)
+
 syntax = "proto3";
+
 option go_package = "github.com/hyperledger/fabric-x-common/api/ordererpb";
+
+package ordererpb;
 
 // SharedConfig holds the initial configuration that will be used to bootstrap new nodes.
 // This configuration is common to all Arma nodes.
