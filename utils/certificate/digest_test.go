@@ -89,7 +89,7 @@ func TestDigest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			digest, err := Digest(tt.filePath, tt.hashFunc)
+			digest, err := DigestCertFromFile(tt.filePath, tt.hashFunc)
 
 			if tt.expectedError != "" {
 				require.ErrorContains(t, err, tt.expectedError)

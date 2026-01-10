@@ -8,12 +8,17 @@ package cauthdsl
 
 import (
 	"bytes"
+	"encoding/hex"
 	"time"
 
 	"github.com/cockroachdb/errors"
+	"github.com/hyperledger/fabric-lib-go/bccsp"
 	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/utils/certificate"
 )
 
 // InvalidSignature denotes a non-valid signature.
@@ -27,16 +32,16 @@ type MockIdentityDeserializer struct {
 
 // DeserializeIdentity deserializes an identity.
 func (md *MockIdentityDeserializer) DeserializeIdentity( //nolint:ireturn
-	serializedIdentity []byte,
+	id *applicationpb.Identity,
 ) (msp.Identity, error) {
 	if md.Fail != nil {
 		return nil, md.Fail
 	}
-	return &MockIdentity{IDBytes: serializedIdentity}, nil
+	return &MockIdentity{MspID: id.MspId, IDBytes: protoutil.MarshalOrPanic(id)}, nil
 }
 
 // IsWellFormed checks if the given identity can be deserialized into its provider-specific form.
-func (*MockIdentityDeserializer) IsWellFormed(_ *mb.SerializedIdentity) error {
+func (*MockIdentityDeserializer) IsWellFormed(_ *applicationpb.Identity) error {
 	return nil
 }
 
@@ -105,28 +110,29 @@ func (*MockIdentity) Verify(_, sig []byte) error {
 	return nil
 }
 
-// Serialize converts an identity to bytes.
-func (id *MockIdentity) Serialize() ([]byte, error) {
-	return msp.NewSerializedIdentity(id.MspID, id.IDBytes)
-}
-
 // SerializeWithIDOfCert converts an identity to bytes.
 func (id *MockIdentity) SerializeWithIDOfCert() ([]byte, error) {
-	return id.Serialize()
+	certID, err := certificate.DigestCertBytes(id.IDBytes, bccsp.SHA256)
+	if err != nil {
+		return nil, err
+	}
+	return msp.NewSerializedIdentityWithIDOfCert(id.MspID, hex.EncodeToString(certID))
 }
 
 // SerializeWithCert converts an identity to bytes.
 func (id *MockIdentity) SerializeWithCert() ([]byte, error) {
-	return id.Serialize()
+	return msp.NewSerializedIdentityWithCert(id.MspID, id.IDBytes)
 }
 
 // ToIdentities convert serialized identities to msp Identity.
-func ToIdentities(idBytesSlice [][]byte, deserializer msp.IdentityDeserializer) ([]msp.Identity, []bool) {
-	identities := make([]msp.Identity, len(idBytesSlice))
-	for i, idBytes := range idBytesSlice {
-		id, _ := deserializer.DeserializeIdentity(idBytes)
+func ToIdentities(pIdentities []*applicationpb.Identity, deserializer msp.IdentityDeserializer) (
+	[]msp.Identity, []bool,
+) {
+	identities := make([]msp.Identity, len(pIdentities))
+	for i, id := range pIdentities {
+		id, _ := deserializer.DeserializeIdentity(id)
 		identities[i] = id
 	}
 
-	return identities, make([]bool, len(idBytesSlice))
+	return identities, make([]bool, len(pIdentities))
 }

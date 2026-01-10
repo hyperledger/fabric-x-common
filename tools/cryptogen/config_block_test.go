@@ -255,13 +255,15 @@ func requireSign(t *testing.T, bundle *channelconfig.Bundle, policyName string, 
 
 		si, err := mspUser.GetDefaultSigningIdentity()
 		require.NoError(t, err)
-		siID, err := si.Serialize()
+		siID, err := si.SerializeWithCert()
+		require.NoError(t, err)
+		id, err := protoutil.UnmarshalIdentity(siID)
 		require.NoError(t, err)
 		sig, err := si.Sign(data)
 		require.NoError(t, err)
 		signedData[i] = &protoutil.SignedData{
 			Data:      data,
-			Identity:  siID,
+			Identity:  id,
 			Signature: sig,
 		}
 	}

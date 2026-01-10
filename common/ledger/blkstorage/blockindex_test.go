@@ -369,7 +369,7 @@ func TestExportUniqueTxIDsErrorCases(t *testing.T) {
 	os.RemoveAll(testSnapshotDir)
 
 	// error during metadata file creation
-	fmt.Printf("testSnapshotDir=%s", testSnapshotDir)
+	fmt.Printf("testSnapshotDir=%s\n", testSnapshotDir)
 	require.NoError(t, os.MkdirAll(testSnapshotDir, 0o700))
 	metadataFilePath := filepath.Join(testSnapshotDir, snapshotMetadataFileName)
 	_, err = os.Create(metadataFilePath)

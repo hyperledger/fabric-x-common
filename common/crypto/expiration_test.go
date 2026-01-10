@@ -22,30 +22,20 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
-	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 func TestX509CertExpiresAt(t *testing.T) {
 	certBytes, err := os.ReadFile(filepath.Join("testdata", "cert.pem"))
 	require.NoError(t, err)
-	sId := &msp.SerializedIdentity{
-		IdBytes: certBytes,
-	}
-	serializedIdentity, err := proto.Marshal(sId)
 	require.NoError(t, err)
-	expirationTime := ExpiresAt(serializedIdentity)
+	expirationTime := ExpiresAt(certBytes)
 	require.Equal(t, time.Date(2027, 8, 17, 12, 19, 48, 0, time.UTC), expirationTime)
 }
 
 func TestX509InvalidCertExpiresAt(t *testing.T) {
 	certBytes, err := os.ReadFile(filepath.Join("testdata", "badCert.pem"))
 	require.NoError(t, err)
-	sId := &msp.SerializedIdentity{
-		IdBytes: certBytes,
-	}
-	serializedIdentity, err := proto.Marshal(sId)
-	require.NoError(t, err)
-	expirationTime := ExpiresAt(serializedIdentity)
+	expirationTime := ExpiresAt(certBytes)
 	require.True(t, expirationTime.IsZero())
 }
 
@@ -57,12 +47,8 @@ func TestIdemixIdentityExpiresAt(t *testing.T) {
 	}
 	idemixBytes, err := proto.Marshal(idemixId)
 	require.NoError(t, err)
-	sId := &msp.SerializedIdentity{
-		IdBytes: idemixBytes,
-	}
-	serializedIdentity, err := proto.Marshal(sId)
 	require.NoError(t, err)
-	expirationTime := ExpiresAt(serializedIdentity)
+	expirationTime := ExpiresAt(idemixBytes)
 	require.True(t, expirationTime.IsZero())
 }
 
@@ -87,10 +73,6 @@ func TestTrackExpiration(t *testing.T) {
 
 	tlsCert, err := ca.NewServerCertKeyPair("127.0.0.1")
 	require.NoError(t, err)
-
-	signingIdentity := protoutil.MarshalOrPanic(&msp.SerializedIdentity{
-		IdBytes: tlsCert.Cert,
-	})
 
 	warnShouldNotBeInvoked := func(format string, args ...interface{}) {
 		t.Fatalf(format, args...)
@@ -125,7 +107,7 @@ func TestTrackExpiration(t *testing.T) {
 		},
 		{
 			description:        "No TLS, enrollment cert expires soon",
-			sIDBytes:           signingIdentity,
+			sIDBytes:           tlsCert.Cert,
 			info:               infoShouldBeInvoked,
 			warn:               warnShouldBeInvoked,
 			now:                monthBeforeExpiration,

@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/applicationpb"
 	"github.com/hyperledger/fabric-x-common/core/aclmgmt/mocks"
 	"github.com/hyperledger/fabric-x-common/core/policy"
 	msptesttools "github.com/hyperledger/fabric-x-common/msp/mgmt/testtools"
@@ -60,8 +61,10 @@ func TestPolicyBase(t *testing.T) {
 	evaluator := &mockPolicyEvaluatorImpl{pmap: map[string]string{"res": "pol"}, peval: map[string]error{"pol": nil}}
 	provider := newPolicyProvider(evaluator)
 
+	creator := protoutil.MarshalOrPanic(applicationpb.NewIdentityWithCertificate("org1", []byte("Alice")))
+
 	t.Run("SignedProposal", func(t *testing.T) {
-		proposal, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+		proposal, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, creator, []byte("msg1"))
 		err := provider.CheckACL("pol", proposal)
 		require.NoError(t, err)
 	})
@@ -78,7 +81,7 @@ func TestPolicyBase(t *testing.T) {
 	t.Run("SignedData", func(t *testing.T) {
 		data := &protoutil.SignedData{
 			Data:      []byte("DATA"),
-			Identity:  []byte("IDENTITY"),
+			Identity:  applicationpb.NewIdentityWithCertificate("org1", []byte("IDENTITY")),
 			Signature: []byte("SIGNATURE"),
 		}
 		err := provider.CheckACL("pol", data)

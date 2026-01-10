@@ -200,99 +200,6 @@ func (x *FabricMSPConfig) GetKnownCerts() [][]byte {
 	return nil
 }
 
-type Identity struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The identifier of the associated membership service provider
-	MspId string `protobuf:"bytes,1,opt,name=msp_id,json=mspId,proto3" json:"msp_id,omitempty"`
-	// Types that are valid to be assigned to Creator:
-	//
-	//	*Identity_Certificate
-	//	*Identity_CertificateId
-	Creator       isIdentity_Creator `protobuf_oneof:"creator"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Identity) Reset() {
-	*x = Identity{}
-	mi := &file_api_protomsp_msp_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Identity) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Identity) ProtoMessage() {}
-
-func (x *Identity) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protomsp_msp_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Identity.ProtoReflect.Descriptor instead.
-func (*Identity) Descriptor() ([]byte, []int) {
-	return file_api_protomsp_msp_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *Identity) GetMspId() string {
-	if x != nil {
-		return x.MspId
-	}
-	return ""
-}
-
-func (x *Identity) GetCreator() isIdentity_Creator {
-	if x != nil {
-		return x.Creator
-	}
-	return nil
-}
-
-func (x *Identity) GetCertificate() []byte {
-	if x != nil {
-		if x, ok := x.Creator.(*Identity_Certificate); ok {
-			return x.Certificate
-		}
-	}
-	return nil
-}
-
-func (x *Identity) GetCertificateId() string {
-	if x != nil {
-		if x, ok := x.Creator.(*Identity_CertificateId); ok {
-			return x.CertificateId
-		}
-	}
-	return ""
-}
-
-type isIdentity_Creator interface {
-	isIdentity_Creator()
-}
-
-type Identity_Certificate struct {
-	// The full raw bytes of the creator's certificate (e.g., an X.509 certificate).
-	Certificate []byte `protobuf:"bytes,2,opt,name=certificate,proto3,oneof"`
-}
-
-type Identity_CertificateId struct {
-	// An identifier for a certificate that is pre-stored or known by the committer.
-	CertificateId string `protobuf:"bytes,3,opt,name=certificate_id,json=certificateId,proto3,oneof"`
-}
-
-func (*Identity_Certificate) isIdentity_Creator() {}
-
-func (*Identity_CertificateId) isIdentity_Creator() {}
-
 var File_api_protomsp_msp_proto protoreflect.FileDescriptor
 
 const file_api_protomsp_msp_proto_rawDesc = "" +
@@ -313,12 +220,7 @@ const file_api_protomsp_msp_proto_rawDesc = "" +
 	" \x03(\fR\x14tlsIntermediateCerts\x12:\n" +
 	"\x0ffabric_node_ous\x18\v \x01(\v2\x12.msp.FabricNodeOUsR\rfabricNodeOus\x12\x1f\n" +
 	"\vknown_certs\x18\f \x03(\fR\n" +
-	"knownCerts\"y\n" +
-	"\bIdentity\x12\x15\n" +
-	"\x06msp_id\x18\x01 \x01(\tR\x05mspId\x12\"\n" +
-	"\vcertificate\x18\x02 \x01(\fH\x00R\vcertificate\x12'\n" +
-	"\x0ecertificate_id\x18\x03 \x01(\tH\x00R\rcertificateIdB\t\n" +
-	"\acreatorB5Z3github.com/hyperledger/fabric-x-common/api/protomspb\x06proto3"
+	"knownCertsB5Z3github.com/hyperledger/fabric-x-common/api/protomspb\x06proto3"
 
 var (
 	file_api_protomsp_msp_proto_rawDescOnce sync.Once
@@ -332,20 +234,19 @@ func file_api_protomsp_msp_proto_rawDescGZIP() []byte {
 	return file_api_protomsp_msp_proto_rawDescData
 }
 
-var file_api_protomsp_msp_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_protomsp_msp_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_api_protomsp_msp_proto_goTypes = []any{
 	(*FabricMSPConfig)(nil),         // 0: protomsp.FabricMSPConfig
-	(*Identity)(nil),                // 1: protomsp.Identity
-	(*msp.SigningIdentityInfo)(nil), // 2: msp.SigningIdentityInfo
-	(*msp.FabricOUIdentifier)(nil),  // 3: msp.FabricOUIdentifier
-	(*msp.FabricCryptoConfig)(nil),  // 4: msp.FabricCryptoConfig
-	(*msp.FabricNodeOUs)(nil),       // 5: msp.FabricNodeOUs
+	(*msp.SigningIdentityInfo)(nil), // 1: msp.SigningIdentityInfo
+	(*msp.FabricOUIdentifier)(nil),  // 2: msp.FabricOUIdentifier
+	(*msp.FabricCryptoConfig)(nil),  // 3: msp.FabricCryptoConfig
+	(*msp.FabricNodeOUs)(nil),       // 4: msp.FabricNodeOUs
 }
 var file_api_protomsp_msp_proto_depIdxs = []int32{
-	2, // 0: protomsp.FabricMSPConfig.signing_identity:type_name -> msp.SigningIdentityInfo
-	3, // 1: protomsp.FabricMSPConfig.organizational_unit_identifiers:type_name -> msp.FabricOUIdentifier
-	4, // 2: protomsp.FabricMSPConfig.crypto_config:type_name -> msp.FabricCryptoConfig
-	5, // 3: protomsp.FabricMSPConfig.fabric_node_ous:type_name -> msp.FabricNodeOUs
+	1, // 0: protomsp.FabricMSPConfig.signing_identity:type_name -> msp.SigningIdentityInfo
+	2, // 1: protomsp.FabricMSPConfig.organizational_unit_identifiers:type_name -> msp.FabricOUIdentifier
+	3, // 2: protomsp.FabricMSPConfig.crypto_config:type_name -> msp.FabricCryptoConfig
+	4, // 3: protomsp.FabricMSPConfig.fabric_node_ous:type_name -> msp.FabricNodeOUs
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -358,17 +259,13 @@ func file_api_protomsp_msp_proto_init() {
 	if File_api_protomsp_msp_proto != nil {
 		return
 	}
-	file_api_protomsp_msp_proto_msgTypes[1].OneofWrappers = []any{
-		(*Identity_Certificate)(nil),
-		(*Identity_CertificateId)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_protomsp_msp_proto_rawDesc), len(file_api_protomsp_msp_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
