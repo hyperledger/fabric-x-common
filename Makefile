@@ -16,10 +16,11 @@ PKGNAME = github.com/hyperledger/fabric-x-common
 
 GO_TAGS ?=
 
-go_cmd          ?= go
-go_test         ?= $(go_cmd) test -json -v -timeout 30m
-project_dir     := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-proto_flags    ?=
+go_cmd            ?= go
+go_test           ?= $(go_cmd) test -json -v -timeout 30m
+project_dir       := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+proto_flags       ?=
+fabric_protos_tag ?= $(shell go list -m -f '{{.Version}}' github.com/hyperledger/fabric-protos-go-apiv2)
 
 ifneq ("$(wildcard /usr/include)","")
     proto_flags += --proto_path="/usr/include"
@@ -36,13 +37,20 @@ pkgmap.cryptogen      := $(PKGNAME)/cmd/cryptogen
 MAKEFLAGS += --jobs=16
 
 .PHONY: help
-# List all commands with documentation
-help: ## List all commands with documentation
+## List all commands with documentation
+help:
 	@echo "Available commands:"
-	@awk 'BEGIN {FS = ":.*?## "}; /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk '\
+       /^## / { h = substr($$0, 4); next } \
+       /^[a-zA-Z_-]+:/ && h { \
+         printf "\033[36m%-15s\033[0m %s\n", $$1, h; \
+         h = "" \
+       } \
+     ' $(MAKEFILE_LIST)
 
 .PHONY: tools
-tools: $(TOOLS_EXES) ## Builds all tools
+## Builds all tools
+tools: $(TOOLS_EXES)
 
 GO_TEST_FMT_FLAGS := -hide empty-packages
 
@@ -51,7 +59,8 @@ test: FORCE
 	@$(go_test) ./... | gotestfmt ${GO_TEST_FMT_FLAGS}
 
 .PHONY: $(TOOLS_EXES)
-$(TOOLS_EXES): %: $(BUILD_DIR)/% ## Builds a native binary
+## Builds a native binary
+$(TOOLS_EXES): %: $(BUILD_DIR)/%
 
 $(BUILD_DIR)/%: GO_LDFLAGS = $(METADATA_VAR:%=-X $(PKGNAME)/common/metadata.%)
 $(BUILD_DIR)/%:
@@ -61,9 +70,11 @@ $(BUILD_DIR)/%:
 	@touch $@
 
 .PHONY: clean
-clean: ## Cleans the build area
+## Cleans the build area
+clean:
 	-@rm -rf $(BUILD_DIR)
 
+## Run code linter
 lint: lint-proto FORCE
 	@echo "Running Go Linters..."
 	golangci-lint run --color=always --new-from-rev=main --timeout=4m
@@ -82,41 +93,48 @@ FORCE:
 
 BUILD_DIR := .build
 PROTOS_REPO := https://github.com/hyperledger/fabric-protos.git
-PROTOS_DIR := $(BUILD_DIR)/fabric-protos
+PROTOS_DIR := ${BUILD_DIR}/fabric-protos@${fabric_protos_tag}
 # We depend on this specific file to ensure the repo is actually cloned
-PROTOS_SENTINEL := $(PROTOS_DIR)/.git
+PROTOS_SENTINEL := ${PROTOS_DIR}/.git
 
+## Build protobufs
 proto: FORCE $(PROTOS_SENTINEL)
 	@echo "Generating protobufs: $(shell find ${project_dir}/api -name '*.proto' -print0 \
     		| xargs -0 -n 1 dirname | xargs -n 1 basename | sort -u)"
 	@protoc \
-		-I=${project_dir} \
-		-I=$(PROTOS_DIR) \
+		-I="${project_dir}" \
+		-I="${PROTOS_DIR}" \
 		--go_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
-		--go-grpc_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
+        --go-grpc_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative \
 		--go_out=paths=source_relative:. \
 		${proto_flags} \
 		${project_dir}/api/*/*.proto
 
+
+## Run protobuf linter
 lint-proto: FORCE $(PROTOS_SENTINEL)
 	@echo "Running protobuf linters..."
 	@api-linter \
 		-I="${project_dir}/api" \
-		-I="$(PROTOS_DIR)" \
+		-I="${PROTOS_DIR}" \
 		--config .apilinter.yaml \
 		--set-exit-status \
 		--output-format github \
 		$(shell find ${project_dir}/api -name '*.proto' -exec realpath --relative-to ${project_dir}/api {} \;)
 
 $(PROTOS_SENTINEL):
-	@mkdir -p $(BUILD_DIR)
-	@rm -rf $(PROTOS_DIR) # Ensure we start fresh if re-cloning
-	git clone --depth 1 $(PROTOS_REPO) $(PROTOS_DIR)
+	@echo "Cloning fabric-protos..."
+	@mkdir -p ${BUILD_DIR}
+	@rm -rf ${PROTOS_DIR} # Ensure we start fresh if re-cloning
+	@git -c advice.detachedHead=false clone --branch ${fabric_protos_tag} \
+		--single-branch --depth 1 ${PROTOS_REPO} ${PROTOS_DIR}
 
+## Generate testing mocks
 generate-mocks: FORCE
 	@COUNTERFEITER_NO_GENERATE_WARNING=true go generate ./...
 
+## Clean build dependencies
 clean-deps:
-	rm -rf $(PROTOS_DIR)
+	rm -rf ${PROTOS_DIR}
