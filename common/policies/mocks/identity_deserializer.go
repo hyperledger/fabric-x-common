@@ -4,15 +4,15 @@ package mocks
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/msp"
 )
 
 type IdentityDeserializer struct {
-	DeserializeIdentityStub        func(*applicationpb.Identity) (msp.Identity, error)
+	DeserializeIdentityStub        func(*msppb.Identity) (msp.Identity, error)
 	deserializeIdentityMutex       sync.RWMutex
 	deserializeIdentityArgsForCall []struct {
-		arg1 *applicationpb.Identity
+		arg1 *msppb.Identity
 	}
 	deserializeIdentityReturns struct {
 		result1 msp.Identity
@@ -33,10 +33,10 @@ type IdentityDeserializer struct {
 	getKnownDeserializedIdentityReturnsOnCall map[int]struct {
 		result1 msp.Identity
 	}
-	IsWellFormedStub        func(*applicationpb.Identity) error
+	IsWellFormedStub        func(*msppb.Identity) error
 	isWellFormedMutex       sync.RWMutex
 	isWellFormedArgsForCall []struct {
-		arg1 *applicationpb.Identity
+		arg1 *msppb.Identity
 	}
 	isWellFormedReturns struct {
 		result1 error
@@ -48,11 +48,11 @@ type IdentityDeserializer struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *IdentityDeserializer) DeserializeIdentity(arg1 *applicationpb.Identity) (msp.Identity, error) {
+func (fake *IdentityDeserializer) DeserializeIdentity(arg1 *msppb.Identity) (msp.Identity, error) {
 	fake.deserializeIdentityMutex.Lock()
 	ret, specificReturn := fake.deserializeIdentityReturnsOnCall[len(fake.deserializeIdentityArgsForCall)]
 	fake.deserializeIdentityArgsForCall = append(fake.deserializeIdentityArgsForCall, struct {
-		arg1 *applicationpb.Identity
+		arg1 *msppb.Identity
 	}{arg1})
 	stub := fake.DeserializeIdentityStub
 	fakeReturns := fake.deserializeIdentityReturns
@@ -73,13 +73,13 @@ func (fake *IdentityDeserializer) DeserializeIdentityCallCount() int {
 	return len(fake.deserializeIdentityArgsForCall)
 }
 
-func (fake *IdentityDeserializer) DeserializeIdentityCalls(stub func(*applicationpb.Identity) (msp.Identity, error)) {
+func (fake *IdentityDeserializer) DeserializeIdentityCalls(stub func(*msppb.Identity) (msp.Identity, error)) {
 	fake.deserializeIdentityMutex.Lock()
 	defer fake.deserializeIdentityMutex.Unlock()
 	fake.DeserializeIdentityStub = stub
 }
 
-func (fake *IdentityDeserializer) DeserializeIdentityArgsForCall(i int) *applicationpb.Identity {
+func (fake *IdentityDeserializer) DeserializeIdentityArgsForCall(i int) *msppb.Identity {
 	fake.deserializeIdentityMutex.RLock()
 	defer fake.deserializeIdentityMutex.RUnlock()
 	argsForCall := fake.deserializeIdentityArgsForCall[i]
@@ -173,11 +173,11 @@ func (fake *IdentityDeserializer) GetKnownDeserializedIdentityReturnsOnCall(i in
 	}{result1}
 }
 
-func (fake *IdentityDeserializer) IsWellFormed(arg1 *applicationpb.Identity) error {
+func (fake *IdentityDeserializer) IsWellFormed(arg1 *msppb.Identity) error {
 	fake.isWellFormedMutex.Lock()
 	ret, specificReturn := fake.isWellFormedReturnsOnCall[len(fake.isWellFormedArgsForCall)]
 	fake.isWellFormedArgsForCall = append(fake.isWellFormedArgsForCall, struct {
-		arg1 *applicationpb.Identity
+		arg1 *msppb.Identity
 	}{arg1})
 	stub := fake.IsWellFormedStub
 	fakeReturns := fake.isWellFormedReturns
@@ -198,13 +198,13 @@ func (fake *IdentityDeserializer) IsWellFormedCallCount() int {
 	return len(fake.isWellFormedArgsForCall)
 }
 
-func (fake *IdentityDeserializer) IsWellFormedCalls(stub func(*applicationpb.Identity) error) {
+func (fake *IdentityDeserializer) IsWellFormedCalls(stub func(*msppb.Identity) error) {
 	fake.isWellFormedMutex.Lock()
 	defer fake.isWellFormedMutex.Unlock()
 	fake.IsWellFormedStub = stub
 }
 
-func (fake *IdentityDeserializer) IsWellFormedArgsForCall(i int) *applicationpb.Identity {
+func (fake *IdentityDeserializer) IsWellFormedArgsForCall(i int) *msppb.Identity {
 	fake.isWellFormedMutex.RLock()
 	defer fake.isWellFormedMutex.RUnlock()
 	argsForCall := fake.isWellFormedArgsForCall[i]

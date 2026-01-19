@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 func TestRevocation(t *testing.T) {
@@ -62,7 +62,7 @@ func TestRevocation(t *testing.T) {
 		require.NoError(t, err)
 
 		// Unmarshal the config
-		mspConfig := &protomsp.FabricMSPConfig{}
+		mspConfig := &msppb.FabricMSPConfig{}
 		err = proto.Unmarshal(conf.GetConfig(), mspConfig)
 		require.NoError(t, err)
 		require.Len(t, mspConfig.RevocationList, 1)

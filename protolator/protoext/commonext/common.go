@@ -13,7 +13,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 type Envelope struct{ *common.Envelope }
@@ -129,7 +129,7 @@ func (sh *SignatureHeader) StaticallyOpaqueFields() []string {
 func (sh *SignatureHeader) StaticallyOpaqueFieldProto(name string) (proto.Message, error) {
 	switch name {
 	case sh.StaticallyOpaqueFields()[0]: // creator
-		return &applicationpb.Identity{}, nil
+		return &msppb.Identity{}, nil
 	default:
 		return nil, fmt.Errorf("unknown header field: %s", name)
 	}

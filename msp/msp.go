@@ -11,7 +11,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 // IdentityDeserializer is implemented by both MSPManger and MSP
@@ -22,26 +22,26 @@ import (
 //	type IdentityResolver interface {
 //	    // Resolve converts a proto identity into a usable domain Identity.
 //	    // It returns an error if the identity belongs to a different MSP.
-//	    Resolve(id *applicationpb.Identity) (Identity, error)
+//	    Resolve(id *msppb.Identity) (Identity, error)
 //
 //	    // Lookup returns a known identity matching the given identifier.
 //	    Lookup(id IdentityIdentifier) Identity
 //
 //	    // Validate checks if the given identity is well-formed and valid for this provider.
-//	    Validate(id *applicationpb.Identity) error
+//	    Validate(id *msppb.Identity) error
 //	}
 type IdentityDeserializer interface {
 	// DeserializeIdentity deserializes an identity.
 	// Deserialization will fail if the identity is associated to
 	// an msp that is different from this one that is performing
 	// the deserialization.
-	DeserializeIdentity(identity *applicationpb.Identity) (Identity, error)
+	DeserializeIdentity(identity *msppb.Identity) (Identity, error)
 
 	// GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
 	GetKnownDeserializedIdentity(IdentityIdentifier) Identity
 
 	// IsWellFormed checks if the given identity can be deserialized into its provider-specific form
-	IsWellFormed(identity *applicationpb.Identity) error
+	IsWellFormed(identity *msppb.Identity) error
 }
 
 // Membership service provider APIs for Hyperledger Fabric:
@@ -170,11 +170,11 @@ type Identity interface {
 	// Verify a signature over some message using this identity as reference
 	Verify(msg, sig []byte) error
 
-	// Serialize converts an identity to bytes representation of applicationpb.Identity
+	// Serialize converts an identity to bytes representation of msppb.Identity
 	// with plain certificate as the creator.
 	Serialize() ([]byte, error)
 
-	// SerializeWithIDOfCert converts an identity to bytes representation of applicationpb.Identity
+	// SerializeWithIDOfCert converts an identity to bytes representation of msppb.Identity
 	// with an Id of the certificate as the creator.
 	SerializeWithIDOfCert() ([]byte, error)
 

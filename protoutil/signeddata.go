@@ -16,7 +16,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 // SignedData is used to represent the general triplet required to verify a signature
@@ -25,7 +25,7 @@ import (
 // implementation.
 type SignedData struct {
 	Data      []byte
-	Identity  *applicationpb.Identity
+	Identity  *msppb.Identity
 	Signature []byte
 }
 
@@ -97,9 +97,9 @@ func EnvelopeAsSignedData(env *common.Envelope) ([]*SignedData, error) {
 // LogMessageForIdentity returns a string with serialized identity information,
 // or a string indicating why the serialized identity information cannot be returned.
 // Any errors are intentionally returned in the return strings so that the function can be used in single-line log messages with minimal clutter.
-func LogMessageForIdentity(id *applicationpb.Identity) string {
+func LogMessageForIdentity(id *msppb.Identity) string {
 	switch id.GetCreator().(type) {
-	case *applicationpb.Identity_Certificate:
+	case *msppb.Identity_Certificate:
 		pemBlock, _ := pem.Decode(id.GetCertificate())
 		if pemBlock == nil {
 			// not all identities are certificates so simply log the serialized
@@ -112,7 +112,7 @@ func LogMessageForIdentity(id *applicationpb.Identity) string {
 		}
 		return fmt.Sprintf("(mspid=%s subject=%s issuer=%s serialnumber=%d)",
 			id.MspId, cert.Subject, cert.Issuer, cert.SerialNumber)
-	case *applicationpb.Identity_CertificateId:
+	case *msppb.Identity_CertificateId:
 		return fmt.Sprintf("(mspid=%s certificateID=%s)", id.MspId, id.GetCertificateId())
 	default:
 		return "unknown creator type"

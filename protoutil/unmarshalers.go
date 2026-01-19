@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 // the implicit contract of all these unmarshalers is that they
@@ -84,8 +84,8 @@ func UnmarshalIdentifierHeader(bytes []byte) (*common.IdentifierHeader, error) {
 }
 
 // UnmarshalIdentity unmarshals bytes to an Identity.
-func UnmarshalIdentity(bytes []byte) (*applicationpb.Identity, error) {
-	id := &applicationpb.Identity{}
+func UnmarshalIdentity(bytes []byte) (*msppb.Identity, error) {
+	id := &msppb.Identity{}
 	err := proto.Unmarshal(bytes, id)
 	return id, errors.Wrap(err, "error unmarshalling Identity")
 }

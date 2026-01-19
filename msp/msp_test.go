@@ -34,8 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
@@ -104,7 +103,7 @@ func TestMSPSetupNoCryptoConf(t *testing.T) {
 		os.Exit(-1)
 	}
 
-	fxMSPConf := &protomsp.FabricMSPConfig{}
+	fxMSPConf := &msppb.FabricMSPConfig{}
 	err = proto.Unmarshal(conf.Config, fxMSPConf)
 	require.NoError(t, err)
 
@@ -230,10 +229,10 @@ func TestGetKnownIdentities(t *testing.T) {
 }
 
 func TestDeserializeIdentityFails(t *testing.T) {
-	_, err := localMsp.DeserializeIdentity(applicationpb.NewIdentity("SampleOrg", []byte("barfr")))
+	_, err := localMsp.DeserializeIdentity(msppb.NewIdentity("SampleOrg", []byte("barfr")))
 	require.Error(t, err)
 
-	_, err = localMsp.DeserializeIdentity(applicationpb.NewIdentity("SampleOrg", []byte(notACert)))
+	_, err = localMsp.DeserializeIdentity(msppb.NewIdentity("SampleOrg", []byte(notACert)))
 	require.Error(t, err)
 }
 
@@ -432,7 +431,7 @@ func TestValidateCANameConstraintsMitigation(t *testing.T) {
 	})
 
 	t.Run("ValidationAtSetup", func(t *testing.T) {
-		fabricXMSPConfig := &protomsp.FabricMSPConfig{
+		fabricXMSPConfig := &msppb.FabricMSPConfig{
 			Name:      "ConstraintsMSP",
 			RootCerts: [][]byte{caCertPem},
 			SigningIdentity: &msp.SigningIdentityInfo{
@@ -500,7 +499,7 @@ func TestIsWellFormed(t *testing.T) {
 
 	// Now, strip off the type from the PEM block. It should still be valid
 	bl.Type = ""
-	sID.Creator = &applicationpb.Identity_Certificate{Certificate: pem.EncodeToMemory(bl)}
+	sID.Creator = &msppb.Identity_Certificate{Certificate: pem.EncodeToMemory(bl)}
 
 	err = localMsp.IsWellFormed(sID)
 	require.NoError(t, err)
@@ -508,7 +507,7 @@ func TestIsWellFormed(t *testing.T) {
 	// Now, corrupt the type of the PEM block.
 	// make sure it isn't considered well formed by both an MSP and an MSP Manager
 	bl.Type = "foo"
-	sID.Creator = &applicationpb.Identity_Certificate{Certificate: pem.EncodeToMemory(bl)}
+	sID.Creator = &msppb.Identity_Certificate{Certificate: pem.EncodeToMemory(bl)}
 	err = localMsp.IsWellFormed(sID)
 
 	require.Error(t, err)
@@ -524,7 +523,7 @@ func TestIsWellFormed(t *testing.T) {
 	require.NoError(t, err)
 
 	// Append some trailing junk at the end
-	sID.Creator = &applicationpb.Identity_Certificate{Certificate: append(pem.EncodeToMemory(bl), []byte{1, 2, 3}...)}
+	sID.Creator = &msppb.Identity_Certificate{Certificate: append(pem.EncodeToMemory(bl), []byte{1, 2, 3}...)}
 	// And ensure it is deemed invalid
 	err = localMsp.IsWellFormed(sID)
 	require.Error(t, err)
@@ -552,7 +551,7 @@ func TestIsWellFormed(t *testing.T) {
 	// Pour it back into the identity
 	rawCert, err := asn1.Marshal(newCert)
 	require.NoError(t, err)
-	sID.Creator = &applicationpb.Identity_Certificate{
+	sID.Creator = &msppb.Identity_Certificate{
 		Certificate: pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: rawCert}),
 	}
 	// Ensure it is invalid now and the signature modification is detected
@@ -1264,7 +1263,7 @@ func TestMSPOus(t *testing.T) {
 	sidBytes, err := sid.Serialize()
 	require.NoError(t, err)
 
-	idty := &applicationpb.Identity{}
+	idty := &msppb.Identity{}
 	require.NoError(t, proto.Unmarshal(sidBytes, idty))
 
 	id, err := localMsp.DeserializeIdentity(idty)

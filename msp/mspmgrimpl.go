@@ -9,7 +9,7 @@ package msp
 import (
 	"github.com/pkg/errors"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
@@ -72,7 +72,7 @@ func (mgr *mspManagerImpl) GetMSPs() (map[string]MSP, error) {
 }
 
 // DeserializeIdentity returns an identity given its serialized version supplied as argument
-func (mgr *mspManagerImpl) DeserializeIdentity(sID *applicationpb.Identity) (Identity, error) { //nolint:ireturn
+func (mgr *mspManagerImpl) DeserializeIdentity(sID *msppb.Identity) (Identity, error) { //nolint:ireturn
 	if !mgr.up {
 		return nil, errors.New("channel doesn't exist")
 	}
@@ -86,9 +86,9 @@ func (mgr *mspManagerImpl) DeserializeIdentity(sID *applicationpb.Identity) (Ide
 	switch t := msp.(type) {
 	case *bccspmsp:
 		switch sID.Creator.(type) {
-		case *applicationpb.Identity_Certificate:
+		case *msppb.Identity_Certificate:
 			return t.deserializeIdentityInternal(sID.GetCertificate())
-		case *applicationpb.Identity_CertificateId:
+		case *msppb.Identity_CertificateId:
 			return msp.GetKnownDeserializedIdentity(
 				IdentityIdentifier{Mspid: sID.MspId, Id: sID.GetCertificateId()}), nil
 		default:
@@ -101,7 +101,7 @@ func (mgr *mspManagerImpl) DeserializeIdentity(sID *applicationpb.Identity) (Ide
 	}
 }
 
-func (mgr *mspManagerImpl) IsWellFormed(identity *applicationpb.Identity) error {
+func (mgr *mspManagerImpl) IsWellFormed(identity *msppb.Identity) error {
 	// Iterate over all the MSPs by their providers, and find at least 1 MSP that can attest
 	// that this identity is well formed
 	for _, mspList := range mgr.mspsByProviders {

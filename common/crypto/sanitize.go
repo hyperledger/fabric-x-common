@@ -19,12 +19,12 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 // SanitizeIdentity sanitizes the signature scheme of the identity
 func SanitizeIdentity(identity []byte) ([]byte, error) {
-	sID := &applicationpb.Identity{}
+	sID := &msppb.Identity{}
 	if err := proto.Unmarshal(identity, sID); err != nil {
 		return nil, errors.Wrapf(err, "failed unmarshaling identity %s", string(identity))
 	}
@@ -38,7 +38,7 @@ func SanitizeIdentity(identity []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	sID.Creator = &applicationpb.Identity_Certificate{Certificate: finalPEM}
+	sID.Creator = &msppb.Identity_Certificate{Certificate: finalPEM}
 
 	return proto.Marshal(sID)
 }

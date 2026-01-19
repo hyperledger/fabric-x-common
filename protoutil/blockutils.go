@@ -18,7 +18,7 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
@@ -256,7 +256,7 @@ func BlockSignatureVerifier(bftEnabled bool, consenters []*cb.Consenter, policy 
 
 		var signatureSet []*SignedData
 		for _, metadataSignature := range md.Signatures {
-			var signerIdentity *applicationpb.Identity
+			var signerIdentity *msppb.Identity
 			var signedPayload []byte
 			// if the SignatureHeader is empty and the IdentifierHeader is present, then  the consenter expects us to fetch its identity by its numeric identifier
 			if bftEnabled && len(metadataSignature.GetSignatureHeader()) == 0 && len(metadataSignature.GetIdentifierHeader()) > 0 {
@@ -299,10 +299,10 @@ func BlockSignatureVerifier(bftEnabled bool, consenters []*cb.Consenter, policy 
 	}
 }
 
-func searchConsenterIdentityByID(consenters []*cb.Consenter, identifier uint32) *applicationpb.Identity {
+func searchConsenterIdentityByID(consenters []*cb.Consenter, identifier uint32) *msppb.Identity {
 	for _, consenter := range consenters {
 		if consenter.Id == identifier {
-			return applicationpb.NewIdentity(consenter.MspId, consenter.Identity)
+			return msppb.NewIdentity(consenter.MspId, consenter.Identity)
 		}
 	}
 	return nil

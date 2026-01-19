@@ -10,7 +10,7 @@ import (
 	pmsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/msp"
 )
@@ -64,7 +64,7 @@ func (id *cachedIdentity) Validate() error {
 	return id.cache.Validate(id.Identity)
 }
 
-func (c *cachedMSP) DeserializeIdentity(identity *applicationpb.Identity) (msp.Identity, error) { //nolint:ireturn
+func (c *cachedMSP) DeserializeIdentity(identity *msppb.Identity) (msp.Identity, error) { //nolint:ireturn
 	id, ok := c.deserializeIdentityCache.get(identity.String())
 	if ok {
 		return &cachedIdentity{

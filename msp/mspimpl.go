@@ -25,13 +25,12 @@ import (
 	m "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 // mspSetupFuncType is the prototype of the setup function
-type mspSetupFuncType func(config *protomsp.FabricMSPConfig) error
+type mspSetupFuncType func(config *msppb.FabricMSPConfig) error
 
 // validateIdentityOUsFuncType is the prototype of the function to validate identity's OUs
 type validateIdentityOUsFuncType func(id *identity) error
@@ -40,7 +39,7 @@ type validateIdentityOUsFuncType func(id *identity) error
 type satisfiesPrincipalInternalFuncType func(id Identity, principal *m.MSPPrincipal) error
 
 // setupAdminInternalFuncType is a prototype of the function to setup the admins
-type setupAdminInternalFuncType func(conf *protomsp.FabricMSPConfig) error
+type setupAdminInternalFuncType func(conf *msppb.FabricMSPConfig) error
 
 // This is an instantiation of an MSP that
 // uses BCCSP for its cryptographic primitives.
@@ -269,7 +268,7 @@ func (msp *bccspmsp) Setup(conf1 *m.MSPConfig) error {
 	}
 
 	// given that it's an msp of type fabric, extract the MSPConfig instance
-	conf := &protomsp.FabricMSPConfig{}
+	conf := &msppb.FabricMSPConfig{}
 	err := proto.Unmarshal(conf1.Config, conf)
 	if err != nil {
 		return errors.Wrap(err, "failed unmarshalling fabric msp config")
@@ -395,8 +394,8 @@ func (msp *bccspmsp) hasOURoleInternal(id *identity, mspRole m.MSPRole_MSPRoleTy
 	return errors.Errorf("The identity does not contain OU [%s], MSP: [%s]", mspRole, msp.name)
 }
 
-// DeserializeIdentity returns an msp.Identity given the applicationpb.Identity.
-func (msp *bccspmsp) DeserializeIdentity(identity *applicationpb.Identity) (Identity, error) { //nolint:ireturn
+// DeserializeIdentity returns an msp.Identity given the msppb.Identity.
+func (msp *bccspmsp) DeserializeIdentity(identity *msppb.Identity) (Identity, error) { //nolint:ireturn
 	mspLogger.Debug("Obtaining identity")
 
 	if identity.MspId != msp.name {
@@ -404,9 +403,9 @@ func (msp *bccspmsp) DeserializeIdentity(identity *applicationpb.Identity) (Iden
 	}
 
 	switch identity.Creator.(type) {
-	case *applicationpb.Identity_Certificate:
+	case *msppb.Identity_Certificate:
 		return msp.deserializeIdentityInternal(identity.GetCertificate())
-	case *applicationpb.Identity_CertificateId:
+	case *msppb.Identity_CertificateId:
 		return msp.GetKnownDeserializedIdentity(
 			IdentityIdentifier{Mspid: identity.MspId, Id: identity.GetCertificateId()}), nil
 	default:
@@ -972,10 +971,10 @@ func (msp *bccspmsp) sanitizeCert(cert *x509.Certificate) (*x509.Certificate, er
 // IsWellFormed checks if the given identity can be deserialized into its provider-specific form.
 // In this MSP implementation, well formed means that the PEM has a Type which is either
 // the string 'CERTIFICATE' or the Type is missing altogether.
-func (msp *bccspmsp) IsWellFormed(idty *applicationpb.Identity) error {
+func (msp *bccspmsp) IsWellFormed(idty *msppb.Identity) error {
 	var bl *pem.Block
 	switch idty.Creator.(type) {
-	case *applicationpb.Identity_Certificate:
+	case *msppb.Identity_Certificate:
 		idBytes := idty.GetCertificate()
 		var rest []byte
 		bl, rest = pem.Decode(idBytes)
@@ -985,7 +984,7 @@ func (msp *bccspmsp) IsWellFormed(idty *applicationpb.Identity) error {
 		if len(rest) > 0 {
 			return errors.Errorf("identity %s for MSP %s has trailing bytes", string(idBytes), idty.MspId)
 		}
-	case *applicationpb.Identity_CertificateId:
+	case *msppb.Identity_CertificateId:
 		id := msp.GetKnownDeserializedIdentity(
 			IdentityIdentifier{Mspid: idty.MspId, Id: idty.GetCertificateId()})
 		if id == nil {

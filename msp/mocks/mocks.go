@@ -12,7 +12,7 @@ import (
 	pmsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/msp"
 )
 
@@ -21,12 +21,12 @@ type MockMSP struct {
 }
 
 // IsWellFormed checks whether the certificate present in the identity is valid.
-func (*MockMSP) IsWellFormed(*applicationpb.Identity) error {
+func (*MockMSP) IsWellFormed(*msppb.Identity) error {
 	return nil
 }
 
 // DeserializeIdentity converts the proto identity to msp identity.
-func (m *MockMSP) DeserializeIdentity(identity *applicationpb.Identity) (msp.Identity, error) { //nolint:ireturn
+func (m *MockMSP) DeserializeIdentity(identity *msppb.Identity) (msp.Identity, error) { //nolint:ireturn
 	args := m.Called(identity)
 	return args.Get(0).(msp.Identity), args.Error(1)
 }

@@ -20,7 +20,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric-x-common/common/policies/mocks"
 	mspi "github.com/hyperledger/fabric-x-common/msp"
@@ -255,7 +255,7 @@ func TestPrincipalSetContainingOnly(t *testing.T) {
 }
 
 func TestSignatureSetToValidIdentities(t *testing.T) {
-	id := applicationpb.NewIdentity("org1", []byte("identity1"))
+	id := msppb.NewIdentity("org1", []byte("identity1"))
 	sd := []*protoutil.SignedData{
 		{
 			Data:      []byte("data1"),
@@ -305,7 +305,7 @@ func TestSignatureSetToValidIdentitiesDeserializeErr(t *testing.T) {
 	client1, err := ca.NewClientCertKeyPair()
 	require.NoError(t, err)
 
-	invalidCertIdentity := applicationpb.NewIdentity("org1", []byte("identity1"))
+	invalidCertIdentity := msppb.NewIdentity("org1", []byte("identity1"))
 	tests := []struct {
 		spec                     string
 		signedData               []*protoutil.SignedData
@@ -326,7 +326,7 @@ func TestSignatureSetToValidIdentitiesDeserializeErr(t *testing.T) {
 			spec: "deserialize identity error - actual certificate",
 			signedData: []*protoutil.SignedData{
 				{
-					Identity: applicationpb.NewIdentity("org1", client1.Cert),
+					Identity: msppb.NewIdentity("org1", client1.Cert),
 				},
 			},
 			expectedLogEntryContains: []string{
@@ -348,7 +348,7 @@ func TestSignatureSetToValidIdentitiesDeserializeErr(t *testing.T) {
 }
 
 func TestSignatureSetToValidIdentitiesVerifyErr(t *testing.T) {
-	id := applicationpb.NewIdentity("org1", []byte("identity1"))
+	id := msppb.NewIdentity("org1", []byte("identity1"))
 	sd := []*protoutil.SignedData{
 		{
 			Data:      []byte("data1"),

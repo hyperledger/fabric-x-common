@@ -15,7 +15,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/utils/certificate"
 )
@@ -31,7 +31,7 @@ type MockIdentityDeserializer struct {
 
 // DeserializeIdentity deserializes an identity.
 func (md *MockIdentityDeserializer) DeserializeIdentity( //nolint:ireturn
-	id *applicationpb.Identity,
+	id *msppb.Identity,
 ) (msp.Identity, error) {
 	if md.Fail != nil {
 		return nil, md.Fail
@@ -39,16 +39,16 @@ func (md *MockIdentityDeserializer) DeserializeIdentity( //nolint:ireturn
 
 	var idBytes []byte
 	switch id.Creator.(type) {
-	case *applicationpb.Identity_Certificate:
+	case *msppb.Identity_Certificate:
 		idBytes = id.GetCertificate()
-	case *applicationpb.Identity_CertificateId:
+	case *msppb.Identity_CertificateId:
 		return md.KnownIdentities[msp.IdentityIdentifier{Mspid: id.MspId, Id: id.GetCertificateId()}], nil
 	}
 	return &MockIdentity{MspID: id.MspId, IDBytes: idBytes}, nil
 }
 
 // IsWellFormed checks if the given identity can be deserialized into its provider-specific form.
-func (*MockIdentityDeserializer) IsWellFormed(_ *applicationpb.Identity) error {
+func (*MockIdentityDeserializer) IsWellFormed(_ *msppb.Identity) error {
 	return nil
 }
 
@@ -141,7 +141,7 @@ func (id *MockIdentity) GetCertificatePEM() ([]byte, error) {
 }
 
 // ToIdentities convert serialized identities to msp Identity.
-func ToIdentities(pIdentities []*applicationpb.Identity, deserializer msp.IdentityDeserializer) (
+func ToIdentities(pIdentities []*msppb.Identity, deserializer msp.IdentityDeserializer) (
 	[]msp.Identity, []bool,
 ) {
 	identities := make([]msp.Identity, len(pIdentities))

@@ -11,7 +11,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 type idemixSigningIdentityWrapper struct {
@@ -94,7 +94,7 @@ func (i *idemixMSPWrapper) deserializeIdentityInternal(serializedIdentity []byte
 	return &idemixIdentityWrapper{id.(*idemix.Idemixidentity)}, nil
 }
 
-func (i *idemixMSPWrapper) DeserializeIdentity(identity *applicationpb.Identity) (Identity, error) { //nolint:ireturn
+func (i *idemixMSPWrapper) DeserializeIdentity(identity *msppb.Identity) (Identity, error) { //nolint:ireturn
 	si := msp.SerializedIdentity{Mspid: identity.MspId, IdBytes: identity.GetCertificate()}
 	siBytes, err := proto.Marshal(&si)
 	if err != nil {
@@ -115,7 +115,7 @@ func (*idemixMSPWrapper) GetKnownDeserializedIdentity(IdentityIdentifier) Identi
 	return nil
 }
 
-func (i *idemixMSPWrapper) IsWellFormed(identity *applicationpb.Identity) error {
+func (i *idemixMSPWrapper) IsWellFormed(identity *msppb.Identity) error {
 	return i.Idemixmsp.IsWellFormed(&msp.SerializedIdentity{Mspid: identity.MspId, IdBytes: identity.GetCertificate()})
 }
 

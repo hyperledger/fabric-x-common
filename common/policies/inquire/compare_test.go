@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
@@ -53,11 +53,11 @@ func TestNewComparablePrincipal(t *testing.T) {
 	t.Run("Identity", func(t *testing.T) {
 		expectedPrincipal := &ComparablePrincipal{
 			mspID:    mspID,
-			identity: applicationpb.NewIdentity(mspID, []byte("identity")),
+			identity: msppb.NewIdentity(mspID, []byte("identity")),
 			principal: &msp.MSPPrincipal{
 				PrincipalClassification: msp.MSPPrincipal_IDENTITY,
 				Principal: protoutil.MarshalOrPanic(
-					applicationpb.NewIdentity(mspID, []byte("identity"))),
+					msppb.NewIdentity(mspID, []byte("identity"))),
 			},
 		}
 
@@ -236,6 +236,6 @@ func ou(orgName string) *msp.MSPPrincipal {
 func identity(orgName string, idBytes []byte) *msp.MSPPrincipal {
 	return &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
-		Principal:               protoutil.MarshalOrPanic(applicationpb.NewIdentity(orgName, idBytes)),
+		Principal:               protoutil.MarshalOrPanic(msppb.NewIdentity(orgName, idBytes)),
 	}
 }

@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	configtxtest "github.com/hyperledger/fabric-x-common/common/configtx/test"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/protoutil/mocks"
@@ -441,8 +441,8 @@ func TestBlockSignatureVerifierByIdentifier(t *testing.T) {
 	require.NoError(t, err)
 	signatureSet := policies.EvaluateSignedDataArgsForCall(0)
 	require.Len(t, signatureSet, 2)
-	require.Equal(t, applicationpb.NewIdentity("msp1", []byte("identity1")), signatureSet[0].Identity)
-	require.Equal(t, applicationpb.NewIdentity("msp3", []byte("identity3")), signatureSet[1].Identity)
+	require.Equal(t, msppb.NewIdentity("msp1", []byte("identity1")), signatureSet[0].Identity)
+	require.Equal(t, msppb.NewIdentity("msp3", []byte("identity3")), signatureSet[1].Identity)
 }
 
 func TestBlockSignatureVerifierByCreator(t *testing.T) {
@@ -474,7 +474,7 @@ func TestBlockSignatureVerifierByCreator(t *testing.T) {
 
 	verify := protoutil.BlockSignatureVerifier(true, consenters, &policies)
 
-	idty := applicationpb.NewIdentity("msp1", []byte("creator"))
+	idty := msppb.NewIdentity("msp1", []byte("creator"))
 	header := &cb.BlockHeader{}
 	md := &cb.BlockMetadata{
 		Metadata: [][]byte{

@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
@@ -42,9 +42,9 @@ func TestNilConfigEnvelopeAsSignedData(t *testing.T) {
 func TestConfigEnvelopeAsSignedData(t *testing.T) {
 	configBytes := []byte("Foo")
 	signatures := [][]byte{[]byte("Signature1"), []byte("Signature2")}
-	identities := []*applicationpb.Identity{
-		applicationpb.NewIdentity("org1", []byte("Identity1")),
-		applicationpb.NewIdentity("org2", []byte("Identity2")),
+	identities := []*msppb.Identity{
+		msppb.NewIdentity("org1", []byte("Identity1")),
+		msppb.NewIdentity("org2", []byte("Identity2")),
 	}
 
 	configSignatures := make([]*common.ConfigSignature, len(signatures))
@@ -89,7 +89,7 @@ func TestNilEnvelopeAsSignedData(t *testing.T) {
 }
 
 func TestEnvelopeAsSignedData(t *testing.T) {
-	identity := applicationpb.NewIdentity("org1", []byte("Identity1"))
+	identity := msppb.NewIdentity("org1", []byte("Identity1"))
 	sig := []byte("Bar")
 
 	shdrbytes, err := proto.Marshal(&common.SignatureHeader{Creator: protoutil.MarshalOrPanic(identity)})
@@ -131,7 +131,7 @@ func TestLogMessageForIdentity(t *testing.T) {
 	pem, err := readPemFile(filepath.Join("testdata", "peer-expired.pem"))
 	require.NoError(t, err, "Unexpected error reading pem file")
 
-	id := applicationpb.NewIdentity("MyMSP", pem)
+	id := msppb.NewIdentity("MyMSP", pem)
 
 	identityLogMessage := protoutil.LogMessageForIdentity(id)
 

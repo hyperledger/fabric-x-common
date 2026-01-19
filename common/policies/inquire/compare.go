@@ -13,7 +13,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 )
 
@@ -23,7 +23,7 @@ type ComparablePrincipal struct {
 	ou        *msp.OrganizationUnit
 	role      *msp.MSPRole
 	mspID     string
-	identity  *applicationpb.Identity
+	identity  *msppb.Identity
 }
 
 // Equal returns whether this ComparablePrincipal is equal to the given ComparablePrincipal.
@@ -130,7 +130,7 @@ func (cp *ComparablePrincipal) ToOURole() *ComparablePrincipal {
 
 // ToIdentity converts this ComparablePrincipal to Identity principal, and returns nil on failure
 func (cp *ComparablePrincipal) ToIdentity() *ComparablePrincipal {
-	sID := &applicationpb.Identity{}
+	sID := &msppb.Identity{}
 	err := proto.Unmarshal(cp.principal.Principal, sID)
 	if err != nil {
 		logger.Warning("Failed unmarshalling principal:", err)

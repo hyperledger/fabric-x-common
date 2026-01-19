@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/msp/mocks"
 )
@@ -110,8 +110,8 @@ func TestDeserializeIdentity(t *testing.T) {
 	// Check id is cached
 	mockIdentity := &mocks.MockIdentity{ID: "Alice"}
 	mockIdentity2 := &mocks.MockIdentity{ID: "Bob"}
-	serializedIdentity := &applicationpb.Identity{MspId: "org1"}
-	serializedIdentity2 := &applicationpb.Identity{MspId: "org2"}
+	serializedIdentity := &msppb.Identity{MspId: "org1"}
+	serializedIdentity2 := &msppb.Identity{MspId: "org2"}
 	mockMSP.On("DeserializeIdentity", serializedIdentity).Return(mockIdentity, nil)
 	mockMSP.On("DeserializeIdentity", serializedIdentity2).Return(mockIdentity2, nil)
 	// Prime the cache
@@ -153,7 +153,7 @@ func TestDeserializeIdentity(t *testing.T) {
 
 	// Check id is not cached
 	mockIdentity = &mocks.MockIdentity{ID: "Bob"}
-	serializedIdentity = &applicationpb.Identity{MspId: "org3"}
+	serializedIdentity = &msppb.Identity{MspId: "org3"}
 	mockMSP.On("DeserializeIdentity", serializedIdentity).Return(mockIdentity, errors.New("Invalid identity"))
 	_, err = wrappedMSP.DeserializeIdentity(serializedIdentity)
 	require.Error(t, err)
@@ -225,7 +225,7 @@ func TestSatisfiesValidateIndirectCall(t *testing.T) {
 	mockMSP.AssertNumberOfCalls(t, "Validate", 1)
 	require.NoError(t, err)
 	// Get the identity we test the caching on
-	identity, err := cache.DeserializeIdentity(&applicationpb.Identity{MspId: "org1"})
+	identity, err := cache.DeserializeIdentity(&msppb.Identity{MspId: "org1"})
 	require.NoError(t, err)
 	// Ensure the identity returned answers what the cached MSP answers.
 	err = identity.Validate()
@@ -257,7 +257,7 @@ func TestSatisfiesPrincipalIndirectCall(t *testing.T) {
 	err = cache.SatisfiesPrincipal(mockIdentity, mockMSPPrincipal)
 	require.Equal(t, "error: foo", err.Error())
 	// Get the identity we test the caching on
-	identity, err := cache.DeserializeIdentity(&applicationpb.Identity{MspId: "org1"})
+	identity, err := cache.DeserializeIdentity(&msppb.Identity{MspId: "org1"})
 	require.NoError(t, err)
 	// Ensure the identity returned answers what the cached MSP answers.
 	// If the invocation doesn't hit the cache, it will return nil instead of an error.

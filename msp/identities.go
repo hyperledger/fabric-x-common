@@ -22,7 +22,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/util"
 )
 
@@ -158,7 +158,7 @@ func (id *identity) Anonymous() bool {
 func NewSerializedIdentity(mspID string, certPEM []byte) ([]byte, error) {
 	// We serialize identities by prepending the MSPID
 	// and appending the x509 cert in PEM format
-	raw, err := proto.Marshal(applicationpb.NewIdentity(mspID, certPEM))
+	raw, err := proto.Marshal(msppb.NewIdentity(mspID, certPEM))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed serializing identity [%s][%X]", mspID, certPEM)
 	}
@@ -168,7 +168,7 @@ func NewSerializedIdentity(mspID string, certPEM []byte) ([]byte, error) {
 // NewSerializedIdentityWithIDOfCert returns a serialized identity
 // having as content the passed mspID and certificate ID.
 func NewSerializedIdentityWithIDOfCert(mspID, certID string) ([]byte, error) {
-	raw, err := proto.Marshal(applicationpb.NewIdentityWithIDOfCert(mspID, certID))
+	raw, err := proto.Marshal(msppb.NewIdentityWithIDOfCert(mspID, certID))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed serializing identity [%s][%s]", mspID, certID)
 	}

@@ -14,14 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policydsl"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
-var signers = []*applicationpb.Identity{
-	applicationpb.NewIdentity("org1", []byte("signer0")),
-	applicationpb.NewIdentity("org1", []byte("signer1")),
+var signers = []*msppb.Identity{
+	msppb.NewIdentity("org1", []byte("signer0")),
+	msppb.NewIdentity("org1", []byte("signer1")),
 }
 
 var signersBytes = [][]byte{
@@ -34,9 +34,7 @@ func TestSimpleSignature(t *testing.T) {
 	policy := policydsl.Envelope(policydsl.SignedBy(0), signersBytes)
 
 	spe, err := compile(policy.Rule, policy.Identities)
-	if err != nil {
-		t.Fatalf("Could not create a new SignaturePolicyEvaluator using the given policy, crypto-helper: %s", err)
-	}
+	require.NoError(t, err, "Could not create a new SignaturePolicyEvaluator using the given policy, crypto-helper")
 
 	if !spe(ToIdentities(signers[0:1], &MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication to succeed with valid signatures")
@@ -58,7 +56,7 @@ func TestMultipleSignature(t *testing.T) {
 	if !spe(ToIdentities(signers, &MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication to succeed with  valid signatures")
 	}
-	if spe(ToIdentities([]*applicationpb.Identity{signers[0], signers[0]}, &MockIdentityDeserializer{})) {
+	if spe(ToIdentities([]*msppb.Identity{signers[0], signers[0]}, &MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication to fail because although there were two valid signatures, one was duplicated")
 	}
 }
@@ -78,18 +76,18 @@ func TestComplexNestedSignature(t *testing.T) {
 		t.Fatalf("Could not create a new SignaturePolicyEvaluator using the given policy, crypto-helper: %s", err)
 	}
 
-	if !spe(ToIdentities(append(signers, applicationpb.NewIdentity("org1", []byte("signer0"))),
+	if !spe(ToIdentities(append(signers, msppb.NewIdentity("org1", []byte("signer0"))),
 		&MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication to succeed with valid signatures")
 	}
-	if !spe(ToIdentities([]*applicationpb.Identity{signers[0], signers[0], signers[0]},
+	if !spe(ToIdentities([]*msppb.Identity{signers[0], signers[0], signers[0]},
 		&MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication to succeed with valid signatures")
 	}
 	if spe(ToIdentities(signers, &MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication to fail with too few signatures")
 	}
-	if spe(ToIdentities(append(signers, applicationpb.NewIdentity("org1", []byte("signer1"))),
+	if spe(ToIdentities(append(signers, msppb.NewIdentity("org1", []byte("signer1"))),
 		&MockIdentityDeserializer{})) {
 		t.Errorf("Expected authentication failure as there was a signature from signer[0] missing")
 	}

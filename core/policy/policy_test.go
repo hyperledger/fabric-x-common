@@ -12,7 +12,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/core/policy/mocks"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -24,7 +24,7 @@ func TestCheckPolicyInvalidArgs(t *testing.T) {
 			"A": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+						Identity: msppb.NewIdentity("org1", []byte("Alice")),
 						Msg:      []byte("msg1"),
 					},
 				},
@@ -44,7 +44,7 @@ func TestCheckPolicyBySignedDataInvalidArgs(t *testing.T) {
 			"A": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+						Identity: msppb.NewIdentity("org1", []byte("Alice")),
 						Msg:      []byte("msg1"),
 					},
 				},
@@ -79,26 +79,26 @@ func TestPolicyCheckerInvalidArgs(t *testing.T) {
 		Managers: map[string]policies.Manager{
 			"A": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{Deserializer: &mocks.MockIdentityDeserializer{
-					Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+					Identity: msppb.NewIdentity("org1", []byte("Alice")),
 					Msg:      []byte("msg1"),
 				}},
 			},
 			"B": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{Deserializer: &mocks.MockIdentityDeserializer{
-					Identity: applicationpb.NewIdentity("org1", []byte("Bob")),
+					Identity: msppb.NewIdentity("org1", []byte("Bob")),
 					Msg:      []byte("msg2"),
 				}},
 			},
 			"C": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{Deserializer: &mocks.MockIdentityDeserializer{
-					Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+					Identity: msppb.NewIdentity("org1", []byte("Alice")),
 					Msg:      []byte("msg3"),
 				}},
 			},
 		},
 	}
 	identityDeserializer := &mocks.MockIdentityDeserializer{
-		Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+		Identity: msppb.NewIdentity("org1", []byte("Alice")),
 		Msg:      []byte("msg1"),
 	}
 	pc := &policyChecker{
@@ -134,7 +134,7 @@ func TestPolicyChecker(t *testing.T) {
 			"A": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+						Identity: msppb.NewIdentity("org1", []byte("Alice")),
 						Msg:      []byte("msg1"),
 					},
 				},
@@ -142,7 +142,7 @@ func TestPolicyChecker(t *testing.T) {
 			"B": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: applicationpb.NewIdentity("org1", []byte("Bob")),
+						Identity: msppb.NewIdentity("org1", []byte("Bob")),
 						Msg:      []byte("msg2"),
 					},
 				},
@@ -150,7 +150,7 @@ func TestPolicyChecker(t *testing.T) {
 			"C": &mocks.MockChannelPolicyManager{
 				MockPolicy: &mocks.MockPolicy{
 					Deserializer: &mocks.MockIdentityDeserializer{
-						Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+						Identity: msppb.NewIdentity("org1", []byte("Alice")),
 						Msg:      []byte("msg3"),
 					},
 				},
@@ -158,10 +158,10 @@ func TestPolicyChecker(t *testing.T) {
 		},
 	}
 	identityDeserializer := &mocks.MockIdentityDeserializer{
-		Identity: applicationpb.NewIdentity("org1", []byte("Alice")),
+		Identity: msppb.NewIdentity("org1", []byte("Alice")),
 		Msg:      []byte("msg1"),
 	}
-	aliceCreator := protoutil.MarshalOrPanic(applicationpb.NewIdentity("org1", []byte("Alice")))
+	aliceCreator := protoutil.MarshalOrPanic(msppb.NewIdentity("org1", []byte("Alice")))
 	pc := &policyChecker{
 		channelPolicyManagerGetter: policyManagerGetter,
 		localMSP:                   identityDeserializer,
@@ -198,7 +198,7 @@ func TestPolicyChecker(t *testing.T) {
 		err := pc.CheckPolicyNoChannel(Members, sProp)
 		require.NoError(t, err)
 
-		bobCreator := protoutil.MarshalOrPanic(applicationpb.NewIdentity("org1", []byte("Bob")))
+		bobCreator := protoutil.MarshalOrPanic(msppb.NewIdentity("org1", []byte("Bob")))
 		sProp, _ = protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, bobCreator, []byte("msg2"))
 		// Bob is not a member of the local MSP, policy check must fail
 		err = pc.CheckPolicyNoChannel(Members, sProp)
@@ -208,7 +208,7 @@ func TestPolicyChecker(t *testing.T) {
 
 	t.Run("CheckPolicyNoChannel", func(t *testing.T) {
 		signedData := &protoutil.SignedData{
-			Identity:  applicationpb.NewIdentity("org1", []byte("Alice")),
+			Identity:  msppb.NewIdentity("org1", []byte("Alice")),
 			Data:      []byte("msg1"),
 			Signature: []byte("msg1"), // for testing only, signature is same as data to pass MockIdentity.Verify
 		}
@@ -221,7 +221,7 @@ func TestPolicyChecker(t *testing.T) {
 		// CheckPolicyNoChannelBySignedData iterates each signed data and returns an error if any data is invalid
 		// Bob is not a member of the local MSP, policy check must fail when deserializing the identity
 		signedData2 := &protoutil.SignedData{
-			Identity:  applicationpb.NewIdentity("org1", []byte("Bob")),
+			Identity:  msppb.NewIdentity("org1", []byte("Bob")),
 			Data:      []byte("msg2"),
 			Signature: []byte("msg2"),
 		}

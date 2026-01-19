@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/cauthdsl"
 	"github.com/hyperledger/fabric-x-common/common/policydsl"
 	"github.com/hyperledger/fabric-x-common/core/policy/mocks"
@@ -42,7 +42,7 @@ func TestComponentIntegrationSignaturePolicyEnv(t *testing.T) {
 		},
 	})
 
-	idty := applicationpb.NewIdentity("org1", []byte("guess who"))
+	idty := msppb.NewIdentity("org1", []byte("guess who"))
 	idds.On("DeserializeIdentity", idty).Return(id, nil)
 	id.On("GetIdentifier").Return(&msp.IdentityIdentifier{Id: "id", Mspid: "msp"})
 	id.On("SatisfiesPrincipal", mock.Anything).Return(nil)

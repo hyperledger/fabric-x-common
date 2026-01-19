@@ -23,7 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/utils/certificate"
 )
@@ -42,11 +42,10 @@ type Config struct {
 // initialize an MSP without a CA cert that signs the signing identity,
 // this will do for now.
 type Signer struct {
-	key          crypto.PrivateKey
-	mspID        string
-	certBytes    []byte
-	identityPath string
-	hashFunc     string
+	key       crypto.PrivateKey
+	mspID     string
+	certBytes []byte
+	hashFunc  string
 }
 
 // NewSigner creates a new Signer out of the given configuration
@@ -60,28 +59,27 @@ func NewSigner(conf Config) (*Signer, error) {
 		return nil, errors.WithStack(err)
 	}
 	return &Signer{
-		key:          key,
-		mspID:        conf.MSPID,
-		certBytes:    certBytes,
-		identityPath: conf.IdentityPath,
-		hashFunc:     conf.HashFunc,
+		key:       key,
+		mspID:     conf.MSPID,
+		certBytes: certBytes,
+		hashFunc:  conf.HashFunc,
 	}, nil
 }
 
-// Serialize converts the signer identity to bytes representation of applicationpb.Identity
+// Serialize converts the signer identity to bytes representation of msppb.Identity
 // with the raw certificate as the creator.
 func (si *Signer) Serialize() ([]byte, error) {
-	return proto.Marshal(applicationpb.NewIdentity(si.mspID, si.certBytes))
+	return proto.Marshal(msppb.NewIdentity(si.mspID, si.certBytes))
 }
 
-// SerializeWithIDOfCert converts the signer identity to bytes representation of applicationpb.Identity
+// SerializeWithIDOfCert converts the signer identity to bytes representation of msppb.Identity
 // with the Id of the certificate as the creator.
 func (si *Signer) SerializeWithIDOfCert() ([]byte, error) {
 	id, err := certificate.DigestPemContent(si.certBytes, si.hashFunc)
 	if err != nil {
 		return nil, err
 	}
-	return proto.Marshal(applicationpb.NewIdentityWithIDOfCert(si.mspID, hex.EncodeToString(id)))
+	return proto.Marshal(msppb.NewIdentityWithIDOfCert(si.mspID, hex.EncodeToString(id)))
 }
 
 func getValidatedCert(clientCertPath string) ([]byte, error) {

@@ -15,7 +15,7 @@ import (
 	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/applicationpb"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -64,14 +64,14 @@ func (m *MockPolicy) EvaluateIdentities(identities []msp.Identity) error {
 }
 
 type MockIdentityDeserializer struct {
-	Identity *applicationpb.Identity
+	Identity *msppb.Identity
 	Msg      []byte
 }
 
 // DeserializeIdentity converts a proto identity into a msp.Identity.
 //
 //nolint:ireturn
-func (d *MockIdentityDeserializer) DeserializeIdentity(identity *applicationpb.Identity) (msp.Identity, error) {
+func (d *MockIdentityDeserializer) DeserializeIdentity(identity *msppb.Identity) (msp.Identity, error) {
 	fmt.Printf("[DeserializeIdentity] id : [%s], [%s]\n", identity.String(), d.Identity.String())
 	if proto.Equal(d.Identity, identity) {
 		fmt.Printf("GOT : [%s], [%s]\n", identity.String(), d.Identity.String())
@@ -89,12 +89,12 @@ func (*MockIdentityDeserializer) GetKnownDeserializedIdentity( //nolint:ireturn 
 }
 
 // IsWellFormed checks whether the certificate provided in the identity is valid.
-func (*MockIdentityDeserializer) IsWellFormed(_ *applicationpb.Identity) error {
+func (*MockIdentityDeserializer) IsWellFormed(_ *msppb.Identity) error {
 	return nil
 }
 
 type MockIdentity struct {
-	identity *applicationpb.Identity
+	identity *msppb.Identity
 	msg      []byte
 }
 
