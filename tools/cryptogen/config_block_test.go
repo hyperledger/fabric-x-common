@@ -7,14 +7,24 @@ SPDX-License-Identifier: Apache-2.0
 package cryptogen
 
 import (
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"net"
+	"os"
 	"path"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
+	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/health"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
@@ -25,84 +35,7 @@ import (
 
 func TestMakeConfig(t *testing.T) {
 	t.Parallel()
-	target := t.TempDir()
-
-	armaData := []byte("fake-arma-data")
-	chanName := "my-chan"
-
-	key, err := generatePrivateKey(target, ECDSA)
-	require.NoError(t, err)
-	certBytes, err := x509.MarshalPKIXPublicKey(getPublicKey(key))
-	require.NoError(t, err)
-	metaKeyBytes := pem.EncodeToMemory(&pem.Block{Type: CertType, Bytes: certBytes})
-
-	block, err := CreateDefaultConfigBlockWithCrypto(ConfigBlockParameters{
-		TargetPath: target,
-		ChannelID:  chanName,
-		Organizations: []OrganizationParameters{
-			{ // Joint org with two ordering parties.
-				Name:   "org-1",
-				Domain: "org-1.com",
-				OrdererEndpoints: []OrdererEndpoint{
-					{Address: "localhost:6001", API: []string{types.Broadcast}},
-					{Address: "localhost:7001", API: []string{types.Deliver}},
-				},
-				ConsenterNodes: []Node{
-					{Party: "party-1", CommonName: "consenter-1", Hostname: "localhost"},
-					{Party: "party-2", CommonName: "consenter-2", Hostname: "localhost"},
-				},
-				OrdererNodes: []Node{
-					{Party: "party-1", CommonName: "router-1", Hostname: "localhost"},
-					{Party: "party-1", CommonName: "assembler-1", Hostname: "localhost"},
-					{Party: "party-1", CommonName: "batcher-1", Hostname: "localhost"},
-					{Party: "party-2", CommonName: "router-2", Hostname: "localhost"},
-					{Party: "party-2", CommonName: "assembler-2", Hostname: "localhost"},
-					{Party: "party-2", CommonName: "batcher-2", Hostname: "localhost"},
-				},
-				PeerNodes: []Node{
-					{CommonName: "committer", Hostname: "localhost"},
-					{CommonName: "coordinator", Hostname: "localhost"},
-					{CommonName: "verifier", Hostname: "localhost"},
-					{CommonName: "vc", Hostname: "localhost"},
-					{CommonName: "query", Hostname: "localhost"},
-					{CommonName: "endorser", Hostname: "localhost"},
-				},
-			},
-			{ // Ordering org with a single party.
-				Name:   "org-2",
-				Domain: "org-2.com",
-				OrdererEndpoints: []OrdererEndpoint{
-					{Address: "localhost:6002", API: []string{types.Broadcast}},
-					{Address: "localhost:7002", API: []string{types.Deliver}},
-				},
-				ConsenterNodes: []Node{
-					{CommonName: "consenter", Hostname: "localhost"},
-				},
-				OrdererNodes: []Node{
-					{CommonName: "router", Hostname: "localhost"},
-					{CommonName: "assembler", Hostname: "localhost"},
-					{CommonName: "batcher", Hostname: "localhost"},
-				},
-			},
-			{ // Peer org.
-				Name:   "org-3",
-				Domain: "org-3.com",
-				PeerNodes: []Node{
-					{CommonName: "committer", Hostname: "localhost"},
-					{CommonName: "coordinator", Hostname: "localhost"},
-					{CommonName: "verifier", Hostname: "localhost"},
-					{CommonName: "vc", Hostname: "localhost"},
-					{CommonName: "query", Hostname: "localhost"},
-					{CommonName: "endorser", Hostname: "localhost"},
-				},
-			},
-		},
-		ArmaMetaBytes:                armaData,
-		MetaNamespaceVerificationKey: metaKeyBytes,
-	})
-	require.NoError(t, err)
-
-	t.Log(test.GetTree(t, target))
+	target, block, armaData := defaultConfigBlock(t)
 
 	var expectedDirs []string //nolint:prealloc // Hard to estimate size.
 
@@ -137,17 +70,9 @@ func TestMakeConfig(t *testing.T) {
 
 	test.RequireTree(t, target, []string{"config-block.pb.bin"}, expectedDirs)
 
-	require.NotNil(t, block)
-	require.NotNil(t, block.Data)
-	require.NotEmpty(t, block.Data.Data)
-	envelope, err := protoutil.ExtractEnvelope(block, 0)
-	require.NoError(t, err)
-
-	bundle, err := channelconfig.NewBundleFromEnvelope(envelope, factory.GetDefault())
-	require.NoError(t, err)
+	bundle := readBundle(t, block)
 	oc, ok := bundle.OrdererConfig()
 	require.True(t, ok)
-
 	orgMap := oc.Organizations()
 	require.Len(t, orgMap, 2)
 
@@ -240,6 +165,149 @@ func TestMakeConfig(t *testing.T) {
 	})
 }
 
+func TestCryptoGenTLS(t *testing.T) {
+	t.Parallel()
+	testDir, _, _ := defaultConfigBlock(t)
+
+	org2Node := path.Join(testDir, OrdererOrganizationsDir, "org-2", OrdererNodesDir, "assembler")
+	org3Node := path.Join(testDir, PeerOrganizationsDir, "org-3", PeerNodesDir, "committer")
+
+	org2Ca := buildCertPool(t, path.Join(testDir, OrdererOrganizationsDir, "org-2", "tlsca", "tlsorg-2-CA-cert.pem"))
+	org3Ca := buildCertPool(t, path.Join(testDir, PeerOrganizationsDir, "org-3", "tlsca", "tlsorg-3-CA-cert.pem"))
+
+	address := grpcServer(t, org2Node, org3Ca)
+	healthClient := grpcClient(t, org3Node, org2Ca, address)
+	ret, err := healthClient.Check(t.Context(), nil)
+	require.NoError(t, err)
+	require.NotNil(t, ret)
+	t.Log(ret)
+}
+
+func TestConfigBlockTLS(t *testing.T) {
+	t.Parallel()
+	testDir, block, _ := defaultConfigBlock(t)
+	org2Node := path.Join(testDir, OrdererOrganizationsDir, "org-2", OrdererNodesDir, "assembler")
+	org3Node := path.Join(testDir, PeerOrganizationsDir, "org-3", PeerNodesDir, "committer")
+
+	bundle := readBundle(t, block)
+
+	// We use all the application's CAs for the server to mimic a real server that support's all peers.
+	ac, ok := bundle.ApplicationConfig()
+	require.True(t, ok)
+	appOrgMap := ac.Organizations()
+	appCaCerts := make([][]byte, 0, len(appOrgMap))
+	for _, o := range appOrgMap {
+		appCaCerts = append(appCaCerts, o.MSP().GetTLSRootCerts()...)
+	}
+	appCa := buildCertPoolFromBytes(t, appCaCerts...)
+
+	// We only use the target org's CA to mimic a client that connects to a specific server.
+	oc, ok := bundle.OrdererConfig()
+	require.True(t, ok)
+	orgMap := oc.Organizations()
+	org2, ok := orgMap["org-2"]
+	require.True(t, ok)
+	org2CaCerts := org2.MSP().GetTLSRootCerts()
+	org2Ca := buildCertPoolFromBytes(t, org2CaCerts...)
+
+	address := grpcServer(t, org2Node, appCa)
+	healthClient := grpcClient(t, org3Node, org2Ca, address)
+	ret, err := healthClient.Check(t.Context(), nil)
+	require.NoError(t, err)
+	require.NotNil(t, ret)
+	t.Log(ret)
+}
+
+func readBundle(t *testing.T, block *common.Block) *channelconfig.Bundle {
+	t.Helper()
+	require.NotNil(t, block.Data)
+	require.NotEmpty(t, block.Data.Data)
+	envelope, err := protoutil.ExtractEnvelope(block, 0)
+	require.NoError(t, err)
+
+	bundle, err := channelconfig.NewBundleFromEnvelope(envelope, factory.GetDefault())
+	require.NoError(t, err)
+	return bundle
+}
+
+func grpcServer(t *testing.T, nodePath string, caCert *x509.CertPool) string {
+	t.Helper()
+	server := grpc.NewServer(grpc.Creds(credentials.NewTLS(&tls.Config{
+		MinVersion:   tls.VersionTLS12,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    caCert,
+		Certificates: loadServerKeyPair(t, nodePath),
+	})))
+
+	healthcheck := health.NewServer()
+	healthcheck.SetServingStatus("", healthgrpc.HealthCheckResponse_SERVING)
+	healthgrpc.RegisterHealthServer(server, healthcheck)
+
+	address := "127.0.0.1:0"
+
+	listener, err := net.Listen("tcp", address)
+	require.NoError(t, err)
+	require.NotNil(t, listener)
+
+	addr := listener.Addr()
+	tcpAddress, ok := addr.(*net.TCPAddr)
+	require.True(t, ok)
+	address = tcpAddress.String()
+
+	wg := sync.WaitGroup{}
+	t.Cleanup(wg.Wait)
+	t.Cleanup(server.Stop)
+	wg.Go(func() {
+		assert.NoError(t, server.Serve(listener))
+	})
+	return address
+}
+
+//nolint:ireturn // forced to return interface.
+func grpcClient(t *testing.T, nodePath string, caCert *x509.CertPool, endpoint string) healthgrpc.HealthClient {
+	t.Helper()
+	tlsCreds := credentials.NewTLS(&tls.Config{
+		MinVersion:   tls.VersionTLS12,
+		RootCAs:      caCert,
+		Certificates: loadServerKeyPair(t, nodePath),
+	})
+	conn, err := grpc.NewClient(endpoint, grpc.WithTransportCredentials(tlsCreds))
+	require.NoError(t, err)
+	return healthgrpc.NewHealthClient(conn)
+}
+
+func loadServerKeyPair(t *testing.T, nodePath string) []tls.Certificate {
+	t.Helper()
+	certPath := path.Join(nodePath, TLSDir, "server.crt")
+	keyPath := path.Join(nodePath, TLSDir, "server.key")
+	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	require.NoError(t, err)
+	return []tls.Certificate{cert}
+}
+
+func buildCertPool(t *testing.T, paths ...string) *x509.CertPool {
+	t.Helper()
+	pemBytesList := make([][]byte, len(paths))
+	for i, p := range paths {
+		pemBytes, err := os.ReadFile(p)
+		require.NoError(t, err)
+		require.NotEmpty(t, pemBytes)
+		pemBytesList[i] = pemBytes
+	}
+	return buildCertPoolFromBytes(t, pemBytesList...)
+}
+
+func buildCertPoolFromBytes(t *testing.T, certs ...[]byte) *x509.CertPool {
+	t.Helper()
+	require.NotEmpty(t, certs)
+	certPool := x509.NewCertPool()
+	for _, pemBytes := range certs {
+		ok := certPool.AppendCertsFromPEM(pemBytes)
+		require.True(t, ok)
+	}
+	return certPool
+}
+
 func requireSign(t *testing.T, bundle *channelconfig.Bundle, policyName string, users ...msp.DirLoadParameters) {
 	t.Helper()
 	policy, ok := bundle.PolicyManager().GetPolicy(policyName)
@@ -268,4 +336,91 @@ func requireSign(t *testing.T, bundle *channelconfig.Bundle, policyName string, 
 
 	err := policy.EvaluateSignedData(signedData)
 	require.NoError(t, err)
+}
+
+func defaultConfigBlock(t *testing.T) (
+	target string, block *common.Block, armaData []byte,
+) {
+	t.Helper()
+	target = t.TempDir()
+	armaData = []byte("fake-arma-data")
+
+	key, err := generatePrivateKey(target, ECDSA)
+	require.NoError(t, err)
+	certBytes, err := x509.MarshalPKIXPublicKey(getPublicKey(key))
+	require.NoError(t, err)
+	metaKeyBytes := pem.EncodeToMemory(&pem.Block{Type: CertType, Bytes: certBytes})
+	p := ConfigBlockParameters{
+		TargetPath: target,
+		ChannelID:  "my-chan",
+		Organizations: []OrganizationParameters{
+			{ // Joint org with two ordering parties.
+				Name:   "org-1",
+				Domain: "org-1.com",
+				OrdererEndpoints: []OrdererEndpoint{
+					{Address: "localhost:6001", API: []string{types.Broadcast}},
+					{Address: "localhost:7001", API: []string{types.Deliver}},
+				},
+				ConsenterNodes: []Node{
+					{Party: "party-1", CommonName: "consenter-1", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{Party: "party-2", CommonName: "consenter-2", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+				},
+				OrdererNodes: []Node{
+					{Party: "party-1", CommonName: "router-1", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{Party: "party-1", CommonName: "assembler-1", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{Party: "party-1", CommonName: "batcher-1", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{Party: "party-2", CommonName: "router-2", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{Party: "party-2", CommonName: "assembler-2", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{Party: "party-2", CommonName: "batcher-2", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+				},
+				PeerNodes: []Node{
+					{CommonName: "committer", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "coordinator", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "verifier", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "vc", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "query", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "endorser", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+				},
+			},
+			{ // Ordering org with a single party.
+				Name:   "org-2",
+				Domain: "org-2.com",
+				OrdererEndpoints: []OrdererEndpoint{
+					{Address: "localhost:6002", API: []string{types.Broadcast}},
+					{Address: "localhost:7002", API: []string{types.Deliver}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+				},
+				OrdererNodes: []Node{
+					{CommonName: "router", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "assembler", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "batcher", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+				},
+			},
+			{ // Peer org.
+				Name:   "org-3",
+				Domain: "org-3.com",
+				PeerNodes: []Node{
+					{CommonName: "committer", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "coordinator", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "verifier", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "vc", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "query", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "endorser", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+				},
+			},
+		},
+		ArmaMetaBytes:                armaData,
+		MetaNamespaceVerificationKey: metaKeyBytes,
+	}
+
+	block, err = CreateDefaultConfigBlockWithCrypto(p)
+	require.NoError(t, err)
+	require.NotNil(t, block)
+	require.NotNil(t, block.Data)
+	require.NotEmpty(t, block.Data.Data)
+
+	t.Logf("Actual tree: %s", test.GetTree(t, target))
+	return target, block, armaData
 }
