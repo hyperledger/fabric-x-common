@@ -48,6 +48,7 @@ type Node struct {
 	CommonName string
 	Hostname   string
 	Party      string
+	SANS       []string
 }
 
 // OrdererEndpoint address should be in the format of <host>:<port>, not the full [types.OrdererEndpoint] format.
@@ -181,6 +182,7 @@ func createOrgSpec(o *OrganizationParameters) OrgSpec {
 		nodeSpecs = append(nodeSpecs, NodeSpec{
 			CommonName:         n.CommonName,
 			Hostname:           n.Hostname,
+			SANS:               n.SANS,
 			Party:              n.Party,
 			OrganizationalUnit: OrdererOU,
 		})
@@ -189,6 +191,7 @@ func createOrgSpec(o *OrganizationParameters) OrgSpec {
 		nodeSpecs = append(nodeSpecs, NodeSpec{
 			CommonName:         n.CommonName,
 			Hostname:           n.Hostname,
+			SANS:               n.SANS,
 			Party:              n.Party,
 			OrganizationalUnit: OrdererOU,
 		})
@@ -197,6 +200,7 @@ func createOrgSpec(o *OrganizationParameters) OrgSpec {
 		nodeSpecs = append(nodeSpecs, NodeSpec{
 			CommonName:         n.CommonName,
 			Hostname:           n.Hostname,
+			SANS:               n.SANS,
 			Party:              n.Party,
 			OrganizationalUnit: PeerOU,
 		})

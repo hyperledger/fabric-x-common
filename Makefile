@@ -122,7 +122,7 @@ lint-proto: FORCE $(PROTOS_SENTINEL)
 		--config .apilinter.yaml \
 		--set-exit-status \
 		--output-format github \
-		$(shell find ${project_dir}/api -name '*.proto' -exec realpath --relative-to ${project_dir}/api {} \;)
+		$(shell find ${project_dir}/api -name '*.proto' | sed 's|${project_dir}/api/||')
 
 $(PROTOS_SENTINEL):
 	@echo "Cloning fabric-protos..."
