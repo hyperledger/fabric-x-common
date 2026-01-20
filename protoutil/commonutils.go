@@ -146,29 +146,22 @@ func MakePayloadHeader(ch *cb.ChannelHeader, sh *cb.SignatureHeader) *cb.Header 
 	}
 }
 
+// NewSignatureHeader creates the signature header with cert.
+func NewSignatureHeader(id identity.Serializer) (*cb.SignatureHeader, error) {
+	creator, err := id.Serialize()
+	if err != nil {
+		return nil, err
+	}
+	return newSignatureHeader(creator)
+}
+
 // NewSignatureHeaderWithIDOfCert creates the signature header with ID of the cert.
-func NewSignatureHeaderWithIDOfCert(id identity.Serializer) (*cb.SignatureHeader, error) {
+func NewSignatureHeaderWithIDOfCert(id identity.ExtendedSerializer) (*cb.SignatureHeader, error) {
 	creator, err := id.SerializeWithIDOfCert()
 	if err != nil {
 		return nil, err
 	}
-	nonce, err := CreateNonce()
-	if err != nil {
-		return nil, err
-	}
 
-	return &cb.SignatureHeader{
-		Creator: creator,
-		Nonce:   nonce,
-	}, nil
-}
-
-// NewSignatureHeaderWithCert creates the signature header with cert.
-func NewSignatureHeaderWithCert(id identity.Serializer) (*cb.SignatureHeader, error) {
-	creator, err := id.SerializeWithCert()
-	if err != nil {
-		return nil, err
-	}
 	return newSignatureHeader(creator)
 }
 
@@ -190,7 +183,7 @@ func NewSignatureHeaderOrPanic(id identity.Serializer) *cb.SignatureHeader {
 		panic(errors.New("invalid signer. cannot be nil"))
 	}
 
-	signatureHeader, err := NewSignatureHeaderWithCert(id)
+	signatureHeader, err := NewSignatureHeader(id)
 	if err != nil {
 		panic(fmt.Errorf("failed generating a new SignatureHeader: %s", err))
 	}

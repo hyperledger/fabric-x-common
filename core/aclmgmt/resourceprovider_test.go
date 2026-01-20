@@ -16,11 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/core/aclmgmt/mocks"
 	"github.com/hyperledger/fabric-x-common/core/policy"
 	msptesttools "github.com/hyperledger/fabric-x-common/msp/mgmt/testtools"
 	"github.com/hyperledger/fabric-x-common/protoutil"
-	"github.com/hyperledger/fabric-x-common/tools/pkg/identity"
+	smocks "github.com/hyperledger/fabric-x-common/tools/pkg/identity/mocks"
 )
 
 func newPolicyProvider(pEvaluator policyEvaluator) aclmgmtPolicyProvider {
@@ -49,26 +50,23 @@ func (pe *mockPolicyEvaluatorImpl) Evaluate(polName string, sd []*protoutil.Sign
 	return err
 }
 
-//go:generate counterfeiter -o mocks/signer_serializer.go --fake-name SignerSerializer . signerSerializer
-type signerSerializer interface {
-	identity.SignerSerializer
-}
-
 //go:generate counterfeiter -o mocks/defaultaclprovider.go --fake-name DefaultACLProvider . defaultACLProvider
 
 func TestPolicyBase(t *testing.T) {
 	evaluator := &mockPolicyEvaluatorImpl{pmap: map[string]string{"res": "pol"}, peval: map[string]error{"pol": nil}}
 	provider := newPolicyProvider(evaluator)
 
+	creator := protoutil.MarshalOrPanic(msppb.NewIdentity("org1", []byte("Alice")))
+
 	t.Run("SignedProposal", func(t *testing.T) {
-		proposal, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, []byte("Alice"), []byte("msg1"))
+		proposal, _ := protoutil.MockSignedEndorserProposalOrPanic("A", &peer.ChaincodeSpec{}, creator, []byte("msg1"))
 		err := provider.CheckACL("pol", proposal)
 		require.NoError(t, err)
 	})
 
 	t.Run("Envelope", func(t *testing.T) {
-		signer := &mocks.SignerSerializer{}
-		envelope, err := protoutil.CreateSignedEnvelopeWithCert(
+		signer := &smocks.SignerSerializer{}
+		envelope, err := protoutil.CreateSignedEnvelope(
 			common.HeaderType_CONFIG, "myc", signer, &common.ConfigEnvelope{}, 0, 0)
 		require.NoError(t, err)
 		err = provider.CheckACL("pol", envelope)
@@ -78,7 +76,7 @@ func TestPolicyBase(t *testing.T) {
 	t.Run("SignedData", func(t *testing.T) {
 		data := &protoutil.SignedData{
 			Data:      []byte("DATA"),
-			Identity:  []byte("IDENTITY"),
+			Identity:  msppb.NewIdentity("org1", []byte("IDENTITY")),
 			Signature: []byte("SIGNATURE"),
 		}
 		err := provider.CheckACL("pol", data)

@@ -20,13 +20,27 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 )
 
-// Digest creates a hash of the content of the passed file.
-func Digest(pemCertPath, hashFunc string) ([]byte, error) {
+// DigestFromFile creates a hash of the content of the passed file.
+func DigestFromFile(pemCertPath, hashFunc string) ([]byte, error) {
 	cert, err := GetCert(pemCertPath)
 	if err != nil {
 		return nil, err
 	}
 
+	return DigestCert(cert, hashFunc)
+}
+
+// DigestPemContent creates a hash of the content of the PEM.
+func DigestPemContent(pemContent []byte, hashFunc string) ([]byte, error) {
+	cert, err := GetCertFromBytes(pemContent)
+	if err != nil {
+		return nil, err
+	}
+	return DigestCert(cert, hashFunc)
+}
+
+// DigestCert creates a hash of certificate.
+func DigestCert(cert *x509.Certificate, hashFunc string) ([]byte, error) {
 	var hasher hash.Hash
 	switch hashFunc {
 	case bccsp.SHA256:
@@ -56,12 +70,25 @@ func GetCert(certPath string) (*x509.Certificate, error) {
 	}
 	block, _ := pem.Decode(pemContent)
 	if block == nil {
-		return nil, errors.Newf("no pem content for file %s", certPath)
+		return nil, errors.Newf("no PEM content in file %s", certPath)
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse cert")
 	}
 
+	return cert, nil
+}
+
+// GetCertFromBytes reads a PEM-encoded X.509 certificate and returns the parsed certificate.
+func GetCertFromBytes(pemContent []byte) (*x509.Certificate, error) {
+	block, _ := pem.Decode(pemContent)
+	if block == nil {
+		return nil, errors.New("no PEM content in file")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse cert")
+	}
 	return cert, nil
 }

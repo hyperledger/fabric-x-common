@@ -10,6 +10,8 @@ option go_package = "github.com/hyperledger/fabric-x-common/api/applicationpb";
 
 package applicationpb;
 
+import "api/msppb/msp.proto";
+
 // Represents a transaction in the blockchain.
 message Tx {
     // A list of namespaces that define the transaction's scope.
@@ -62,18 +64,6 @@ message EndorsementWithIdentity {
     bytes endorsement = 1;
 
     // The identity of the creator who produced the signature, i.e., the endorsement.
-    Identity identity = 2;
+    msppb.Identity identity = 2;
 }
 
-message Identity {
-    // The identifier of the associated membership service provider
-    string msp_id = 1;
-
-    oneof creator {
-        // The full raw bytes of the creator's certificate (e.g., an X.509 certificate).
-        bytes certificate = 2;
-
-        // An identifier for a certificate that is pre-stored or known by the committer.
-        string certificate_id = 3;
-    }
-}

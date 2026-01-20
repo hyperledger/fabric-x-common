@@ -13,7 +13,9 @@ import (
 	"time"
 
 	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -45,7 +47,8 @@ type MockPolicy struct {
 
 // EvaluateSignedData takes a set of SignedData and evaluates whether this set of signatures satisfies the policy
 func (m *MockPolicy) EvaluateSignedData(signatureSet []*protoutil.SignedData) error {
-	fmt.Printf("Evaluate [%s], [% x], [% x]\n", string(signatureSet[0].Identity), string(signatureSet[0].Data), string(signatureSet[0].Signature))
+	fmt.Printf("Evaluate [%s], [% x], [% x]\n", signatureSet[0].Identity.String(),
+		string(signatureSet[0].Data), string(signatureSet[0].Signature))
 	identity, err := m.Deserializer.DeserializeIdentity(signatureSet[0].Identity)
 	if err != nil {
 		return err
@@ -61,14 +64,17 @@ func (m *MockPolicy) EvaluateIdentities(identities []msp.Identity) error {
 }
 
 type MockIdentityDeserializer struct {
-	Identity []byte
+	Identity *msppb.Identity
 	Msg      []byte
 }
 
-func (d *MockIdentityDeserializer) DeserializeIdentity(serializedIdentity []byte) (msp.Identity, error) {
-	fmt.Printf("[DeserializeIdentity] id : [%s], [%s]\n", string(serializedIdentity), string(d.Identity))
-	if bytes.Equal(d.Identity, serializedIdentity) {
-		fmt.Printf("GOT : [%s], [%s]\n", string(serializedIdentity), string(d.Identity))
+// DeserializeIdentity converts a proto identity into a msp.Identity.
+//
+//nolint:ireturn
+func (d *MockIdentityDeserializer) DeserializeIdentity(identity *msppb.Identity) (msp.Identity, error) {
+	fmt.Printf("[DeserializeIdentity] id : [%s], [%s]\n", identity.String(), d.Identity.String())
+	if proto.Equal(d.Identity, identity) {
+		fmt.Printf("GOT : [%s], [%s]\n", identity.String(), d.Identity.String())
 		return &MockIdentity{identity: d.Identity, msg: d.Msg}, nil
 	}
 
@@ -82,12 +88,13 @@ func (*MockIdentityDeserializer) GetKnownDeserializedIdentity( //nolint:ireturn 
 	return nil
 }
 
-func (d *MockIdentityDeserializer) IsWellFormed(_ *mspproto.SerializedIdentity) error {
+// IsWellFormed checks whether the certificate provided in the identity is valid.
+func (*MockIdentityDeserializer) IsWellFormed(_ *msppb.Identity) error {
 	return nil
 }
 
 type MockIdentity struct {
-	identity []byte
+	identity *msppb.Identity
 	msg      []byte
 }
 
@@ -96,8 +103,12 @@ func (id *MockIdentity) Anonymous() bool {
 }
 
 func (id *MockIdentity) SatisfiesPrincipal(p *mspproto.MSPPrincipal) error {
-	fmt.Printf("[SatisfiesPrincipal] id : [%s], [%s]\n", string(id.identity), string(p.Principal))
-	if !bytes.Equal(id.identity, p.Principal) {
+	fmt.Printf("[SatisfiesPrincipal] id : [%s], [%s]\n", id.identity.String(), string(p.Principal))
+	idBytes, err := proto.Marshal(id.identity)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(idBytes, p.Principal) {
 		return fmt.Errorf("Different identities [% x]!=[% x]", id.identity, p.Principal)
 	}
 	return nil
@@ -134,18 +145,19 @@ func (id *MockIdentity) Verify(msg []byte, sig []byte) error {
 	return errors.New("Invalid Signature")
 }
 
-func (id *MockIdentity) Serialize() ([]byte, error) {
+// SerializeWithIDOfCert converts identity to bytes.
+func (*MockIdentity) SerializeWithIDOfCert() ([]byte, error) {
 	return []byte("cert"), nil
 }
 
-// SerializeWithIDOfCert converts identity to bytes.
-func (id *MockIdentity) SerializeWithIDOfCert() ([]byte, error) {
-	return id.Serialize()
+// Serialize converts identity to bytes.
+func (*MockIdentity) Serialize() ([]byte, error) {
+	return []byte("cert"), nil
 }
 
-// SerializeWithCert converts identity to bytes.
-func (id *MockIdentity) SerializeWithCert() ([]byte, error) {
-	return id.Serialize()
+// GetCertificatePEM return the certificate in PEM format.
+func (*MockIdentity) GetCertificatePEM() ([]byte, error) {
+	return []byte("cert"), nil
 }
 
 type MockMSPPrincipalGetter struct {

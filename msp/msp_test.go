@@ -34,7 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
@@ -103,7 +103,7 @@ func TestMSPSetupNoCryptoConf(t *testing.T) {
 		os.Exit(-1)
 	}
 
-	fxMSPConf := &protomsp.FabricMSPConfig{}
+	fxMSPConf := &msppb.FabricMSPConfig{}
 	err = proto.Unmarshal(conf.Config, fxMSPConf)
 	require.NoError(t, err)
 
@@ -229,19 +229,10 @@ func TestGetKnownIdentities(t *testing.T) {
 }
 
 func TestDeserializeIdentityFails(t *testing.T) {
-	_, err := localMsp.DeserializeIdentity([]byte("barf"))
+	_, err := localMsp.DeserializeIdentity(msppb.NewIdentity("SampleOrg", []byte("barfr")))
 	require.Error(t, err)
 
-	id := &msp.SerializedIdentity{Mspid: "SampleOrg", IdBytes: []byte("barfr")}
-	b, err := proto.Marshal(id)
-	require.NoError(t, err)
-	_, err = localMsp.DeserializeIdentity(b)
-	require.Error(t, err)
-
-	id = &msp.SerializedIdentity{Mspid: "SampleOrg", IdBytes: []byte(notACert)}
-	b, err = proto.Marshal(id)
-	require.NoError(t, err)
-	_, err = localMsp.DeserializeIdentity(b)
+	_, err = localMsp.DeserializeIdentity(msppb.NewIdentity("SampleOrg", []byte(notACert)))
 	require.Error(t, err)
 }
 
@@ -280,13 +271,16 @@ func TestSerializeIdentities(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.SerializeWithCert()
+	serializedID, err := id.Serialize()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded, got err %s", err)
 		return
 	}
 
-	idBack, err := localMsp.DeserializeIdentity(serializedID)
+	idty, err := protoutil.UnmarshalIdentity(serializedID)
+	require.NoError(t, err)
+
+	idBack, err := localMsp.DeserializeIdentity(idty)
 	if err != nil {
 		t.Fatalf("DeserializeIdentity should have succeeded, got err %s", err)
 		return
@@ -437,7 +431,7 @@ func TestValidateCANameConstraintsMitigation(t *testing.T) {
 	})
 
 	t.Run("ValidationAtSetup", func(t *testing.T) {
-		fabricXMSPConfig := &protomsp.FabricMSPConfig{
+		fabricXMSPConfig := &msppb.FabricMSPConfig{
 			Name:      "ConstraintsMSP",
 			RootCerts: [][]byte{caCertPem},
 			SigningIdentity: &msp.SigningIdentityInfo{
@@ -477,63 +471,61 @@ func TestIsWellFormed(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.SerializeWithCert()
+	serializedID, err := id.Serialize()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded, got err %s", err)
 		return
 	}
 
-	sId := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(serializedID, sId)
+	sID, err := protoutil.UnmarshalIdentity(serializedID)
 	require.NoError(t, err)
 
 	// An MSP Manager without any MSPs should not recognize the identity since
 	// not providers are registered
-	err = mspMgr.IsWellFormed(sId)
+	err = mspMgr.IsWellFormed(sID)
 	require.Error(t, err)
 	require.Equal(t, "no MSP provider recognizes the identity", err.Error())
 
 	// Add the MSP to the MSP Manager
 	mspMgr.Setup([]MSP{localMsp})
 
-	err = localMsp.IsWellFormed(sId)
+	err = localMsp.IsWellFormed(sID)
 	require.NoError(t, err)
-	err = mspMgr.IsWellFormed(sId)
+	err = mspMgr.IsWellFormed(sID)
 	require.NoError(t, err)
 
-	bl, _ := pem.Decode(sId.IdBytes)
+	bl, _ := pem.Decode(sID.GetCertificate())
 	require.Equal(t, "CERTIFICATE", bl.Type)
 
 	// Now, strip off the type from the PEM block. It should still be valid
 	bl.Type = ""
-	sId.IdBytes = pem.EncodeToMemory(bl)
+	sID.Creator = &msppb.Identity_Certificate{Certificate: pem.EncodeToMemory(bl)}
 
-	err = localMsp.IsWellFormed(sId)
+	err = localMsp.IsWellFormed(sID)
 	require.NoError(t, err)
 
 	// Now, corrupt the type of the PEM block.
 	// make sure it isn't considered well formed by both an MSP and an MSP Manager
 	bl.Type = "foo"
-	sId.IdBytes = pem.EncodeToMemory(bl)
-	err = localMsp.IsWellFormed(sId)
+	sID.Creator = &msppb.Identity_Certificate{Certificate: pem.EncodeToMemory(bl)}
+	err = localMsp.IsWellFormed(sID)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "pem type is")
 	require.Contains(t, err.Error(), "should be 'CERTIFICATE' or missing")
 
-	err = mspMgr.IsWellFormed(sId)
+	err = mspMgr.IsWellFormed(sID)
 	require.Error(t, err)
 	require.Equal(t, "no MSP provider recognizes the identity", err.Error())
 
 	// Restore the identity to what it was
-	sId = &msp.SerializedIdentity{}
-	err = proto.Unmarshal(serializedID, sId)
+	sID, err = protoutil.UnmarshalIdentity(serializedID)
 	require.NoError(t, err)
 
 	// Append some trailing junk at the end
-	sId.IdBytes = append(sId.IdBytes, []byte{1, 2, 3}...)
+	sID.Creator = &msppb.Identity_Certificate{Certificate: append(pem.EncodeToMemory(bl), []byte{1, 2, 3}...)}
 	// And ensure it is deemed invalid
-	err = localMsp.IsWellFormed(sId)
+	err = localMsp.IsWellFormed(sID)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "for MSP SampleOrg has trailing bytes")
 
@@ -559,9 +551,11 @@ func TestIsWellFormed(t *testing.T) {
 	// Pour it back into the identity
 	rawCert, err := asn1.Marshal(newCert)
 	require.NoError(t, err)
-	sId.IdBytes = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: rawCert})
+	sID.Creator = &msppb.Identity_Certificate{
+		Certificate: pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: rawCert}),
+	}
 	// Ensure it is invalid now and the signature modification is detected
-	err = localMsp.IsWellFormed(sId)
+	err = localMsp.IsWellFormed(sID)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "for MSP SampleOrg has a non canonical signature")
 }
@@ -610,22 +604,18 @@ func TestSerializeIdentitiesWithWrongMSP(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.SerializeWithCert()
+	serializedID, err := id.Serialize()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded, got err %s", err)
 		return
 	}
 
-	sid := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(serializedID, sid)
+	sid, err := protoutil.UnmarshalIdentity(serializedID)
 	require.NoError(t, err)
 
-	sid.Mspid += "BARF"
+	sid.MspId += "BARF"
 
-	serializedID, err = proto.Marshal(sid)
-	require.NoError(t, err)
-
-	_, err = localMsp.DeserializeIdentity(serializedID)
+	_, err = localMsp.DeserializeIdentity(sid)
 	require.Error(t, err)
 }
 
@@ -636,31 +626,23 @@ func TestSerializeIdentitiesWithMSPManager(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.SerializeWithCert()
+	serializedID, err := id.Serialize()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded, got err %s", err)
 		return
 	}
 
-	_, err = mspMgr.DeserializeIdentity(serializedID)
+	idty, err := protoutil.UnmarshalIdentity(serializedID)
 	require.NoError(t, err)
 
-	sid := &msp.SerializedIdentity{}
-	err = proto.Unmarshal(serializedID, sid)
+	_, err = mspMgr.DeserializeIdentity(idty)
 	require.NoError(t, err)
 
-	sid.Mspid += "BARF"
+	idty.MspId += "BARF"
 
-	serializedID, err = proto.Marshal(sid)
-	require.NoError(t, err)
-
-	_, err = mspMgr.DeserializeIdentity(serializedID)
+	_, err = mspMgr.DeserializeIdentity(idty)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), fmt.Sprintf("MSP %s is not defined on channel", sid.Mspid))
-
-	_, err = mspMgr.DeserializeIdentity([]byte("barf"))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "could not deserialize")
+	require.Contains(t, err.Error(), fmt.Sprintf("MSP %s is not defined on channel", idty.MspId))
 }
 
 func TestIdentitiesGetters(t *testing.T) {
@@ -684,13 +666,16 @@ func TestSignAndVerify(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.SerializeWithCert()
+	serializedID, err := id.Serialize()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded")
 		return
 	}
 
-	idBack, err := localMsp.DeserializeIdentity(serializedID)
+	idty, err := protoutil.UnmarshalIdentity(serializedID)
+	require.NoError(t, err)
+
+	idBack, err := localMsp.DeserializeIdentity(idty)
 	if err != nil {
 		t.Fatalf("DeserializeIdentity should have succeeded")
 		return
@@ -782,13 +767,16 @@ func TestSignAndVerify_longMessage(t *testing.T) {
 		return
 	}
 
-	serializedID, err := id.SerializeWithCert()
+	serializedID, err := id.Serialize()
 	if err != nil {
 		t.Fatalf("Serialize should have succeeded")
 		return
 	}
 
-	idBack, err := localMsp.DeserializeIdentity(serializedID)
+	idty, err := protoutil.UnmarshalIdentity(serializedID)
+	require.NoError(t, err)
+
+	idBack, err := localMsp.DeserializeIdentity(idty)
 	if err != nil {
 		t.Fatalf("DeserializeIdentity should have succeeded")
 		return
@@ -1241,7 +1229,7 @@ func TestIdentityPolicyPrincipal(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	idSerialized, err := id.SerializeWithCert()
+	idSerialized, err := id.Serialize()
 	require.NoError(t, err)
 
 	principal := &msp.MSPPrincipal{
@@ -1272,9 +1260,13 @@ func TestMSPOus(t *testing.T) {
 	defer func() { localMsp.(*bccspmsp).ouIdentifiers = backup }()
 	sid, err := localMsp.GetDefaultSigningIdentity()
 	require.NoError(t, err)
-	sidBytes, err := sid.SerializeWithCert()
+	sidBytes, err := sid.Serialize()
 	require.NoError(t, err)
-	id, err := localMsp.DeserializeIdentity(sidBytes)
+
+	idty := &msppb.Identity{}
+	require.NoError(t, proto.Unmarshal(sidBytes, idty))
+
+	id, err := localMsp.DeserializeIdentity(idty)
 	require.NoError(t, err)
 
 	localMsp.(*bccspmsp).ouIdentifiers = map[string][][]byte{
@@ -1282,7 +1274,7 @@ func TestMSPOus(t *testing.T) {
 	}
 	require.NoError(t, localMsp.Validate(id))
 
-	id, err = localMsp.DeserializeIdentity(sidBytes)
+	id, err = localMsp.DeserializeIdentity(idty)
 	require.NoError(t, err)
 
 	localMsp.(*bccspmsp).ouIdentifiers = map[string][][]byte{
@@ -1290,7 +1282,7 @@ func TestMSPOus(t *testing.T) {
 	}
 	require.Error(t, localMsp.Validate(id))
 
-	id, err = localMsp.DeserializeIdentity(sidBytes)
+	id, err = localMsp.DeserializeIdentity(idty)
 	require.NoError(t, err)
 
 	localMsp.(*bccspmsp).ouIdentifiers = map[string][][]byte{

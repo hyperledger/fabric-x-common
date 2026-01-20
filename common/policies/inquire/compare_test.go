@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
@@ -51,15 +52,16 @@ func TestNewComparablePrincipal(t *testing.T) {
 
 	t.Run("Identity", func(t *testing.T) {
 		expectedPrincipal := &ComparablePrincipal{
-			mspID:   mspID,
-			idBytes: []byte("identity"),
+			mspID:    mspID,
+			identity: msppb.NewIdentity(mspID, []byte("identity")),
 			principal: &msp.MSPPrincipal{
 				PrincipalClassification: msp.MSPPrincipal_IDENTITY,
-				Principal:               protoutil.MarshalOrPanic(&msp.SerializedIdentity{IdBytes: []byte("identity"), Mspid: mspID}),
+				Principal: protoutil.MarshalOrPanic(
+					msppb.NewIdentity(mspID, []byte("identity"))),
 			},
 		}
 
-		require.Equal(t, expectedPrincipal, NewComparablePrincipal(identity(mspID, []byte("identity"))))
+		require.EqualExportedValues(t, expectedPrincipal, NewComparablePrincipal(identity(mspID, []byte("identity"))))
 	})
 
 	t.Run("Invalid principal input", func(t *testing.T) {
@@ -82,7 +84,7 @@ func TestNewComparablePrincipal(t *testing.T) {
 			},
 		}
 		res := NewComparablePrincipal(member(mspID))
-		require.Equal(t, expectedPrincipal.idBytes, res.idBytes)
+		require.Equal(t, expectedPrincipal.identity, res.identity)
 		require.Equal(t, expectedPrincipal.mspID, res.mspID)
 		require.True(t, proto.Equal(expectedPrincipal.principal, res.principal))
 		require.True(t, proto.Equal(expectedPrincipal.ou, res.ou))
@@ -100,7 +102,7 @@ func TestNewComparablePrincipal(t *testing.T) {
 			},
 		}
 		res := NewComparablePrincipal(ou(mspID))
-		require.Equal(t, expectedPrincipal.idBytes, res.idBytes)
+		require.Equal(t, expectedPrincipal.identity, res.identity)
 		require.Equal(t, expectedPrincipal.mspID, res.mspID)
 		require.True(t, proto.Equal(expectedPrincipal.principal, res.principal))
 		require.True(t, proto.Equal(expectedPrincipal.ou, res.ou))
@@ -234,6 +236,6 @@ func ou(orgName string) *msp.MSPPrincipal {
 func identity(orgName string, idBytes []byte) *msp.MSPPrincipal {
 	return &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
-		Principal:               protoutil.MarshalOrPanic(&msp.SerializedIdentity{Mspid: orgName, IdBytes: idBytes}),
+		Principal:               protoutil.MarshalOrPanic(msppb.NewIdentity(orgName, idBytes)),
 	}
 }

@@ -13,14 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-
-	"github.com/hyperledger/fabric-x-common/tools/pkg/identity"
 )
-
-//go:generate counterfeiter -o fake/signer.go --fake-name Signer . signer
-type signer interface {
-	identity.SignerSerializer
-}
 
 //go:generate counterfeiter -o fake/ab_deliver_client.go --fake-name DeliverClient . abDeliverClient
 type abDeliverClient interface {

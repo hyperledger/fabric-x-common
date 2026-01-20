@@ -13,6 +13,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 )
 
@@ -22,7 +23,7 @@ type ComparablePrincipal struct {
 	ou        *msp.OrganizationUnit
 	role      *msp.MSPRole
 	mspID     string
-	idBytes   []byte
+	identity  *msppb.Identity
 }
 
 // Equal returns whether this ComparablePrincipal is equal to the given ComparablePrincipal.
@@ -106,7 +107,7 @@ func (cp *ComparablePrincipal) IsA(other *ComparablePrincipal) bool {
 	}
 
 	if this.principal.PrincipalClassification == msp.MSPPrincipal_IDENTITY {
-		return bytes.Equal(this.idBytes, other.idBytes) && this.mspID == other.mspID
+		return proto.Equal(this.identity, other.identity) && this.mspID == other.mspID
 	}
 
 	// Else, we can't say anything, because we have no knowledge
@@ -129,14 +130,14 @@ func (cp *ComparablePrincipal) ToOURole() *ComparablePrincipal {
 
 // ToIdentity converts this ComparablePrincipal to Identity principal, and returns nil on failure
 func (cp *ComparablePrincipal) ToIdentity() *ComparablePrincipal {
-	sID := &msp.SerializedIdentity{}
+	sID := &msppb.Identity{}
 	err := proto.Unmarshal(cp.principal.Principal, sID)
 	if err != nil {
 		logger.Warning("Failed unmarshalling principal:", err)
 		return nil
 	}
-	cp.mspID = sID.Mspid
-	cp.idBytes = sID.IdBytes
+	cp.mspID = sID.MspId
+	cp.identity = sID
 	return cp
 }
 

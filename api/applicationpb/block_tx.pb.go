@@ -12,6 +12,7 @@
 package applicationpb
 
 import (
+	msppb "github.com/hyperledger/fabric-x-common/api/msppb"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -380,7 +381,7 @@ type EndorsementWithIdentity struct {
 	// The actual cryptographic signature bytes.
 	Endorsement []byte `protobuf:"bytes,1,opt,name=endorsement,proto3" json:"endorsement,omitempty"`
 	// The identity of the creator who produced the signature, i.e., the endorsement.
-	Identity      *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+	Identity      *msppb.Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -422,111 +423,18 @@ func (x *EndorsementWithIdentity) GetEndorsement() []byte {
 	return nil
 }
 
-func (x *EndorsementWithIdentity) GetIdentity() *Identity {
+func (x *EndorsementWithIdentity) GetIdentity() *msppb.Identity {
 	if x != nil {
 		return x.Identity
 	}
 	return nil
 }
 
-type Identity struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The identifier of the associated membership service provider
-	MspId string `protobuf:"bytes,1,opt,name=msp_id,json=mspId,proto3" json:"msp_id,omitempty"`
-	// Types that are valid to be assigned to Creator:
-	//
-	//	*Identity_Certificate
-	//	*Identity_CertificateId
-	Creator       isIdentity_Creator `protobuf_oneof:"creator"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Identity) Reset() {
-	*x = Identity{}
-	mi := &file_api_applicationpb_block_tx_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Identity) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Identity) ProtoMessage() {}
-
-func (x *Identity) ProtoReflect() protoreflect.Message {
-	mi := &file_api_applicationpb_block_tx_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Identity.ProtoReflect.Descriptor instead.
-func (*Identity) Descriptor() ([]byte, []int) {
-	return file_api_applicationpb_block_tx_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *Identity) GetMspId() string {
-	if x != nil {
-		return x.MspId
-	}
-	return ""
-}
-
-func (x *Identity) GetCreator() isIdentity_Creator {
-	if x != nil {
-		return x.Creator
-	}
-	return nil
-}
-
-func (x *Identity) GetCertificate() []byte {
-	if x != nil {
-		if x, ok := x.Creator.(*Identity_Certificate); ok {
-			return x.Certificate
-		}
-	}
-	return nil
-}
-
-func (x *Identity) GetCertificateId() string {
-	if x != nil {
-		if x, ok := x.Creator.(*Identity_CertificateId); ok {
-			return x.CertificateId
-		}
-	}
-	return ""
-}
-
-type isIdentity_Creator interface {
-	isIdentity_Creator()
-}
-
-type Identity_Certificate struct {
-	// The full raw bytes of the creator's certificate (e.g., an X.509 certificate).
-	Certificate []byte `protobuf:"bytes,2,opt,name=certificate,proto3,oneof"`
-}
-
-type Identity_CertificateId struct {
-	// An identifier for a certificate that is pre-stored or known by the committer.
-	CertificateId string `protobuf:"bytes,3,opt,name=certificate_id,json=certificateId,proto3,oneof"`
-}
-
-func (*Identity_Certificate) isIdentity_Creator() {}
-
-func (*Identity_CertificateId) isIdentity_Creator() {}
-
 var File_api_applicationpb_block_tx_proto protoreflect.FileDescriptor
 
 const file_api_applicationpb_block_tx_proto_rawDesc = "" +
 	"\n" +
-	" api/applicationpb/block_tx.proto\x12\rapplicationpb\"\x81\x01\n" +
+	" api/applicationpb/block_tx.proto\x12\rapplicationpb\x1a\x13api/msppb/msp.proto\"\x81\x01\n" +
 	"\x02Tx\x12:\n" +
 	"\n" +
 	"namespaces\x18\x01 \x03(\v2\x1a.applicationpb.TxNamespaceR\n" +
@@ -556,15 +464,10 @@ const file_api_applicationpb_block_tx_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\fR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\"t\n" +
 	"\fEndorsements\x12d\n" +
-	"\x1aendorsements_with_identity\x18\x01 \x03(\v2&.applicationpb.EndorsementWithIdentityR\x18endorsementsWithIdentity\"p\n" +
+	"\x1aendorsements_with_identity\x18\x01 \x03(\v2&.applicationpb.EndorsementWithIdentityR\x18endorsementsWithIdentity\"h\n" +
 	"\x17EndorsementWithIdentity\x12 \n" +
-	"\vendorsement\x18\x01 \x01(\fR\vendorsement\x123\n" +
-	"\bidentity\x18\x02 \x01(\v2\x17.applicationpb.IdentityR\bidentity\"y\n" +
-	"\bIdentity\x12\x15\n" +
-	"\x06msp_id\x18\x01 \x01(\tR\x05mspId\x12\"\n" +
-	"\vcertificate\x18\x02 \x01(\fH\x00R\vcertificate\x12'\n" +
-	"\x0ecertificate_id\x18\x03 \x01(\tH\x00R\rcertificateIdB\t\n" +
-	"\acreatorB:Z8github.com/hyperledger/fabric-x-common/api/applicationpbb\x06proto3"
+	"\vendorsement\x18\x01 \x01(\fR\vendorsement\x12+\n" +
+	"\bidentity\x18\x02 \x01(\v2\x0f.msppb.IdentityR\bidentityB:Z8github.com/hyperledger/fabric-x-common/api/applicationpbb\x06proto3"
 
 var (
 	file_api_applicationpb_block_tx_proto_rawDescOnce sync.Once
@@ -578,7 +481,7 @@ func file_api_applicationpb_block_tx_proto_rawDescGZIP() []byte {
 	return file_api_applicationpb_block_tx_proto_rawDescData
 }
 
-var file_api_applicationpb_block_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_applicationpb_block_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_api_applicationpb_block_tx_proto_goTypes = []any{
 	(*Tx)(nil),                      // 0: applicationpb.Tx
 	(*TxNamespace)(nil),             // 1: applicationpb.TxNamespace
@@ -587,7 +490,7 @@ var file_api_applicationpb_block_tx_proto_goTypes = []any{
 	(*Write)(nil),                   // 4: applicationpb.Write
 	(*Endorsements)(nil),            // 5: applicationpb.Endorsements
 	(*EndorsementWithIdentity)(nil), // 6: applicationpb.EndorsementWithIdentity
-	(*Identity)(nil),                // 7: applicationpb.Identity
+	(*msppb.Identity)(nil),          // 7: msppb.Identity
 }
 var file_api_applicationpb_block_tx_proto_depIdxs = []int32{
 	1, // 0: applicationpb.Tx.namespaces:type_name -> applicationpb.TxNamespace
@@ -596,7 +499,7 @@ var file_api_applicationpb_block_tx_proto_depIdxs = []int32{
 	3, // 3: applicationpb.TxNamespace.read_writes:type_name -> applicationpb.ReadWrite
 	4, // 4: applicationpb.TxNamespace.blind_writes:type_name -> applicationpb.Write
 	6, // 5: applicationpb.Endorsements.endorsements_with_identity:type_name -> applicationpb.EndorsementWithIdentity
-	7, // 6: applicationpb.EndorsementWithIdentity.identity:type_name -> applicationpb.Identity
+	7, // 6: applicationpb.EndorsementWithIdentity.identity:type_name -> msppb.Identity
 	7, // [7:7] is the sub-list for method output_type
 	7, // [7:7] is the sub-list for method input_type
 	7, // [7:7] is the sub-list for extension type_name
@@ -611,17 +514,13 @@ func file_api_applicationpb_block_tx_proto_init() {
 	}
 	file_api_applicationpb_block_tx_proto_msgTypes[2].OneofWrappers = []any{}
 	file_api_applicationpb_block_tx_proto_msgTypes[3].OneofWrappers = []any{}
-	file_api_applicationpb_block_tx_proto_msgTypes[7].OneofWrappers = []any{
-		(*Identity_Certificate)(nil),
-		(*Identity_CertificateId)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_applicationpb_block_tx_proto_rawDesc), len(file_api_applicationpb_block_tx_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

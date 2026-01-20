@@ -7,9 +7,9 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v5.29.3
-// source: api/protomsp/msp.proto
+// source: api/msppb/msp.proto
 
-package protomsp
+package msppb
 
 import (
 	msp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
@@ -88,7 +88,7 @@ type FabricMSPConfig struct {
 
 func (x *FabricMSPConfig) Reset() {
 	*x = FabricMSPConfig{}
-	mi := &file_api_protomsp_msp_proto_msgTypes[0]
+	mi := &file_api_msppb_msp_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -100,7 +100,7 @@ func (x *FabricMSPConfig) String() string {
 func (*FabricMSPConfig) ProtoMessage() {}
 
 func (x *FabricMSPConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protomsp_msp_proto_msgTypes[0]
+	mi := &file_api_msppb_msp_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -113,7 +113,7 @@ func (x *FabricMSPConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FabricMSPConfig.ProtoReflect.Descriptor instead.
 func (*FabricMSPConfig) Descriptor() ([]byte, []int) {
-	return file_api_protomsp_msp_proto_rawDescGZIP(), []int{0}
+	return file_api_msppb_msp_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *FabricMSPConfig) GetName() string {
@@ -215,7 +215,7 @@ type Identity struct {
 
 func (x *Identity) Reset() {
 	*x = Identity{}
-	mi := &file_api_protomsp_msp_proto_msgTypes[1]
+	mi := &file_api_msppb_msp_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -227,7 +227,7 @@ func (x *Identity) String() string {
 func (*Identity) ProtoMessage() {}
 
 func (x *Identity) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protomsp_msp_proto_msgTypes[1]
+	mi := &file_api_msppb_msp_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -240,7 +240,7 @@ func (x *Identity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Identity.ProtoReflect.Descriptor instead.
 func (*Identity) Descriptor() ([]byte, []int) {
-	return file_api_protomsp_msp_proto_rawDescGZIP(), []int{1}
+	return file_api_msppb_msp_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Identity) GetMspId() string {
@@ -293,11 +293,11 @@ func (*Identity_Certificate) isIdentity_Creator() {}
 
 func (*Identity_CertificateId) isIdentity_Creator() {}
 
-var File_api_protomsp_msp_proto protoreflect.FileDescriptor
+var File_api_msppb_msp_proto protoreflect.FileDescriptor
 
-const file_api_protomsp_msp_proto_rawDesc = "" +
+const file_api_msppb_msp_proto_rawDesc = "" +
 	"\n" +
-	"\x16api/protomsp/msp.proto\x12\bprotomsp\x1a\x14msp/msp_config.proto\"\xd1\x04\n" +
+	"\x13api/msppb/msp.proto\x12\x05msppb\x1a\x14msp/msp_config.proto\"\xd1\x04\n" +
 	"\x0fFabricMSPConfig\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
@@ -318,34 +318,34 @@ const file_api_protomsp_msp_proto_rawDesc = "" +
 	"\x06msp_id\x18\x01 \x01(\tR\x05mspId\x12\"\n" +
 	"\vcertificate\x18\x02 \x01(\fH\x00R\vcertificate\x12'\n" +
 	"\x0ecertificate_id\x18\x03 \x01(\tH\x00R\rcertificateIdB\t\n" +
-	"\acreatorB5Z3github.com/hyperledger/fabric-x-common/api/protomspb\x06proto3"
+	"\acreatorB2Z0github.com/hyperledger/fabric-x-common/api/msppbb\x06proto3"
 
 var (
-	file_api_protomsp_msp_proto_rawDescOnce sync.Once
-	file_api_protomsp_msp_proto_rawDescData []byte
+	file_api_msppb_msp_proto_rawDescOnce sync.Once
+	file_api_msppb_msp_proto_rawDescData []byte
 )
 
-func file_api_protomsp_msp_proto_rawDescGZIP() []byte {
-	file_api_protomsp_msp_proto_rawDescOnce.Do(func() {
-		file_api_protomsp_msp_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_protomsp_msp_proto_rawDesc), len(file_api_protomsp_msp_proto_rawDesc)))
+func file_api_msppb_msp_proto_rawDescGZIP() []byte {
+	file_api_msppb_msp_proto_rawDescOnce.Do(func() {
+		file_api_msppb_msp_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_msppb_msp_proto_rawDesc), len(file_api_msppb_msp_proto_rawDesc)))
 	})
-	return file_api_protomsp_msp_proto_rawDescData
+	return file_api_msppb_msp_proto_rawDescData
 }
 
-var file_api_protomsp_msp_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_api_protomsp_msp_proto_goTypes = []any{
-	(*FabricMSPConfig)(nil),         // 0: protomsp.FabricMSPConfig
-	(*Identity)(nil),                // 1: protomsp.Identity
+var file_api_msppb_msp_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_msppb_msp_proto_goTypes = []any{
+	(*FabricMSPConfig)(nil),         // 0: msppb.FabricMSPConfig
+	(*Identity)(nil),                // 1: msppb.Identity
 	(*msp.SigningIdentityInfo)(nil), // 2: msp.SigningIdentityInfo
 	(*msp.FabricOUIdentifier)(nil),  // 3: msp.FabricOUIdentifier
 	(*msp.FabricCryptoConfig)(nil),  // 4: msp.FabricCryptoConfig
 	(*msp.FabricNodeOUs)(nil),       // 5: msp.FabricNodeOUs
 }
-var file_api_protomsp_msp_proto_depIdxs = []int32{
-	2, // 0: protomsp.FabricMSPConfig.signing_identity:type_name -> msp.SigningIdentityInfo
-	3, // 1: protomsp.FabricMSPConfig.organizational_unit_identifiers:type_name -> msp.FabricOUIdentifier
-	4, // 2: protomsp.FabricMSPConfig.crypto_config:type_name -> msp.FabricCryptoConfig
-	5, // 3: protomsp.FabricMSPConfig.fabric_node_ous:type_name -> msp.FabricNodeOUs
+var file_api_msppb_msp_proto_depIdxs = []int32{
+	2, // 0: msppb.FabricMSPConfig.signing_identity:type_name -> msp.SigningIdentityInfo
+	3, // 1: msppb.FabricMSPConfig.organizational_unit_identifiers:type_name -> msp.FabricOUIdentifier
+	4, // 2: msppb.FabricMSPConfig.crypto_config:type_name -> msp.FabricCryptoConfig
+	5, // 3: msppb.FabricMSPConfig.fabric_node_ous:type_name -> msp.FabricNodeOUs
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -353,12 +353,12 @@ var file_api_protomsp_msp_proto_depIdxs = []int32{
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_api_protomsp_msp_proto_init() }
-func file_api_protomsp_msp_proto_init() {
-	if File_api_protomsp_msp_proto != nil {
+func init() { file_api_msppb_msp_proto_init() }
+func file_api_msppb_msp_proto_init() {
+	if File_api_msppb_msp_proto != nil {
 		return
 	}
-	file_api_protomsp_msp_proto_msgTypes[1].OneofWrappers = []any{
+	file_api_msppb_msp_proto_msgTypes[1].OneofWrappers = []any{
 		(*Identity_Certificate)(nil),
 		(*Identity_CertificateId)(nil),
 	}
@@ -366,17 +366,17 @@ func file_api_protomsp_msp_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_protomsp_msp_proto_rawDesc), len(file_api_protomsp_msp_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_msppb_msp_proto_rawDesc), len(file_api_msppb_msp_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_api_protomsp_msp_proto_goTypes,
-		DependencyIndexes: file_api_protomsp_msp_proto_depIdxs,
-		MessageInfos:      file_api_protomsp_msp_proto_msgTypes,
+		GoTypes:           file_api_msppb_msp_proto_goTypes,
+		DependencyIndexes: file_api_msppb_msp_proto_depIdxs,
+		MessageInfos:      file_api_msppb_msp_proto_msgTypes,
 	}.Build()
-	File_api_protomsp_msp_proto = out.File
-	file_api_protomsp_msp_proto_goTypes = nil
-	file_api_protomsp_msp_proto_depIdxs = nil
+	File_api_msppb_msp_proto = out.File
+	file_api_msppb_msp_proto_goTypes = nil
+	file_api_msppb_msp_proto_depIdxs = nil
 }

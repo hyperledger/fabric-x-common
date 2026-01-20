@@ -23,7 +23,7 @@ import (
 	"github.com/onsi/gomega"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 var (
@@ -178,7 +178,7 @@ func TestIdentityValidation(t *testing.T) {
 		}
 
 		mspImpl.(*bccspmsp).cryptoConfig = cryptoConfig
-		mspConfigBytes, _ := proto.Marshal(&protomsp.FabricMSPConfig{
+		mspConfigBytes, _ := proto.Marshal(&msppb.FabricMSPConfig{
 			RootCerts: [][]byte{[]byte(caCertPem)},
 			Admins:    [][]byte{[]byte(ecdsaCertPem)},
 		})

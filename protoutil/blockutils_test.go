@@ -13,10 +13,10 @@ import (
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	configtxtest "github.com/hyperledger/fabric-x-common/common/configtx/test"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/protoutil/mocks"
@@ -441,8 +441,8 @@ func TestBlockSignatureVerifierByIdentifier(t *testing.T) {
 	require.NoError(t, err)
 	signatureSet := policies.EvaluateSignedDataArgsForCall(0)
 	require.Len(t, signatureSet, 2)
-	require.Equal(t, protoutil.MarshalOrPanic(&msp.SerializedIdentity{Mspid: "msp1", IdBytes: []byte("identity1")}), signatureSet[0].Identity)
-	require.Equal(t, protoutil.MarshalOrPanic(&msp.SerializedIdentity{Mspid: "msp3", IdBytes: []byte("identity3")}), signatureSet[1].Identity)
+	require.Equal(t, msppb.NewIdentity("msp1", []byte("identity1")), signatureSet[0].Identity)
+	require.Equal(t, msppb.NewIdentity("msp3", []byte("identity3")), signatureSet[1].Identity)
 }
 
 func TestBlockSignatureVerifierByCreator(t *testing.T) {
@@ -474,13 +474,15 @@ func TestBlockSignatureVerifierByCreator(t *testing.T) {
 
 	verify := protoutil.BlockSignatureVerifier(true, consenters, &policies)
 
+	idty := msppb.NewIdentity("msp1", []byte("creator"))
 	header := &cb.BlockHeader{}
 	md := &cb.BlockMetadata{
 		Metadata: [][]byte{
 			protoutil.MarshalOrPanic(&cb.Metadata{Signatures: []*cb.MetadataSignature{
 				{
-					Signature:       []byte{},
-					SignatureHeader: protoutil.MarshalOrPanic(&cb.SignatureHeader{Creator: []byte("creator1")}),
+					Signature: []byte{},
+					SignatureHeader: protoutil.MarshalOrPanic(
+						&cb.SignatureHeader{Creator: protoutil.MarshalOrPanic(idty)}),
 				},
 			}}),
 		},
@@ -490,7 +492,7 @@ func TestBlockSignatureVerifierByCreator(t *testing.T) {
 	require.NoError(t, err)
 	signatureSet := policies.EvaluateSignedDataArgsForCall(0)
 	require.Len(t, signatureSet, 1)
-	require.Equal(t, []byte("creator1"), signatureSet[0].Identity)
+	require.EqualExportedValues(t, idty, signatureSet[0].Identity)
 }
 
 func TestVerifyTransactionsAreWellFormed(t *testing.T) {

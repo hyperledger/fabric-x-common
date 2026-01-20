@@ -20,11 +20,10 @@ import (
 	"strings"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/utils"
-	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/utils/certificate"
 )
@@ -43,15 +42,15 @@ type Config struct {
 // initialize an MSP without a CA cert that signs the signing identity,
 // this will do for now.
 type Signer struct {
-	key          crypto.PrivateKey
-	Creator      *msp.SerializedIdentity
-	identityPath string
-	hashFunc     string
+	key       crypto.PrivateKey
+	mspID     string
+	certBytes []byte
+	hashFunc  string
 }
 
 // NewSigner creates a new Signer out of the given configuration
 func NewSigner(conf Config) (*Signer, error) {
-	sId, err := serializeIdentity(conf.IdentityPath, conf.MSPID)
+	certBytes, err := getValidatedCert(conf.IdentityPath)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -60,47 +59,38 @@ func NewSigner(conf Config) (*Signer, error) {
 		return nil, errors.WithStack(err)
 	}
 	return &Signer{
-		Creator:      sId,
-		key:          key,
-		identityPath: conf.IdentityPath,
-		hashFunc:     conf.HashFunc,
+		key:       key,
+		mspID:     conf.MSPID,
+		certBytes: certBytes,
+		hashFunc:  conf.HashFunc,
 	}, nil
 }
 
-// SerializeWithCert converts the signer identity to bytes representation of protomsp.Identity
+// Serialize converts the signer identity to bytes representation of msppb.Identity
 // with the raw certificate as the creator.
-func (si *Signer) SerializeWithCert() ([]byte, error) {
-	return proto.Marshal(&protomsp.Identity{
-		MspId:   si.Creator.Mspid,
-		Creator: &protomsp.Identity_Certificate{Certificate: si.Creator.IdBytes},
-	})
+func (si *Signer) Serialize() ([]byte, error) {
+	return proto.Marshal(msppb.NewIdentity(si.mspID, si.certBytes))
 }
 
-// SerializeWithIDOfCert converts the signer identity to bytes representation of protomsp.Identity
+// SerializeWithIDOfCert converts the signer identity to bytes representation of msppb.Identity
 // with the Id of the certificate as the creator.
 func (si *Signer) SerializeWithIDOfCert() ([]byte, error) {
-	id, err := certificate.Digest(si.identityPath, si.hashFunc)
+	id, err := certificate.DigestPemContent(si.certBytes, si.hashFunc)
 	if err != nil {
 		return nil, err
 	}
-	return proto.Marshal(&protomsp.Identity{
-		MspId:   si.Creator.Mspid,
-		Creator: &protomsp.Identity_CertificateId{CertificateId: hex.EncodeToString(id)},
-	})
+	return proto.Marshal(msppb.NewIdentityWithIDOfCert(si.mspID, hex.EncodeToString(id)))
 }
 
-func serializeIdentity(clientCert, mspID string) (*msp.SerializedIdentity, error) {
-	b, err := os.ReadFile(clientCert)
+func getValidatedCert(clientCertPath string) ([]byte, error) {
+	b, err := os.ReadFile(clientCertPath)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	if err := validateEnrollmentCertificate(b); err != nil {
 		return nil, err
 	}
-	return &msp.SerializedIdentity{
-		Mspid:   mspID,
-		IdBytes: b,
-	}, nil
+	return b, nil
 }
 
 func validateEnrollmentCertificate(b []byte) error {

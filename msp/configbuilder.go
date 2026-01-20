@@ -19,7 +19,7 @@ import (
 	"go.yaml.in/yaml/v3"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/protomsp"
+	"github.com/hyperledger/fabric-x-common/api/msppb"
 )
 
 // OrganizationalUnitIdentifiersConfiguration is used to represent an OU
@@ -351,7 +351,7 @@ func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.M
 	}
 
 	// Compose FabricMSPConfig
-	fmspconf := &protomsp.FabricMSPConfig{
+	fmspconf := &msppb.FabricMSPConfig{
 		Admins:                        admincert,
 		RootCerts:                     cacerts,
 		IntermediateCerts:             intermediatecerts,

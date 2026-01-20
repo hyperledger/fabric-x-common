@@ -20,10 +20,11 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/identity/mocks"
 )
 
 func TestDeliveryRequester_Connect_Success(t *testing.T) {
-	fakeSigner := &fake.Signer{}
+	fakeSigner := &mocks.SignerSerializer{}
 	fakeSigner.SignReturns([]byte("good-sig"), nil)
 
 	fakeDialer := &fake.Dialer{}
@@ -53,7 +54,7 @@ func TestDeliveryRequester_Connect_Success(t *testing.T) {
 }
 
 func TestDeliveryRequester_Connect_DialerError(t *testing.T) {
-	fakeSigner := &fake.Signer{}
+	fakeSigner := &mocks.SignerSerializer{}
 	fakeSigner.SignReturns([]byte("good-sig"), nil)
 
 	fakeDialer := &fake.Dialer{}
@@ -83,7 +84,7 @@ func TestDeliveryRequester_Connect_DialerError(t *testing.T) {
 }
 
 func TestDeliveryRequester_Connect_DeliverStreamerError(t *testing.T) {
-	fakeSigner := &fake.Signer{}
+	fakeSigner := &mocks.SignerSerializer{}
 	fakeSigner.SignReturns([]byte("good-sig"), nil)
 
 	fakeDialer := &fake.Dialer{}
@@ -119,7 +120,7 @@ func TestDeliveryRequester_Connect_DeliverStreamerError(t *testing.T) {
 }
 
 func TestDeliveryRequester_Connect_DeliverClientError(t *testing.T) {
-	fakeSigner := &fake.Signer{}
+	fakeSigner := &mocks.SignerSerializer{}
 	fakeSigner.SignReturns([]byte("good-sig"), nil)
 
 	fakeDialer := &fake.Dialer{}
@@ -155,7 +156,7 @@ func TestDeliveryRequester_Connect_DeliverClientError(t *testing.T) {
 }
 
 func TestDeliveryRequester_SeekInfoBlocksFrom(t *testing.T) {
-	fakeSigner := &fake.Signer{}
+	fakeSigner := &mocks.SignerSerializer{}
 	fakeSigner.SignReturns([]byte("good-sig"), nil)
 
 	fakeDialer := &fake.Dialer{}
@@ -177,7 +178,7 @@ func TestDeliveryRequester_SeekInfoBlocksFrom(t *testing.T) {
 }
 
 func TestDeliveryRequester_SeekInfoHeadersFrom(t *testing.T) {
-	fakeSigner := &fake.Signer{}
+	fakeSigner := &mocks.SignerSerializer{}
 	fakeSigner.SignReturns([]byte("good-sig"), nil)
 
 	fakeDialer := &fake.Dialer{}
