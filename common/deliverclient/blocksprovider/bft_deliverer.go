@@ -20,7 +20,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/deliverclient"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
 	"github.com/hyperledger/fabric-x-common/common/util"
-	"github.com/hyperledger/fabric-x-common/tools/pkg/identity"
+	"github.com/hyperledger/fabric-x-common/protoutil/identity"
 )
 
 //go:generate counterfeiter -o fake/censorship_detector.go --fake-name CensorshipDetector . CensorshipDetector

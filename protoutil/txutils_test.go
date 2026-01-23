@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
-	"github.com/hyperledger/fabric-x-common/tools/pkg/identity/mocks"
+	"github.com/hyperledger/fabric-x-common/protoutil/identity/mocks"
 )
 
 func TestGetPayloads(t *testing.T) {
