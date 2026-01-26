@@ -20,7 +20,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
-	"github.com/hyperledger/fabric-x-common/tools/pkg/identity/mocks"
+	"github.com/hyperledger/fabric-x-common/protoutil/identity/mocks"
 )
 
 func TestDeliveryRequester_Connect_Success(t *testing.T) {
