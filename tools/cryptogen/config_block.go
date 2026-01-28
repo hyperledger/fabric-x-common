@@ -89,7 +89,7 @@ func LoadSampleConfig(profile string) (*configtxgen.Profile, error) {
 // It uses the same organizations for the orderer and the application.
 func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Block, error) {
 	if conf.BaseProfile == "" {
-		conf.BaseProfile = configtxgen.TwoOrgsSampleFabricX
+		conf.BaseProfile = configtxgen.SampleFabricX
 	}
 	if conf.ChannelID == "" {
 		conf.ChannelID = "chan"
