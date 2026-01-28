@@ -176,7 +176,7 @@ Capabilities:
 #
 ################################################################################
 Application: &ApplicationDefaults
-    ACLs: &ACLsDefault
+    ACLs:
         # This section provides defaults for policies for various resources
         # in the system. These "resources" could be functions on system chaincodes
         # (e.g., "GetBlockByNumber" on the "qscc" system chaincode) or other resources
@@ -441,7 +441,7 @@ Orderer: &OrdererDefaults
     # Policies defines the set of policies at this level of the config tree
     # For Orderer policies, their canonical path is
     #   /Channel/Orderer/<PolicyName>
-    Policies:
+    Policies: &DefaultOrdererPolicies
         Readers:
             Type: ImplicitMeta
             Rule: ANY Readers
@@ -743,9 +743,15 @@ Profiles:
 
     SampleFabricX:
         <<: *ChannelDefaults
-        Orderer:
+        Orderer: &FabricXOrdererDefaults
             <<: *OrdererDefaults
             OrdererType: arma
+            Policies:
+                <<: *DefaultOrdererPolicies
+                # We require MAJORITY for BFT.
+                BlockValidation:
+                    Type: ImplicitMeta
+                    Rule: MAJORITY Writers
             Organizations:
                 - <<: *SampleOrg
                   OrdererEndpoints:
@@ -811,8 +817,7 @@ Profiles:
     TwoOrgsSampleFabricX:
         <<: *ChannelDefaults
         Orderer:
-            <<: *OrdererDefaults
-            OrdererType: arma
+            <<: *FabricXOrdererDefaults
             Organizations:
                 - <<: *Org1
                   OrdererEndpoints:
