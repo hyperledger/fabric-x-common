@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-x-common/common/grpcmetrics/testpb"
+	"google.golang.org/grpc"
 )
 
 type EchoServiceServer struct {
@@ -23,10 +24,10 @@ type EchoServiceServer struct {
 		result1 *testpb.Message
 		result2 error
 	}
-	EchoStreamStub        func(testpb.EchoService_EchoStreamServer) error
+	EchoStreamStub        func(grpc.BidiStreamingServer[testpb.Message, testpb.Message]) error
 	echoStreamMutex       sync.RWMutex
 	echoStreamArgsForCall []struct {
-		arg1 testpb.EchoService_EchoStreamServer
+		arg1 grpc.BidiStreamingServer[testpb.Message, testpb.Message]
 	}
 	echoStreamReturns struct {
 		result1 error
@@ -103,11 +104,11 @@ func (fake *EchoServiceServer) EchoReturnsOnCall(i int, result1 *testpb.Message,
 	}{result1, result2}
 }
 
-func (fake *EchoServiceServer) EchoStream(arg1 testpb.EchoService_EchoStreamServer) error {
+func (fake *EchoServiceServer) EchoStream(arg1 grpc.BidiStreamingServer[testpb.Message, testpb.Message]) error {
 	fake.echoStreamMutex.Lock()
 	ret, specificReturn := fake.echoStreamReturnsOnCall[len(fake.echoStreamArgsForCall)]
 	fake.echoStreamArgsForCall = append(fake.echoStreamArgsForCall, struct {
-		arg1 testpb.EchoService_EchoStreamServer
+		arg1 grpc.BidiStreamingServer[testpb.Message, testpb.Message]
 	}{arg1})
 	stub := fake.EchoStreamStub
 	fakeReturns := fake.echoStreamReturns
@@ -128,13 +129,13 @@ func (fake *EchoServiceServer) EchoStreamCallCount() int {
 	return len(fake.echoStreamArgsForCall)
 }
 
-func (fake *EchoServiceServer) EchoStreamCalls(stub func(testpb.EchoService_EchoStreamServer) error) {
+func (fake *EchoServiceServer) EchoStreamCalls(stub func(grpc.BidiStreamingServer[testpb.Message, testpb.Message]) error) {
 	fake.echoStreamMutex.Lock()
 	defer fake.echoStreamMutex.Unlock()
 	fake.EchoStreamStub = stub
 }
 
-func (fake *EchoServiceServer) EchoStreamArgsForCall(i int) testpb.EchoService_EchoStreamServer {
+func (fake *EchoServiceServer) EchoStreamArgsForCall(i int) grpc.BidiStreamingServer[testpb.Message, testpb.Message] {
 	fake.echoStreamMutex.RLock()
 	defer fake.echoStreamMutex.RUnlock()
 	argsForCall := fake.echoStreamArgsForCall[i]
