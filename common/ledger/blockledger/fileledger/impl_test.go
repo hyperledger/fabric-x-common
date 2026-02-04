@@ -73,6 +73,14 @@ func (mbs *mockBlockStore) AddBlock(block *cb.Block) error {
 	return mbs.defaultError
 }
 
+func (mbs *mockBlockStore) AddBlockNoSync(*cb.Block) error {
+	return mbs.defaultError
+}
+
+func (mbs *mockBlockStore) Flush() error {
+	return mbs.defaultError
+}
+
 func (mbs *mockBlockStore) GetBlockchainInfo() (*cb.BlockchainInfo, error) {
 	return mbs.blockchainInfo, mbs.getBlockchainInfoError
 }

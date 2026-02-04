@@ -63,7 +63,8 @@ func TestBlockfileMgrCrashDuringWriting(t *testing.T) {
 
 func testBlockfileMgrCrashDuringWriting(t *testing.T, numBlksBeforeSavingBlkfilesInfo int,
 	numBlksAfterSavingBlkfilesInfo int, numLastBlockBytes int, numPartialBytesToWrite int,
-	deleteBFInfo bool) {
+	deleteBFInfo bool,
+) {
 	env := newTestEnv(t, NewConf(t.TempDir(), 0))
 	defer env.Cleanup()
 	ledgerid := "testLedger"
@@ -138,7 +139,8 @@ func TestBlockfileMgrBlockIterator(t *testing.T) {
 }
 
 func testBlockfileMgrBlockIterator(t *testing.T, blockfileMgr *blockfileMgr,
-	firstBlockNum int, lastBlockNum int, expectedBlocks []*common.Block) {
+	firstBlockNum int, lastBlockNum int, expectedBlocks []*common.Block,
+) {
 	itr, err := blockfileMgr.retrieveBlocks(uint64(firstBlockNum))
 	require.NoError(t, err, "Error while getting blocks iterator")
 	defer itr.Close()
@@ -504,6 +506,104 @@ func testBlockfileMgrSimulateCrashAtFirstBlockInFile(t *testing.T, deleteBlkfile
 	require.Equal(t, firstBlkFileSize, testutilGetFileSize(t, firstFilePath))
 	blkfileMgrWrapper.testGetBlockByNumber(blocks)
 	testBlockfileMgrBlockIterator(t, blkfileMgrWrapper.blockfileMgr, 0, len(blocks)-1, blocks)
+}
+
+func TestBlockfileMgrNoSyncAndFlush(t *testing.T) {
+	t.Run("addBlockNoSync then flush", func(t *testing.T) {
+		env := newTestEnv(t, NewConf(t.TempDir(), 0))
+		defer env.Cleanup()
+		blkfileMgrWrapper := newTestBlockfileWrapper(env, "testLedger")
+		defer blkfileMgrWrapper.close()
+		blocks := testutil.ConstructTestBlocks(t, 10)
+
+		for _, blk := range blocks {
+			err := blkfileMgrWrapper.blockfileMgr.addBlockNoSync(blk)
+			require.NoError(t, err)
+		}
+
+		err := blkfileMgrWrapper.blockfileMgr.flush()
+		require.NoError(t, err)
+
+		blkfileMgrWrapper.testGetBlockByNumber(blocks)
+		blkfileMgrWrapper.testGetBlockByHash(blocks)
+		require.Equal(t, uint64(10), blkfileMgrWrapper.blockfileMgr.getBlockchainInfo().Height)
+	})
+
+	t.Run("periodic sync every Nth block", func(t *testing.T) {
+		env := newTestEnv(t, NewConf(t.TempDir(), 0))
+		defer env.Cleanup()
+		blkfileMgrWrapper := newTestBlockfileWrapper(env, "testLedger")
+		defer blkfileMgrWrapper.close()
+		blocks := testutil.ConstructTestBlocks(t, 10)
+
+		syncInterval := uint64(5)
+		for _, blk := range blocks {
+			if (blk.Header.Number+1)%syncInterval == 0 {
+				err := blkfileMgrWrapper.blockfileMgr.addBlock(blk)
+				require.NoError(t, err)
+			} else {
+				err := blkfileMgrWrapper.blockfileMgr.addBlockNoSync(blk)
+				require.NoError(t, err)
+			}
+		}
+
+		blkfileMgrWrapper.testGetBlockByNumber(blocks)
+		blkfileMgrWrapper.testGetBlockByHash(blocks)
+		require.Equal(t, uint64(10), blkfileMgrWrapper.blockfileMgr.getBlockchainInfo().Height)
+	})
+
+	t.Run("file rolling forces sync", func(t *testing.T) {
+		blocks := testutil.ConstructTestBlocks(t, 20)
+		size := 0
+		for _, block := range blocks[:10] {
+			by, _ := serializeBlock(block, false)
+			blockBytesSize := len(by)
+			encodedLen := protowire.AppendVarint(nil, uint64(blockBytesSize))
+			size += blockBytesSize + len(encodedLen)
+		}
+		maxFileSize := int(0.75 * float64(size))
+
+		env := newTestEnv(t, NewConf(t.TempDir(), maxFileSize))
+		defer env.Cleanup()
+		blkfileMgrWrapper := newTestBlockfileWrapper(env, "testLedger")
+		defer blkfileMgrWrapper.close()
+
+		for _, blk := range blocks {
+			err := blkfileMgrWrapper.blockfileMgr.addBlockNoSync(blk)
+			require.NoError(t, err)
+		}
+
+		require.Greater(t, blkfileMgrWrapper.blockfileMgr.blockfilesInfo.latestFileNumber, 0)
+
+		err := blkfileMgrWrapper.blockfileMgr.flush()
+		require.NoError(t, err)
+
+		blkfileMgrWrapper.testGetBlockByNumber(blocks)
+		blkfileMgrWrapper.testGetBlockByHash(blocks)
+	})
+
+	t.Run("restart after noSync and flush", func(t *testing.T) {
+		env := newTestEnv(t, NewConf(t.TempDir(), 0))
+		defer env.Cleanup()
+		ledgerid := "testLedger"
+		blkfileMgrWrapper := newTestBlockfileWrapper(env, ledgerid)
+		blocks := testutil.ConstructTestBlocks(t, 10)
+
+		for _, blk := range blocks {
+			err := blkfileMgrWrapper.blockfileMgr.addBlockNoSync(blk)
+			require.NoError(t, err)
+		}
+		err := blkfileMgrWrapper.blockfileMgr.flush()
+		require.NoError(t, err)
+		blkfileMgrWrapper.close()
+
+		// Reopen and verify all blocks survived the restart
+		blkfileMgrWrapper = newTestBlockfileWrapper(env, ledgerid)
+		defer blkfileMgrWrapper.close()
+		require.Equal(t, uint64(10), blkfileMgrWrapper.blockfileMgr.getBlockchainInfo().Height)
+		blkfileMgrWrapper.testGetBlockByNumber(blocks)
+		blkfileMgrWrapper.testGetBlockByHash(blocks)
+	})
 }
 
 func testutilGetFileSize(t *testing.T, path string) int {

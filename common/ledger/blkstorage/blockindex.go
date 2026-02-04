@@ -81,7 +81,7 @@ func (index *blockIndex) getLastBlockIndexed() (uint64, error) {
 	return decodeBlockNum(blockNumBytes), nil
 }
 
-func (index *blockIndex) indexBlock(blockIdxInfo *blockIdxInfo) error {
+func (index *blockIndex) indexBlock(blockIdxInfo *blockIdxInfo, sync bool) error {
 	// do not index anything
 	if len(index.indexItemsMap) == 0 {
 		logger.Debug("Not indexing block... as nothing to index")
@@ -140,8 +140,7 @@ func (index *blockIndex) indexBlock(blockIdxInfo *blockIdxInfo) error {
 	}
 
 	batch.Put(indexSavePointKey, encodeBlockNum(blockIdxInfo.blockNum))
-	// Setting snyc to true as a precaution, false may be an ok optimization after further testing.
-	if err := index.db.WriteBatch(batch, true); err != nil {
+	if err := index.db.WriteBatch(batch, sync); err != nil {
 		return err
 	}
 	return nil

@@ -27,6 +27,8 @@ type FileLedger struct {
 // file ledger
 type FileLedgerBlockStore interface {
 	AddBlock(block *cb.Block) error
+	AddBlockNoSync(block *cb.Block) error
+	Flush() error
 	GetBlockchainInfo() (*cb.BlockchainInfo, error)
 	RetrieveBlocks(startBlockNumber uint64) (ledger.ResultsIterator, error)
 	Shutdown()
@@ -119,6 +121,22 @@ func (fl *FileLedger) Append(block *cb.Block) error {
 		fl.signal = make(chan struct{})
 	}
 	return err
+}
+
+// AppendNoSync appends a new block without fsyncing to disk.
+// Call Flush after a batch of AppendNoSync calls to ensure persistence.
+func (fl *FileLedger) AppendNoSync(block *cb.Block) error {
+	err := fl.blockStore.AddBlockNoSync(block)
+	if err == nil {
+		close(fl.signal)
+		fl.signal = make(chan struct{})
+	}
+	return err
+}
+
+// Flush syncs all previously written blocks to the disk.
+func (fl *FileLedger) Flush() error {
+	return fl.blockStore.Flush()
 }
 
 func (fl *FileLedger) RetrieveBlockByNumber(blockNumber uint64) (*cb.Block, error) {

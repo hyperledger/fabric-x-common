@@ -47,6 +47,10 @@ func (w *blockfileWriter) append(b []byte, sync bool) error {
 	return nil
 }
 
+func (w *blockfileWriter) sync() error {
+	return w.file.Sync()
+}
+
 func (w *blockfileWriter) open() error {
 	file, err := os.OpenFile(w.filePath, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0o660)
 	if err != nil {
