@@ -132,7 +132,7 @@ $(PROTOS_SENTINEL):
 		--single-branch --depth 1 ${PROTOS_REPO} ${PROTOS_DIR}
 
 ## Generate testing mocks
-generate-mocks: FORCE
+mocks: FORCE
 	@COUNTERFEITER_NO_GENERATE_WARNING=true go generate ./...
 
 ## Clean build dependencies
