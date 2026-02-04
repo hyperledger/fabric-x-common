@@ -68,7 +68,7 @@ func TestMakeConfig(t *testing.T) {
 		expectedDirs = append(expectedDirs, filepath.Join(org2Dir, "orderers", n, "msp"))
 	}
 
-	test.RequireTree(t, target, []string{"config-block.pb.bin"}, expectedDirs)
+	test.RequireTree(t, target, []string{ConfigBlockFileName}, expectedDirs)
 
 	bundle := readBundle(t, block)
 	oc, ok := bundle.OrdererConfig()

@@ -57,9 +57,11 @@ type OrdererEndpoint struct {
 	API     []string
 }
 
+// file names.
 const (
-	metaNamespaceFile = "meta-namespace-cert.pem"
-	armaDataFile      = "arma.pb.bin"
+	ConfigBlockFileName = "config-block.pb.bin"
+	metaNamespaceFile   = "meta-namespace-cert.pem"
+	armaDataFile        = "arma.pb.bin"
 )
 
 // LoadSampleConfig returns the orderer/application config combination that corresponds to
@@ -157,7 +159,7 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get output block")
 	}
-	err = configtxgen.WriteOutputBlock(block, path.Join(conf.TargetPath, "config-block.pb.bin"))
+	err = configtxgen.WriteOutputBlock(block, path.Join(conf.TargetPath, ConfigBlockFileName))
 	return block, errors.Wrap(err, "failed to write block")
 }
 
