@@ -7,12 +7,19 @@ SPDX-License-Identifier: Apache-2.0
 package blkstorage
 
 import (
+	"crypto/rand"
 	"fmt"
 	"testing"
 
+	"github.com/hyperledger/fabric-lib-go/common/flogging"
+	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/common/configtx/test"
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
+	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
 )
 
 func TestWrongBlockNumber(t *testing.T) {
@@ -81,4 +88,103 @@ func TestTxIDIndexErrorPropagations(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), expectedErrMsg)
 	}
+}
+
+func BenchmarkAddBlock(b *testing.B) { //nolint:gocognit
+	flogging.ActivateSpec("error")
+	defer flogging.ActivateSpec("blkstorage=debug")
+
+	numTx := 500
+	txSize := 300
+	flushInterval := 100
+
+	cases := []struct {
+		name string
+		sync bool
+	}{
+		{name: "Sync", sync: true},
+		{name: "NoSync", sync: false},
+	}
+
+	for _, bc := range cases {
+		b.Run(bc.name, func(b *testing.B) {
+			blocks := constructBenchmarkBlocks(b, b.N+1, numTx, txSize)
+
+			env := newTestEnv(b, NewConf(b.TempDir(), 0))
+			defer env.Cleanup()
+			store, err := env.provider.Open("benchLedger")
+			require.NoError(b, err)
+			defer store.Shutdown()
+
+			require.NoError(b, store.AddBlock(blocks[0]))
+
+			b.ResetTimer()
+
+			switch bc.sync {
+			case true:
+				for i := range b.N {
+					if err := store.AddBlock(blocks[i+1]); err != nil {
+						b.Fatal(err)
+					}
+				}
+			default:
+				for i := range b.N {
+					if err := store.AddBlockNoSync(blocks[i+1]); err != nil {
+						b.Fatal(err)
+					}
+					if i%flushInterval == 0 {
+						if err := store.Flush(); err != nil {
+							b.Fatal(err)
+						}
+					}
+				}
+				if err := store.Flush(); err != nil {
+					b.Fatal(err)
+				}
+			}
+
+			b.StopTimer()
+		})
+	}
+}
+
+func constructBenchmarkBlocks(b *testing.B, n, numTx, txSize int) []*common.Block {
+	b.Helper()
+	blocks := make([]*common.Block, 0, n)
+
+	gb, err := test.MakeGenesisBlock("benchmarkchannel")
+	require.NoError(b, err)
+	gb.Metadata.Metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER] = txflags.NewWithValues(
+		len(gb.Data.Data), peer.TxValidationCode_VALID)
+	blocks = append(blocks, gb)
+
+	prevHash := protoutil.BlockHeaderHash(gb.Header)
+	for blockNum := 1; blockNum < n; blockNum++ {
+		simulationResults := make([][]byte, numTx)
+		for i := range simulationResults {
+			simulationResults[i] = make([]byte, txSize)
+			_, err := rand.Read(simulationResults[i])
+			require.NoError(b, err)
+		}
+
+		envs := make([]*common.Envelope, numTx)
+		for i, sr := range simulationResults {
+			env, _, err := testutil.ConstructTransactionFromTxDetails(
+				&testutil.TxDetails{
+					ChaincodeName:     "bench",
+					ChaincodeVersion:  "v1",
+					SimulationResults: sr,
+					Type:              common.HeaderType_ENDORSER_TRANSACTION,
+				},
+				false,
+			)
+			require.NoError(b, err)
+			envs[i] = env
+		}
+
+		block := testutil.NewBlock(envs, uint64(blockNum), prevHash) //nolint:gosec // int -> uint64
+		blocks = append(blocks, block)
+		prevHash = protoutil.BlockHeaderHash(block.Header)
+	}
+	return blocks
 }

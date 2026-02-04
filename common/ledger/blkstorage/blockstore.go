@@ -27,7 +27,8 @@ type BlockStore struct {
 
 // newBlockStore constructs a `BlockStore`
 func newBlockStore(id string, conf *Conf, indexConfig *IndexConfig,
-	dbHandle *leveldbhelper.DBHandle, stats *stats) (*BlockStore, error) {
+	dbHandle *leveldbhelper.DBHandle, stats *stats,
+) (*BlockStore, error) {
 	fileMgr, err := newBlockfileMgr(id, conf, indexConfig, dbHandle)
 	if err != nil {
 		return nil, err
@@ -51,6 +52,23 @@ func (store *BlockStore) AddBlock(block *common.Block) error {
 	store.updateBlockStats(block.Header.Number, elapsedBlockCommit)
 
 	return result
+}
+
+// AddBlockNoSync adds a new block without fsyncing the block file or index stored in the leveldb.
+// The caller must call Flush after writing a batch of blocks to ensure persistence.
+func (store *BlockStore) AddBlockNoSync(block *common.Block) error {
+	startBlockCommit := time.Now()
+	result := store.fileMgr.addBlockNoSync(block)
+	elapsedBlockCommit := time.Since(startBlockCommit)
+
+	store.updateBlockStats(block.Header.Number, elapsedBlockCommit)
+
+	return result
+}
+
+// Flush syncs the block file and writes to leveldb to disk.
+func (store *BlockStore) Flush() error {
+	return store.fileMgr.flush()
 }
 
 // GetBlockchainInfo returns the current info about blockchain
