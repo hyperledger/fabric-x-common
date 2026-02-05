@@ -508,6 +508,95 @@ func testBlockfileMgrSimulateCrashAtFirstBlockInFile(t *testing.T, deleteBlkfile
 	testBlockfileMgrBlockIterator(t, blkfileMgrWrapper.blockfileMgr, 0, len(blocks)-1, blocks)
 }
 
+func TestBlockfileMgrNoSyncAndFlush(t *testing.T) {
+	setupEnv := func(t *testing.T, maxFileSize int) (*testBlockfileMgrWrapper, []*common.Block) {
+		t.Helper()
+		env := newTestEnv(t, NewConf(t.TempDir(), maxFileSize))
+		t.Cleanup(env.Cleanup)
+		wrapper := newTestBlockfileWrapper(env, "testLedger")
+		t.Cleanup(wrapper.close)
+		blocks := testutil.ConstructTestBlocks(t, 10)
+		return wrapper, blocks
+	}
+
+	addBlocksNoSync := func(t *testing.T, wrapper *testBlockfileMgrWrapper, blocks []*common.Block) {
+		t.Helper()
+		for _, blk := range blocks {
+			require.NoError(t, wrapper.blockfileMgr.addBlockNoSync(blk))
+		}
+	}
+
+	verifyBlocks := func(t *testing.T, wrapper *testBlockfileMgrWrapper, blocks []*common.Block) {
+		t.Helper()
+		wrapper.testGetBlockByNumber(blocks)
+		wrapper.testGetBlockByHash(blocks)
+		require.Equal(t, uint64(len(blocks)), wrapper.blockfileMgr.getBlockchainInfo().Height)
+	}
+
+	t.Run("addBlockNoSync then flush", func(t *testing.T) {
+		t.Parallel()
+		wrapper, blocks := setupEnv(t, 0)
+		addBlocksNoSync(t, wrapper, blocks)
+		require.NoError(t, wrapper.blockfileMgr.flush())
+		verifyBlocks(t, wrapper, blocks)
+	})
+
+	t.Run("periodic sync every Nth block", func(t *testing.T) {
+		t.Parallel()
+		wrapper, blocks := setupEnv(t, 0)
+		syncInterval := uint64(5)
+		for _, blk := range blocks {
+			if (blk.Header.Number+1)%syncInterval == 0 {
+				require.NoError(t, wrapper.blockfileMgr.addBlock(blk))
+			} else {
+				require.NoError(t, wrapper.blockfileMgr.addBlockNoSync(blk))
+			}
+		}
+		verifyBlocks(t, wrapper, blocks)
+	})
+
+	t.Run("file rolling forces sync", func(t *testing.T) {
+		t.Parallel()
+		blocks := testutil.ConstructTestBlocks(t, 20)
+		size := 0
+		for _, block := range blocks[:10] {
+			by, _ := serializeBlock(block)
+			blockBytesSize := len(by)
+			encodedLen := protowire.AppendVarint(nil, uint64(blockBytesSize))
+			size += blockBytesSize + len(encodedLen)
+		}
+		maxFileSize := int(0.75 * float64(size))
+
+		env := newTestEnv(t, NewConf(t.TempDir(), maxFileSize))
+		t.Cleanup(env.Cleanup)
+		wrapper := newTestBlockfileWrapper(env, "testLedger")
+		t.Cleanup(wrapper.close)
+
+		addBlocksNoSync(t, wrapper, blocks)
+		require.Positive(t, wrapper.blockfileMgr.blockfilesInfo.latestFileNumber)
+		require.NoError(t, wrapper.blockfileMgr.flush())
+		wrapper.testGetBlockByNumber(blocks)
+		wrapper.testGetBlockByHash(blocks)
+	})
+
+	t.Run("restart after noSync and flush", func(t *testing.T) {
+		t.Parallel()
+		env := newTestEnv(t, NewConf(t.TempDir(), 0))
+		t.Cleanup(env.Cleanup)
+		wrapper := newTestBlockfileWrapper(env, "testLedger")
+		blocks := testutil.ConstructTestBlocks(t, 10)
+
+		addBlocksNoSync(t, wrapper, blocks)
+		require.NoError(t, wrapper.blockfileMgr.flush())
+		wrapper.close()
+
+		// Reopen and verify all blocks survived the restart
+		wrapper = newTestBlockfileWrapper(env, "testLedger")
+		t.Cleanup(wrapper.close)
+		verifyBlocks(t, wrapper, blocks)
+	})
+}
+
 func testutilGetFileSize(t *testing.T, path string) int {
 	fi, err := os.Stat(path)
 	require.NoError(t, err)

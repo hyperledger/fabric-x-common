@@ -271,9 +271,17 @@ func (mgr *blockfileMgr) moveToNextFile() {
 	if err != nil {
 		panic(fmt.Sprintf("Could not open writer to next file: %s", err))
 	}
-	mgr.currentFileWriter.close()
-	err = mgr.saveBlkfilesInfo(blkfilesInfo, true)
-	if err != nil {
+
+	// Flush any pending writes to disk before closing the file.
+	if err := mgr.currentFileWriter.sync(); err != nil {
+		panic(fmt.Sprintf("Could not sync current file before moving to next: %s", err))
+	}
+	if err := mgr.currentFileWriter.close(); err != nil {
+		logger.Warn("failed to close the file chunk [%d]", mgr.blockfilesInfo.latestFileNumber)
+	}
+	// A sync write to LevelDB ensures all prior non-synced index entries
+	// (from addBlockNoSync) are also persisted.
+	if err := mgr.saveBlkfilesInfo(blkfilesInfo, true); err != nil {
 		panic(fmt.Sprintf("Could not save next block file info to db: %s", err))
 	}
 	mgr.currentFileWriter = nextFileWriter
@@ -281,6 +289,14 @@ func (mgr *blockfileMgr) moveToNextFile() {
 }
 
 func (mgr *blockfileMgr) addBlock(block *common.Block) error {
+	return mgr.addBlockInternal(block, true)
+}
+
+func (mgr *blockfileMgr) addBlockNoSync(block *common.Block) error {
+	return mgr.addBlockInternal(block, false)
+}
+
+func (mgr *blockfileMgr) addBlockInternal(block *common.Block, syncToDisk bool) error {
 	bcInfo := mgr.getBlockchainInfo()
 	if block.Header.Number != bcInfo.Height {
 		return errors.Errorf(
@@ -319,7 +335,7 @@ func (mgr *blockfileMgr) addBlock(block *common.Block) error {
 	err := mgr.currentFileWriter.append(blockBytesEncodedLen, false)
 	if err == nil {
 		// append the actual block bytes to the file
-		err = mgr.currentFileWriter.append(blockBytes, true)
+		err = mgr.currentFileWriter.append(blockBytes, syncToDisk)
 	}
 	if err != nil {
 		truncateErr := mgr.currentFileWriter.truncateFile(mgr.blockfilesInfo.latestFileSize)
@@ -359,7 +375,7 @@ func (mgr *blockfileMgr) addBlock(block *common.Block) error {
 	if err = mgr.index.indexBlock(&blockIdxInfo{
 		blockNum: block.Header.Number, blockHash: blockHash,
 		flp: blockFLP, txOffsets: txOffsets, metadata: block.Metadata,
-	}); err != nil {
+	}, syncToDisk); err != nil {
 		return err
 	}
 
@@ -367,6 +383,13 @@ func (mgr *blockfileMgr) addBlock(block *common.Block) error {
 	mgr.updateBlockfilesInfo(newBlkfilesInfo)
 	mgr.updateBlockchainInfo(blockHash, block)
 	return nil
+}
+
+func (mgr *blockfileMgr) flush() error {
+	if err := mgr.currentFileWriter.sync(); err != nil {
+		return errors.Wrap(err, "error syncing block file")
+	}
+	return mgr.saveBlkfilesInfo(mgr.blockfilesInfo, true)
 }
 
 func (mgr *blockfileMgr) syncIndex() error {
@@ -474,7 +497,7 @@ func (mgr *blockfileMgr) syncIndex() error {
 		blockIdxInfo.metadata = info.metadata
 
 		logger.Debugf("syncIndex() indexing block [%d]", blockIdxInfo.blockNum)
-		if err = mgr.index.indexBlock(blockIdxInfo); err != nil {
+		if err = mgr.index.indexBlock(blockIdxInfo, true); err != nil {
 			return err
 		}
 		if blockIdxInfo.blockNum%10000 == 0 {

@@ -20,6 +20,27 @@ type FileLedgerBlockStore struct {
 	addBlockReturnsOnCall map[int]struct {
 		result1 error
 	}
+	AddBlockNoSyncStub        func(*common.Block) error
+	addBlockNoSyncMutex       sync.RWMutex
+	addBlockNoSyncArgsForCall []struct {
+		arg1 *common.Block
+	}
+	addBlockNoSyncReturns struct {
+		result1 error
+	}
+	addBlockNoSyncReturnsOnCall map[int]struct {
+		result1 error
+	}
+	FlushStub        func() error
+	flushMutex       sync.RWMutex
+	flushArgsForCall []struct {
+	}
+	flushReturns struct {
+		result1 error
+	}
+	flushReturnsOnCall map[int]struct {
+		result1 error
+	}
 	GetBlockchainInfoStub        func() (*common.BlockchainInfo, error)
 	getBlockchainInfoMutex       sync.RWMutex
 	getBlockchainInfoArgsForCall []struct {
@@ -123,6 +144,120 @@ func (fake *FileLedgerBlockStore) AddBlockReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.addBlockReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FileLedgerBlockStore) AddBlockNoSync(arg1 *common.Block) error {
+	fake.addBlockNoSyncMutex.Lock()
+	ret, specificReturn := fake.addBlockNoSyncReturnsOnCall[len(fake.addBlockNoSyncArgsForCall)]
+	fake.addBlockNoSyncArgsForCall = append(fake.addBlockNoSyncArgsForCall, struct {
+		arg1 *common.Block
+	}{arg1})
+	stub := fake.AddBlockNoSyncStub
+	fakeReturns := fake.addBlockNoSyncReturns
+	fake.recordInvocation("AddBlockNoSync", []interface{}{arg1})
+	fake.addBlockNoSyncMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FileLedgerBlockStore) AddBlockNoSyncCallCount() int {
+	fake.addBlockNoSyncMutex.RLock()
+	defer fake.addBlockNoSyncMutex.RUnlock()
+	return len(fake.addBlockNoSyncArgsForCall)
+}
+
+func (fake *FileLedgerBlockStore) AddBlockNoSyncCalls(stub func(*common.Block) error) {
+	fake.addBlockNoSyncMutex.Lock()
+	defer fake.addBlockNoSyncMutex.Unlock()
+	fake.AddBlockNoSyncStub = stub
+}
+
+func (fake *FileLedgerBlockStore) AddBlockNoSyncArgsForCall(i int) *common.Block {
+	fake.addBlockNoSyncMutex.RLock()
+	defer fake.addBlockNoSyncMutex.RUnlock()
+	argsForCall := fake.addBlockNoSyncArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FileLedgerBlockStore) AddBlockNoSyncReturns(result1 error) {
+	fake.addBlockNoSyncMutex.Lock()
+	defer fake.addBlockNoSyncMutex.Unlock()
+	fake.AddBlockNoSyncStub = nil
+	fake.addBlockNoSyncReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FileLedgerBlockStore) AddBlockNoSyncReturnsOnCall(i int, result1 error) {
+	fake.addBlockNoSyncMutex.Lock()
+	defer fake.addBlockNoSyncMutex.Unlock()
+	fake.AddBlockNoSyncStub = nil
+	if fake.addBlockNoSyncReturnsOnCall == nil {
+		fake.addBlockNoSyncReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.addBlockNoSyncReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FileLedgerBlockStore) Flush() error {
+	fake.flushMutex.Lock()
+	ret, specificReturn := fake.flushReturnsOnCall[len(fake.flushArgsForCall)]
+	fake.flushArgsForCall = append(fake.flushArgsForCall, struct {
+	}{})
+	stub := fake.FlushStub
+	fakeReturns := fake.flushReturns
+	fake.recordInvocation("Flush", []interface{}{})
+	fake.flushMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FileLedgerBlockStore) FlushCallCount() int {
+	fake.flushMutex.RLock()
+	defer fake.flushMutex.RUnlock()
+	return len(fake.flushArgsForCall)
+}
+
+func (fake *FileLedgerBlockStore) FlushCalls(stub func() error) {
+	fake.flushMutex.Lock()
+	defer fake.flushMutex.Unlock()
+	fake.FlushStub = stub
+}
+
+func (fake *FileLedgerBlockStore) FlushReturns(result1 error) {
+	fake.flushMutex.Lock()
+	defer fake.flushMutex.Unlock()
+	fake.FlushStub = nil
+	fake.flushReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FileLedgerBlockStore) FlushReturnsOnCall(i int, result1 error) {
+	fake.flushMutex.Lock()
+	defer fake.flushMutex.Unlock()
+	fake.FlushStub = nil
+	if fake.flushReturnsOnCall == nil {
+		fake.flushReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.flushReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
