@@ -66,9 +66,9 @@ func Generate(rootDir string, config *Config) error {
 		return err
 	}
 	wg, _ := errgroup.WithContext(context.Background())
-	for _, c := range allTrees(c) {
+	for _, orgTree := range allTrees(c) {
 		wg.Go(func() error {
-			return c.generateOrg()
+			return orgTree.generateOrg()
 		})
 	}
 	return wg.Wait()
@@ -81,9 +81,9 @@ func Extend(rootDir string, config *Config) error {
 		return err
 	}
 	wg, _ := errgroup.WithContext(context.Background())
-	for _, c := range allTrees(c) {
+	for _, orgTree := range allTrees(c) {
 		wg.Go(func() error {
-			return c.extendOrg()
+			return orgTree.extendOrg()
 		})
 	}
 	return wg.Wait()
