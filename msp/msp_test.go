@@ -236,6 +236,35 @@ func TestDeserializeIdentityFails(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestDeserializeIdentityWithUnknownCertificateId(t *testing.T) {
+	t.Parallel()
+
+	// Deserializing with a CertificateId that is not in the known identities
+	// map should return an error instead of a nil identity.
+	tests := []struct {
+		name        string
+		deserialize func(*msppb.Identity) (Identity, error)
+	}{
+		{
+			name:        "via MSP",
+			deserialize: localMsp.DeserializeIdentity,
+		},
+		{
+			name:        "via MSP manager",
+			deserialize: mspMgr.DeserializeIdentity,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			id, err := tt.deserialize(msppb.NewIdentityWithIDOfCert("SampleOrg", "nonexistent-cert-id"))
+			require.Nil(t, id)
+			require.EqualError(t, err, "identity is unknown")
+		})
+	}
+}
+
 func TestGetSigningIdentityFromVerifyingMSP(t *testing.T) {
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
