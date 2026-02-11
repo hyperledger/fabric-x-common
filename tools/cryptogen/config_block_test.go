@@ -9,7 +9,6 @@ package cryptogen
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"net"
 	"os"
 	"path"
@@ -347,11 +346,6 @@ func defaultConfigBlock(t *testing.T) (
 	target = t.TempDir()
 	armaData = []byte("fake-arma-data")
 
-	key, err := generatePrivateKey(target, ECDSA)
-	require.NoError(t, err)
-	certBytes, err := x509.MarshalPKIXPublicKey(getPublicKey(key))
-	require.NoError(t, err)
-	metaKeyBytes := pem.EncodeToMemory(&pem.Block{Type: CertType, Bytes: certBytes})
 	p := ConfigBlockParameters{
 		TargetPath: target,
 		ChannelID:  "my-chan",
@@ -413,10 +407,10 @@ func defaultConfigBlock(t *testing.T) (
 				},
 			},
 		},
-		ArmaMetaBytes:                armaData,
-		MetaNamespaceVerificationKey: metaKeyBytes,
+		ArmaMetaBytes: armaData,
 	}
 
+	var err error
 	block, err = CreateDefaultConfigBlockWithCrypto(p)
 	require.NoError(t, err)
 	require.NotNil(t, block)

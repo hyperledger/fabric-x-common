@@ -170,7 +170,6 @@ func TestBftOrdererTypeWithV3CapabilitiesShouldNotRaiseAnError(t *testing.T) {
 func TestFabricXGenesisBlock(t *testing.T) {
 	t.Parallel()
 
-	keyPath := filepath.Join(configtest.GetDevConfigDir(), "crypto", "SampleOrg", "msp", "signcerts", "peer.pem")
 	allAPI := []string{types.Broadcast, types.Deliver}
 
 	for _, tc := range []struct {
@@ -199,7 +198,6 @@ func TestFabricXGenesisBlock(t *testing.T) {
 			t.Parallel()
 			blockDest := filepath.Join(t.TempDir(), "block")
 			config := Load(tc.sample, configtest.GetDevConfigDir())
-			config.Application.MetaNamespaceVerificationKeyPath = keyPath
 			armaPath := filepath.Join(configtest.GetDevConfigDir(), "arma_shared_config.pbbin")
 			config.Orderer.Arma.Path = armaPath
 			require.NoError(t, DoOutputBlock(config, "foo", blockDest))
