@@ -807,10 +807,6 @@ Profiles:
 
         Application: &FabricXApplicationDefaults
             <<: *ApplicationDefaults
-            # This certificate is used to validate meta-namespace transactions.
-            # This is a temporary solution (fabric-x). It will be removed once the committer will support MSP policies.
-            # The matching private key can be found under crypto/SampleOrg/msp/keystore/key.pem
-            MetaNamespaceVerificationKeyPath: crypto/SampleOrg/msp/admincerts/admincert.pem
             Organizations:
                 - <<: *SampleOrg
 

@@ -24,12 +24,11 @@ import (
 
 // ConfigBlockParameters represents the configuration of the config block.
 type ConfigBlockParameters struct {
-	TargetPath                   string
-	BaseProfile                  string
-	ChannelID                    string
-	Organizations                []OrganizationParameters
-	MetaNamespaceVerificationKey []byte
-	ArmaMetaBytes                []byte
+	TargetPath    string
+	BaseProfile   string
+	ChannelID     string
+	Organizations []OrganizationParameters
+	ArmaMetaBytes []byte
 }
 
 // OrganizationParameters represents the properties of an organization.
@@ -60,7 +59,6 @@ type OrdererEndpoint struct {
 // file names.
 const (
 	ConfigBlockFileName = "config-block.pb.bin"
-	metaNamespaceFile   = "meta-namespace-cert.pem"
 	armaDataFile        = "arma.pb.bin"
 )
 
@@ -137,11 +135,6 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 		}
 	}
 
-	err = os.WriteFile(path.Join(conf.TargetPath, metaNamespaceFile), conf.MetaNamespaceVerificationKey, 0o644)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to write meta namespace file")
-	}
-	profile.Application.MetaNamespaceVerificationKeyPath = metaNamespaceFile
 	err = os.WriteFile(path.Join(conf.TargetPath, armaDataFile), conf.ArmaMetaBytes, 0o644)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to write ARMA data file")
