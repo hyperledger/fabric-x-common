@@ -39,9 +39,13 @@ echo "Extracting protoc to $HOME/bin"
 unzip -jo "${protoc_zip_download_path}" 'bin/*' -d "$HOME/bin"
 rm -rf "${download_dir}"
 
-if which apt >/dev/null 2>&1; then
-  # Required for "duration" protobuf.
-  sudo apt install -y libprotobuf-dev
+# Install platform-specific dependencies.
+# asn1c is used to lint ASN.1 schema files.
+if [ "$protoc_os" = "linux" ]; then
+  # libprotobuf-dev is required for "duration" protobuf.
+  sudo apt install -y libprotobuf-dev asn1c
+else
+  brew install asn1c
 fi
 
 echo
