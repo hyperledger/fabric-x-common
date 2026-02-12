@@ -5,6 +5,8 @@ SPDX-License-Identifier: Apache-2.0
 -->
 # Fabric-X Common
 
+[![Coverage Status](https://coveralls.io/repos/github/hyperledger/fabric-x-common/badge.svg?branch=main)](https://coveralls.io/github/hyperledger/fabric-x-common?branch=main)
+
 This library encapsulates some common code across Fabric-X ecosystem.
 This code have been taken from [Hyperledger Fabric](https://github.com/hyperledger/fabric) v3.0.0-rc1.
 

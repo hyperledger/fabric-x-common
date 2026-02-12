@@ -58,6 +58,14 @@ GO_TEST_FMT_FLAGS := -hide empty-packages
 test: FORCE
 	@$(go_test) ./... | gotestfmt ${GO_TEST_FMT_FLAGS}
 
+# Runs test with coverage analysis.
+test-cover: FORCE
+	@$(go_test) -coverprofile=coverage.profile -coverpkg=./... ./... | gotestfmt ${GO_TEST_FMT_FLAGS}
+	@scripts/test-coverage-filter-files.sh
+
+cover-report: FORCE
+	$(go_cmd) tool cover -html=coverage.profile
+
 .PHONY: $(TOOLS_EXES)
 ## Builds a native binary
 $(TOOLS_EXES): %: $(BUILD_DIR)/%

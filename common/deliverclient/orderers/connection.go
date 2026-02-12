@@ -57,6 +57,10 @@ type OrdererOrg struct {
 	RootCerts [][]byte
 }
 
+func (o *OrdererOrg) String() string {
+	return fmt.Sprintf("Addresses: %v", o.Addresses)
+}
+
 func NewConnectionSource(logger *flogging.FabricLogger, overrides map[string]*Endpoint, selfEndpoint string) *ConnectionSource {
 	return &ConnectionSource{
 		orgToEndpointsHash: map[string][]byte{},
