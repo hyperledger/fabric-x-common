@@ -74,14 +74,19 @@ func (c *cachedMSP) DeserializeIdentity(identity *msppb.Identity) (msp.Identity,
 	}
 
 	id, err := c.MSP.DeserializeIdentity(identity)
-	if err == nil {
-		c.deserializeIdentityCache.add(identity.String(), id)
-		return &cachedIdentity{
-			cache:    c,
-			Identity: id.(msp.Identity),
-		}, nil
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+
+	c.deserializeIdentityCache.add(identity.String(), id)
+	mspIdentity, ok := id.(msp.Identity)
+	if !ok {
+		return nil, errors.New("internal error: DeserializeIdentity returned unexpected type")
+	}
+	return &cachedIdentity{
+		cache:    c,
+		Identity: mspIdentity,
+	}, nil
 }
 
 func (c *cachedMSP) Setup(config *pmsp.MSPConfig) error {

@@ -89,8 +89,12 @@ func (mgr *mspManagerImpl) DeserializeIdentity(sID *msppb.Identity) (Identity, e
 		case *msppb.Identity_Certificate:
 			return t.deserializeIdentityInternal(sID.GetCertificate())
 		case *msppb.Identity_CertificateId:
-			return msp.GetKnownDeserializedIdentity(
-				IdentityIdentifier{Mspid: sID.MspId, Id: sID.GetCertificateId()}), nil
+			id := msp.GetKnownDeserializedIdentity(
+				IdentityIdentifier{Mspid: sID.MspId, Id: sID.GetCertificateId()})
+			if id == nil {
+				return nil, errors.New("identity is unknown")
+			}
+			return id, nil
 		default:
 			return nil, errors.New("unknown creator type")
 		}
