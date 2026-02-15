@@ -48,8 +48,13 @@ type Node struct {
 	CommonName string
 	Hostname   string
 	SANS       []string
-	// PartyName is optional. If set, it will be used as the party
-	// name in the folder structure.
+	// Fabric-X supports multiple parties per organizations.
+	// Thus, in such case, we can create multiple Orderer's nodes
+	// for each organization.
+	// We organize them such that each party's nodes will be under
+	// a dedicated party folder.
+	// This folder name is inffered from PartyName, if given.
+	// Otherwise, a default name will be used.
 	// If it is not set, and we have only one party for the organization,
 	// the folder structure will collapse one step down.
 	// If it is not set, and we have multiple parties for the organization,
@@ -85,10 +90,10 @@ func LoadSampleConfig(profile string) (*configtxgen.Profile, error) {
 	return result, nil
 }
 
-// CreateDefaultConfigBlockWithCrypto creates a config block with default values and a crypto material.
+// CreateOrExtendConfigBlockWithCrypto creates a config block with default values and a crypto material.
 // It uses the first orderer organization as a template and creates the given organizations.
 // It uses the same organizations for the orderer and the application.
-func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Block, error) {
+func CreateOrExtendConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Block, error) {
 	initConfigDefault(&conf)
 	profile, loadErr := LoadSampleConfig(conf.BaseProfile)
 	if loadErr != nil {
@@ -107,16 +112,16 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 	profile.Application.Organizations = make([]*configtxgen.Organization, 0, len(conf.Organizations))
 	cryptoConf := &Config{}
 
-	allIDs := make(map[uint32]any)
+	allOrdererIDs := make(map[uint32]any)
 	for _, o := range conf.Organizations {
-		org, allOrgIDs := createOrg(sourceOrg, &o)
-		for _, id := range allOrgIDs {
-			if _, ok := allIDs[id]; ok {
+		org, orgOrdererIDs := createOrg(sourceOrg, &o)
+		for _, id := range orgOrdererIDs {
+			if _, ok := allOrdererIDs[id]; ok {
 				return nil, errors.Errorf("duplicate party id [%d] found in org %s", id, o.Name)
 			}
-			allIDs[id] = nil
+			allOrdererIDs[id] = nil
 		}
-		allConsenters, err := createConsenter(&o, allOrgIDs)
+		allConsenters, err := createConsenter(&o, orgOrdererIDs)
 		if err != nil {
 			return nil, err
 		}
