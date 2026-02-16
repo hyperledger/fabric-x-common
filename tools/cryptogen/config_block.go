@@ -7,10 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package cryptogen
 
 import (
-	"net"
+	"fmt"
+	"maps"
 	"os"
 	"path"
-	"strconv"
+	"slices"
 	"strings"
 
 	"github.com/cockroachdb/errors"
@@ -36,7 +37,7 @@ type ConfigBlockParameters struct {
 type OrganizationParameters struct {
 	Name             string
 	Domain           string
-	OrdererEndpoints []OrdererEndpoint
+	OrdererEndpoints []*types.OrdererEndpoint
 	ConsenterNodes   []Node
 	OrdererNodes     []Node
 	PeerNodes        []Node
@@ -46,14 +47,19 @@ type OrganizationParameters struct {
 type Node struct {
 	CommonName string
 	Hostname   string
-	Party      string
 	SANS       []string
-}
-
-// OrdererEndpoint address should be in the format of <host>:<port>, not the full [types.OrdererEndpoint] format.
-type OrdererEndpoint struct {
-	Address string
-	API     []string
+	// Fabric-X supports multiple parties per organizations.
+	// Thus, in such case, we can create multiple Orderer's nodes
+	// for each organization.
+	// We organize them such that each party's nodes will be under
+	// a dedicated party folder.
+	// This folder name is inffered from PartyName, if given.
+	// Otherwise, a default name will be used.
+	// If it is not set, and we have only one party for the organization,
+	// the folder structure will collapse one step down.
+	// If it is not set, and we have multiple parties for the organization,
+	// The party assigned named will be party-<party-ID>.
+	PartyName string
 }
 
 // file names.
@@ -84,19 +90,14 @@ func LoadSampleConfig(profile string) (*configtxgen.Profile, error) {
 	return result, nil
 }
 
-// CreateDefaultConfigBlockWithCrypto creates a config block with default values and a crypto material.
+// CreateOrExtendConfigBlockWithCrypto creates a config block with default values and a crypto material.
 // It uses the first orderer organization as a template and creates the given organizations.
 // It uses the same organizations for the orderer and the application.
-func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Block, error) {
-	if conf.BaseProfile == "" {
-		conf.BaseProfile = configtxgen.SampleFabricX
-	}
-	if conf.ChannelID == "" {
-		conf.ChannelID = "chan"
-	}
-	profile, err := LoadSampleConfig(conf.BaseProfile)
-	if err != nil {
-		return nil, err
+func CreateOrExtendConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Block, error) {
+	initConfigDefault(&conf)
+	profile, loadErr := LoadSampleConfig(conf.BaseProfile)
+	if loadErr != nil {
+		return nil, loadErr
 	}
 
 	if len(profile.Orderer.Organizations) < 1 {
@@ -110,17 +111,23 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 	profile.Orderer.Organizations = make([]*configtxgen.Organization, 0, len(conf.Organizations))
 	profile.Application.Organizations = make([]*configtxgen.Organization, 0, len(conf.Organizations))
 	cryptoConf := &Config{}
-	for i, o := range conf.Organizations {
-		spec := createOrgSpec(&o)
 
-		id := uint32(i) //nolint:gosec // int -> uint32.
-		org, orgErr := createOrg(id, sourceOrg, &o)
-		if orgErr != nil {
-			return nil, orgErr
+	allOrdererIDs := make(map[uint32]any)
+	for _, o := range conf.Organizations {
+		org, orgOrdererIDs := createOrg(sourceOrg, &o)
+		for _, id := range orgOrdererIDs {
+			if _, ok := allOrdererIDs[id]; ok {
+				return nil, errors.Errorf("duplicate party id [%d] found in org %s", id, o.Name)
+			}
+			allOrdererIDs[id] = nil
 		}
+		allConsenters, err := createConsenter(&o, orgOrdererIDs)
+		if err != nil {
+			return nil, err
+		}
+		profile.Orderer.ConsenterMapping = append(profile.Orderer.ConsenterMapping, allConsenters...)
 
-		profile.Orderer.ConsenterMapping = append(profile.Orderer.ConsenterMapping, createConsenter(id, &o)...)
-
+		spec := createOrgSpec(&o)
 		switch orgOU(&o) {
 		case PeerOU:
 			profile.Application.Organizations = append(profile.Application.Organizations, org)
@@ -135,13 +142,13 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 		}
 	}
 
-	err = os.WriteFile(path.Join(conf.TargetPath, armaDataFile), conf.ArmaMetaBytes, 0o644)
+	err := os.WriteFile(path.Join(conf.TargetPath, armaDataFile), conf.ArmaMetaBytes, 0o644)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to write ARMA data file")
 	}
 	profile.Orderer.Arma.Path = armaDataFile
 
-	err = Generate(conf.TargetPath, cryptoConf)
+	err = Extend(conf.TargetPath, cryptoConf)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +161,15 @@ func CreateDefaultConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Blo
 	}
 	err = configtxgen.WriteOutputBlock(block, path.Join(conf.TargetPath, ConfigBlockFileName))
 	return block, errors.Wrap(err, "failed to write block")
+}
+
+func initConfigDefault(conf *ConfigBlockParameters) {
+	if conf.BaseProfile == "" {
+		conf.BaseProfile = configtxgen.SampleFabricX
+	}
+	if conf.ChannelID == "" {
+		conf.ChannelID = "chan"
+	}
 }
 
 func orgOU(o *OrganizationParameters) string {
@@ -178,7 +194,7 @@ func createOrgSpec(o *OrganizationParameters) OrgSpec {
 			CommonName:         n.CommonName,
 			Hostname:           n.Hostname,
 			SANS:               n.SANS,
-			Party:              n.Party,
+			Party:              n.PartyName,
 			OrganizationalUnit: OrdererOU,
 		})
 	}
@@ -187,7 +203,7 @@ func createOrgSpec(o *OrganizationParameters) OrgSpec {
 			CommonName:         n.CommonName,
 			Hostname:           n.Hostname,
 			SANS:               n.SANS,
-			Party:              n.Party,
+			Party:              n.PartyName,
 			OrganizationalUnit: OrdererOU,
 		})
 	}
@@ -196,7 +212,7 @@ func createOrgSpec(o *OrganizationParameters) OrgSpec {
 			CommonName:         n.CommonName,
 			Hostname:           n.Hostname,
 			SANS:               n.SANS,
-			Party:              n.Party,
+			Party:              n.PartyName,
 			OrganizationalUnit: PeerOU,
 		})
 	}
@@ -218,19 +234,17 @@ func createOrgSpec(o *OrganizationParameters) OrgSpec {
 }
 
 func createOrg(
-	id uint32, sourceOrg configtxgen.Organization, o *OrganizationParameters,
-) (*configtxgen.Organization, error) {
+	sourceOrg configtxgen.Organization, o *OrganizationParameters,
+) (*configtxgen.Organization, []uint32) {
 	org := sourceOrg
 	org.ID = o.Name
 	org.Name = o.Name
 	org.MSPDir = path.Join(getOrgPath(o), MSPDir)
-	org.OrdererEndpoints = make([]*types.OrdererEndpoint, len(o.OrdererEndpoints))
-	for epIdx, ep := range o.OrdererEndpoints {
-		var err error
-		org.OrdererEndpoints[epIdx], err = newOrdererEndpoint(id, ep.Address, o.Name, ep.API)
-		if err != nil {
-			return nil, errors.Wrapf(err, "invalid %+v", ep)
-		}
+	org.OrdererEndpoints = o.OrdererEndpoints
+	allOrdererIDsMap := make(map[uint32]any)
+	for _, ep := range org.OrdererEndpoints {
+		ep.MspID = o.Name
+		allOrdererIDsMap[ep.ID] = nil
 	}
 	org.Policies = make(map[string]*configtxgen.Policy)
 	for k, p := range sourceOrg.Policies {
@@ -239,14 +253,23 @@ func createOrg(
 			Rule: strings.ReplaceAll(p.Rule, sourceOrg.Name, o.Name),
 		}
 	}
-	return &org, nil
+	allOrdererIDs := slices.Collect(maps.Keys(allOrdererIDsMap))
+	// We sort the IDs for deterministic output.
+	slices.Sort(allOrdererIDs)
+	return &org, allOrdererIDs
 }
 
-func createConsenter(id uint32, o *OrganizationParameters) []*configtxgen.Consenter {
+func createConsenter(o *OrganizationParameters, ids []uint32) ([]*configtxgen.Consenter, error) {
+	if len(ids) != len(o.ConsenterNodes) {
+		return nil, errors.Errorf("number of consenters doesn't match number of parties in org: %s", o.Name)
+	}
 	consenter := make([]*configtxgen.Consenter, len(o.ConsenterNodes))
 	for i, n := range o.ConsenterNodes {
-		// We use the org's admin certificate as the consenter nodes.
-		identity := path.Join(getOrgPath(o), OrdererNodesDir, n.Party, n.CommonName, MSPDir,
+		id := ids[i]
+		if len(n.PartyName) == 0 && len(ids) > 1 {
+			n.PartyName = fmt.Sprintf("party-%d", id)
+		}
+		identity := path.Join(getOrgPath(o), OrdererNodesDir, n.PartyName, n.CommonName, MSPDir,
 			SignCertsDir, n.CommonName+CertSuffix)
 		consenter[i] = &configtxgen.Consenter{
 			ID:            id,
@@ -258,7 +281,7 @@ func createConsenter(id uint32, o *OrganizationParameters) []*configtxgen.Consen
 			ServerTLSCert: identity,
 		}
 	}
-	return consenter
+	return consenter, nil
 }
 
 func getOrgPath(o *OrganizationParameters) string {
@@ -270,22 +293,4 @@ func getOrgPath(o *OrganizationParameters) string {
 	default:
 		return path.Join(GenericOrganizationsDir, o.Name)
 	}
-}
-
-func newOrdererEndpoint(id uint32, address, name string, api []string) (*types.OrdererEndpoint, error) {
-	host, portStr, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, errors.Wrapf(err, "invalid address: %s", address)
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return nil, errors.Wrapf(err, "invalid port: %s", portStr)
-	}
-	return &types.OrdererEndpoint{
-		Host:  host,
-		Port:  port,
-		MspID: name,
-		ID:    id,
-		API:   api,
-	}, nil
 }

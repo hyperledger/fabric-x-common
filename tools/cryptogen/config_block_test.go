@@ -9,6 +9,8 @@ package cryptogen
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
+	"maps"
 	"net"
 	"os"
 	"path"
@@ -34,37 +36,47 @@ import (
 
 func TestMakeConfig(t *testing.T) {
 	t.Parallel()
-	target, block, armaData := defaultConfigBlock(t)
+	target := t.TempDir()
+	p, block, armaData := defaultConfigBlock(t, target)
 
 	var expectedDirs []string //nolint:prealloc // Hard to estimate size.
 
-	org1Dir := filepath.Join(GenericOrganizationsDir, "org-1")
-	org2Dir := filepath.Join(OrdererOrganizationsDir, "org-2")
-	org3Dir := filepath.Join(PeerOrganizationsDir, "org-3")
+	orgNames := map[int]string{
+		1: "ordering-and-peer-org-1",
+		2: "ordering-org-2",
+		3: "peer-org-3",
+		4: "peer-org-4",
+	}
+	orgDirs := map[int]string{
+		1: filepath.Join(GenericOrganizationsDir, orgNames[1]),
+		2: filepath.Join(OrdererOrganizationsDir, orgNames[2]),
+		3: filepath.Join(PeerOrganizationsDir, orgNames[3]),
+		4: filepath.Join(PeerOrganizationsDir, orgNames[4]),
+	}
 	// Add all users.
-	for _, orgDir := range []string{org1Dir, org2Dir, org3Dir} {
+	for orgDir := range maps.Values(orgDirs) {
 		for _, n := range []string{"client", "Admin"} {
 			expectedDirs = append(expectedDirs, filepath.Join(orgDir, "users", n+"@"+path.Base(orgDir)+".com", "msp"))
 		}
 	}
-	// Add all committer nodes.
-	for _, orgDir := range []string{org1Dir, org3Dir} {
+	// Add all committer nodes to the peer organizations.
+	for _, orgDir := range []string{orgDirs[1], orgDirs[3], orgDirs[4]} {
 		for _, n := range []string{"committer", "coordinator", "vc", "query", "endorser"} {
 			expectedDirs = append(expectedDirs, filepath.Join(orgDir, "peers", n, "msp"))
 		}
 	}
-	// Add all org-1 orderers.
+	// Add all org-1 parties' orderers.
 	for _, n := range []string{
 		"party-1/router-1", "party-2/router-2",
 		"party-1/assembler-1", "party-2/assembler-2",
 		"party-1/batcher-1", "party-2/batcher-2",
 		"party-1/consenter-1", "party-2/consenter-2",
 	} {
-		expectedDirs = append(expectedDirs, filepath.Join(org1Dir, "orderers", n, "msp"))
+		expectedDirs = append(expectedDirs, filepath.Join(orgDirs[1], "orderers", n, "msp"))
 	}
 	// Add all org-2 orderers.
 	for _, n := range []string{"router", "assembler", "batcher", "consenter"} {
-		expectedDirs = append(expectedDirs, filepath.Join(org2Dir, "orderers", n, "msp"))
+		expectedDirs = append(expectedDirs, filepath.Join(orgDirs[2], "orderers", n, "msp"))
 	}
 
 	test.RequireTree(t, target, []string{ConfigBlockFileName}, expectedDirs)
@@ -75,7 +87,7 @@ func TestMakeConfig(t *testing.T) {
 	orgMap := oc.Organizations()
 	require.Len(t, orgMap, 2)
 
-	var endpoints []*types.OrdererEndpoint
+	var endpoints []*types.OrdererEndpoint //nolint:prealloc // Hard to estimate size.
 	for orgID, org := range orgMap {
 		require.Equal(t, orgID, org.MSPID())
 		require.Equal(t, orgID, org.Name())
@@ -87,92 +99,154 @@ func TestMakeConfig(t *testing.T) {
 			endpoints = append(endpoints, e)
 		}
 	}
-	require.Len(t, endpoints, 4)
+	require.Len(t, endpoints, 6)
 	require.ElementsMatch(t, endpoints, []*types.OrdererEndpoint{
 		{
 			Host:  "localhost",
 			Port:  6001,
-			ID:    0,
-			MspID: "org-1",
+			ID:    1,
+			MspID: orgNames[1],
 			API:   []string{types.Broadcast},
 		},
 		{
 			Host:  "localhost",
 			Port:  7001,
-			ID:    0,
-			MspID: "org-1",
+			ID:    1,
+			MspID: orgNames[1],
 			API:   []string{types.Deliver},
 		},
 		{
 			Host:  "localhost",
 			Port:  6002,
-			ID:    1,
-			MspID: "org-2",
+			ID:    2,
+			MspID: orgNames[1],
 			API:   []string{types.Broadcast},
 		},
 		{
 			Host:  "localhost",
 			Port:  7002,
-			ID:    1,
-			MspID: "org-2",
+			ID:    2,
+			MspID: orgNames[1],
+			API:   []string{types.Deliver},
+		},
+		{
+			Host:  "localhost",
+			Port:  6003,
+			ID:    3,
+			MspID: orgNames[2],
+			API:   []string{types.Broadcast},
+		},
+		{
+			Host:  "localhost",
+			Port:  7003,
+			ID:    3,
+			MspID: orgNames[2],
 			API:   []string{types.Deliver},
 		},
 	})
 
 	require.Equal(t, armaData, oc.ConsensusMetadata())
 
-	requireSign(t, bundle, "Admins", msp.DirLoadParameters{
-		MspName: "org-1",
-		MspDir:  path.Join(target, org1Dir, UsersDir, "Admin@org-1.com", MSPDir),
-	}, msp.DirLoadParameters{
-		MspName: "org-2",
-		MspDir:  path.Join(target, org2Dir, UsersDir, "Admin@org-2.com", MSPDir),
-	}, msp.DirLoadParameters{
-		MspName: "org-3",
-		MspDir:  path.Join(target, org3Dir, UsersDir, "Admin@org-3.com", MSPDir),
-	})
-	requireSign(t, bundle, "Writers", msp.DirLoadParameters{
-		MspName: "org-1",
-		MspDir:  path.Join(target, org1Dir, UsersDir, "client@org-1.com", MSPDir),
-	}, msp.DirLoadParameters{
-		MspName: "org-2",
-		MspDir:  path.Join(target, org2Dir, UsersDir, "client@org-2.com", MSPDir),
-	}, msp.DirLoadParameters{
-		MspName: "org-3",
-		MspDir:  path.Join(target, org3Dir, UsersDir, "client@org-3.com", MSPDir),
-	})
-	requireSign(t, bundle, "Application/Endorsement", msp.DirLoadParameters{
-		MspName: "org-1",
-		MspDir:  path.Join(target, org1Dir, PeerNodesDir, "endorser", MSPDir),
-	}, msp.DirLoadParameters{
-		MspName: "org-3",
-		MspDir:  path.Join(target, org3Dir, PeerNodesDir, "endorser", MSPDir),
-	})
-	requireSign(t, bundle, "Orderer/BlockValidation", msp.DirLoadParameters{
-		MspName: "org-1",
-		MspDir:  path.Join(target, org1Dir, OrdererNodesDir, "party-1", "consenter-1", MSPDir),
-	}, msp.DirLoadParameters{
-		MspName: "org-2",
-		MspDir:  path.Join(target, org2Dir, OrdererNodesDir, "consenter", MSPDir),
-	})
-	requireSign(t, bundle, "Orderer/BlockValidation", msp.DirLoadParameters{
-		MspName: "org-1",
-		MspDir:  path.Join(target, org1Dir, OrdererNodesDir, "party-2", "consenter-2", MSPDir),
-	}, msp.DirLoadParameters{
-		MspName: "org-2",
-		MspDir:  path.Join(target, org2Dir, OrdererNodesDir, "consenter", MSPDir),
-	})
+	t.Log("Checking channel level policies with majority")
+	mspDir := func(orgIdx int, subPath ...string) msp.DirLoadParameters {
+		return msp.DirLoadParameters{
+			MspName: orgNames[orgIdx],
+			MspDir:  path.Join(target, orgDirs[orgIdx], path.Join(subPath...), MSPDir),
+		}
+	}
+	userDir := func(orgIdx int, username string) msp.DirLoadParameters {
+		return mspDir(orgIdx, UsersDir, fmt.Sprintf("%s@%s.com", username, orgNames[orgIdx]))
+	}
+	adminDir := func(orgIdx int) msp.DirLoadParameters {
+		return userDir(orgIdx, "Admin")
+	}
+	clientDir := func(orgIdx int) msp.DirLoadParameters {
+		return userDir(orgIdx, "client")
+	}
+	endorserDir := func(orgIdx int) msp.DirLoadParameters {
+		return mspDir(orgIdx, PeerNodesDir, "endorser")
+	}
+
+	admins := loadMSPs(t, adminDir(1), adminDir(2), adminDir(3), adminDir(4))
+	writers := loadMSPs(t, clientDir(1), clientDir(2), clientDir(3), clientDir(4))
+	endorsers := loadMSPs(t, endorserDir(1), endorserDir(3), endorserDir(4))
+	consenters := loadMSPs(t,
+		mspDir(1, OrdererNodesDir, "party-1", "consenter-1"),
+		mspDir(1, OrdererNodesDir, "party-2", "consenter-2"),
+		mspDir(2, OrdererNodesDir, "consenter"),
+	)
+
+	requireSign(t, bundle, "Orderer/Admins", admins[:2]...)
+	requireSign(t, bundle, "Application/Admins", admins[0], admins[2], admins[3])
+	requireSign(t, bundle, "Application/Admins", admins[0], admins[2])
+	requireSign(t, bundle, "Orderer/Writers", writers[:2]...)
+	requireSign(t, bundle, "Application/Writers", writers[0], writers[2], writers[3])
+	requireSign(t, bundle, "Application/Writers", writers[0], writers[2])
+	requireSign(t, bundle, "Application/Endorsement", endorsers...)
+	requireSign(t, bundle, "Application/Endorsement", endorsers[:2]...)
+	requireSign(t, bundle, "Application/Endorsement", endorsers[1:]...)
+	requireSign(t, bundle, "Orderer/BlockValidation", consenters...)
+	requireSign(t, bundle, "Orderer/BlockValidation", consenters[0], consenters[2])
+	requireSign(t, bundle, "Orderer/BlockValidation", consenters[1:]...)
+
+	t.Log("Add 3 peer organizations")
+	// We add 3 peer organizations (total 6). So we need 4 for majority.
+	// This means that we always need at least one organization for each group (old and new).
+	// By testing both cases, we ensure the previous credentials haven't changed, and the new ones were added.
+	p.Organizations = append(p.Organizations, []OrganizationParameters{
+		{
+			Name:      "peer-org-5",
+			Domain:    "peer-org-5.com",
+			PeerNodes: peerNodes,
+		},
+		{
+			Name:      "peer-org-6",
+			Domain:    "peer-org-6.com",
+			PeerNodes: peerNodes,
+		},
+		{
+			Name:      "peer-org-7",
+			Domain:    "peer-org-7.com",
+			PeerNodes: peerNodes,
+		},
+	}...)
+	block2 := createBlock(t, p)
+	bundle2 := readBundle(t, block2)
+
+	orgNames[5] = "peer-org-5"
+	orgNames[6] = "peer-org-6"
+	orgNames[7] = "peer-org-7"
+	orgDirs[5] = filepath.Join(PeerOrganizationsDir, orgNames[5])
+	orgDirs[6] = filepath.Join(PeerOrganizationsDir, orgNames[6])
+	orgDirs[7] = filepath.Join(PeerOrganizationsDir, orgNames[7])
+	endorsers = append(endorsers, loadMSPs(t, endorserDir(5), endorserDir(6), endorserDir(7))...)
+
+	requireSign(t, bundle2, "Application/Endorsement", endorsers...)
+	requireSign(t, bundle2, "Application/Endorsement", endorsers[2:]...)
+	requireSign(t, bundle2, "Application/Endorsement", endorsers[:4]...)
+
+	t.Log("Remove 2 peer organizations")
+	// We remove 2 peer organnizations, so now 3 peers are sufficient for majority.
+	p.Organizations = p.Organizations[:len(p.Organizations)-2]
+	block3 := createBlock(t, p)
+	bundle3 := readBundle(t, block3)
+	requireSign(t, bundle3, "Application/Endorsement", endorsers...)
+	requireSign(t, bundle3, "Application/Endorsement", endorsers[:3]...)
+	requireSign(t, bundle3, "Application/Endorsement", endorsers[1:4]...)
 }
 
 func TestCryptoGenTLS(t *testing.T) {
 	t.Parallel()
-	testDir, _, _ := defaultConfigBlock(t)
+	testDir := t.TempDir()
+	defaultConfigBlock(t, testDir)
 
-	org2Node := path.Join(testDir, OrdererOrganizationsDir, "org-2", OrdererNodesDir, "assembler")
-	org3Node := path.Join(testDir, PeerOrganizationsDir, "org-3", PeerNodesDir, "committer")
+	org2Node := path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2", OrdererNodesDir, "assembler")
+	org3Node := path.Join(testDir, PeerOrganizationsDir, "peer-org-3", PeerNodesDir, "committer")
 
-	org2Ca := buildCertPool(t, path.Join(testDir, OrdererOrganizationsDir, "org-2", "tlsca", "tlsorg-2-CA-cert.pem"))
-	org3Ca := buildCertPool(t, path.Join(testDir, PeerOrganizationsDir, "org-3", "tlsca", "tlsorg-3-CA-cert.pem"))
+	org2Ca := buildCertPool(t, path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2",
+		"tlsca", "tlsordering-org-2-CA-cert.pem"))
+	org3Ca := buildCertPool(t, path.Join(testDir, PeerOrganizationsDir, "peer-org-3",
+		"tlsca", "tlspeer-org-3-CA-cert.pem"))
 
 	address := grpcServer(t, org2Node, org3Ca)
 	healthClient := grpcClient(t, org3Node, org2Ca, address)
@@ -184,9 +258,10 @@ func TestCryptoGenTLS(t *testing.T) {
 
 func TestConfigBlockTLS(t *testing.T) {
 	t.Parallel()
-	testDir, block, _ := defaultConfigBlock(t)
-	org2Node := path.Join(testDir, OrdererOrganizationsDir, "org-2", OrdererNodesDir, "assembler")
-	org3Node := path.Join(testDir, PeerOrganizationsDir, "org-3", PeerNodesDir, "committer")
+	testDir := t.TempDir()
+	_, block, _ := defaultConfigBlock(t, testDir)
+	org2Node := path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2", OrdererNodesDir, "assembler")
+	org3Node := path.Join(testDir, PeerOrganizationsDir, "peer-org-3", PeerNodesDir, "committer")
 
 	bundle := readBundle(t, block)
 
@@ -204,7 +279,7 @@ func TestConfigBlockTLS(t *testing.T) {
 	oc, ok := bundle.OrdererConfig()
 	require.True(t, ok)
 	orgMap := oc.Organizations()
-	org2, ok := orgMap["org-2"]
+	org2, ok := orgMap["ordering-org-2"]
 	require.True(t, ok)
 	org2CaCerts := org2.MSP().GetTLSRootCerts()
 	org2Ca := buildCertPoolFromBytes(t, org2CaCerts...)
@@ -307,7 +382,19 @@ func buildCertPoolFromBytes(t *testing.T, certs ...[]byte) *x509.CertPool {
 	return certPool
 }
 
-func requireSign(t *testing.T, bundle *channelconfig.Bundle, policyName string, users ...msp.DirLoadParameters) {
+func loadMSPs(t *testing.T, users ...msp.DirLoadParameters) []msp.MSP {
+	t.Helper()
+	ret := make([]msp.MSP, len(users))
+	for i, u := range users {
+		mspUser, err := msp.LoadLocalMspDir(u)
+		require.NoError(t, err)
+		require.NotNil(t, mspUser)
+		ret[i] = mspUser
+	}
+	return ret
+}
+
+func requireSign(t *testing.T, bundle *channelconfig.Bundle, policyName string, users ...msp.MSP) {
 	t.Helper()
 	policy, ok := bundle.PolicyManager().GetPolicy(policyName)
 	require.Truef(t, ok, "policy %s not found", policyName)
@@ -315,11 +402,7 @@ func requireSign(t *testing.T, bundle *channelconfig.Bundle, policyName string, 
 
 	data := []byte("data")
 	signedData := make([]*protoutil.SignedData, len(users))
-	for i, u := range users {
-		mspUser, err := msp.LoadLocalMspDir(u)
-		require.NoError(t, err)
-		require.NotNil(t, mspUser)
-
+	for i, mspUser := range users {
 		si, err := mspUser.GetDefaultSigningIdentity()
 		require.NoError(t, err)
 		siID, err := si.Serialize()
@@ -339,84 +422,95 @@ func requireSign(t *testing.T, bundle *channelconfig.Bundle, policyName string, 
 	require.NoError(t, err)
 }
 
-func defaultConfigBlock(t *testing.T) (
-	target string, block *common.Block, armaData []byte,
+var (
+	sans      = []string{"127.0.0.1"}
+	peerNodes = []Node{
+		{CommonName: "committer", Hostname: "localhost", SANS: sans},
+		{CommonName: "coordinator", Hostname: "localhost", SANS: sans},
+		{CommonName: "verifier", Hostname: "localhost", SANS: sans},
+		{CommonName: "vc", Hostname: "localhost", SANS: sans},
+		{CommonName: "query", Hostname: "localhost", SANS: sans},
+		{CommonName: "endorser", Hostname: "localhost", SANS: sans},
+	}
+)
+
+func defaultConfigBlock(t *testing.T, target string) (
+	p ConfigBlockParameters, block *common.Block, armaData []byte,
 ) {
 	t.Helper()
-	target = t.TempDir()
 	armaData = []byte("fake-arma-data")
 
-	p := ConfigBlockParameters{
+	p = ConfigBlockParameters{
 		TargetPath: target,
 		ChannelID:  "my-chan",
 		Organizations: []OrganizationParameters{
 			{ // Joint org with two ordering parties.
-				Name:   "org-1",
-				Domain: "org-1.com",
-				OrdererEndpoints: []OrdererEndpoint{
-					{Address: "localhost:6001", API: []string{types.Broadcast}},
-					{Address: "localhost:7001", API: []string{types.Deliver}},
+				Name:   "ordering-and-peer-org-1",
+				Domain: "ordering-and-peer-org-1.com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 1, Host: "localhost", Port: 6001, API: []string{types.Broadcast}},
+					{ID: 1, Host: "localhost", Port: 7001, API: []string{types.Deliver}},
+					{ID: 2, Host: "localhost", Port: 6002, API: []string{types.Broadcast}},
+					{ID: 2, Host: "localhost", Port: 7002, API: []string{types.Deliver}},
 				},
 				ConsenterNodes: []Node{
-					{Party: "party-1", CommonName: "consenter-1", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{Party: "party-2", CommonName: "consenter-2", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{PartyName: "party-1", CommonName: "consenter-1", Hostname: "localhost", SANS: sans},
+					{PartyName: "party-2", CommonName: "consenter-2", Hostname: "localhost", SANS: sans},
 				},
 				OrdererNodes: []Node{
-					{Party: "party-1", CommonName: "router-1", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{Party: "party-1", CommonName: "assembler-1", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{Party: "party-1", CommonName: "batcher-1", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{Party: "party-2", CommonName: "router-2", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{Party: "party-2", CommonName: "assembler-2", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{Party: "party-2", CommonName: "batcher-2", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{PartyName: "party-1", CommonName: "router-1", Hostname: "localhost", SANS: sans},
+					{PartyName: "party-1", CommonName: "assembler-1", Hostname: "localhost", SANS: sans},
+					{PartyName: "party-1", CommonName: "batcher-1", Hostname: "localhost", SANS: sans},
+					{PartyName: "party-2", CommonName: "router-2", Hostname: "localhost", SANS: sans},
+					{PartyName: "party-2", CommonName: "assembler-2", Hostname: "localhost", SANS: sans},
+					{PartyName: "party-2", CommonName: "batcher-2", Hostname: "localhost", SANS: sans},
 				},
-				PeerNodes: []Node{
-					{CommonName: "committer", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "coordinator", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "verifier", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "vc", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "query", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "endorser", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-				},
+				PeerNodes: peerNodes,
 			},
 			{ // Ordering org with a single party.
-				Name:   "org-2",
-				Domain: "org-2.com",
-				OrdererEndpoints: []OrdererEndpoint{
-					{Address: "localhost:6002", API: []string{types.Broadcast}},
-					{Address: "localhost:7002", API: []string{types.Deliver}},
+				Name:   "ordering-org-2",
+				Domain: "ordering-org-2.com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 3, Host: "localhost", Port: 6003, API: []string{types.Broadcast}},
+					{ID: 3, Host: "localhost", Port: 7003, API: []string{types.Deliver}},
 				},
 				ConsenterNodes: []Node{
-					{CommonName: "consenter", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "consenter", Hostname: "localhost", SANS: sans},
 				},
 				OrdererNodes: []Node{
-					{CommonName: "router", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "assembler", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "batcher", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
+					{CommonName: "router", Hostname: "localhost", SANS: sans},
+					{CommonName: "assembler", Hostname: "localhost", SANS: sans},
+					{CommonName: "batcher", Hostname: "localhost", SANS: sans},
 				},
 			},
 			{ // Peer org.
-				Name:   "org-3",
-				Domain: "org-3.com",
-				PeerNodes: []Node{
-					{CommonName: "committer", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "coordinator", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "verifier", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "vc", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "query", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-					{CommonName: "endorser", Hostname: "localhost", SANS: []string{"127.0.0.1"}},
-				},
+				Name:      "peer-org-3",
+				Domain:    "peer-org-3.com",
+				PeerNodes: peerNodes,
+			},
+			{ // Peer org.
+				Name:      "peer-org-4",
+				Domain:    "peer-org-4.com",
+				PeerNodes: peerNodes,
 			},
 		},
 		ArmaMetaBytes: armaData,
 	}
 
-	var err error
-	block, err = CreateDefaultConfigBlockWithCrypto(p)
+	block = createBlock(t, p)
+	return p, block, armaData
+}
+
+func createBlock(t *testing.T, p ConfigBlockParameters) *common.Block {
+	t.Helper()
+	block, err := CreateOrExtendConfigBlockWithCrypto(p)
 	require.NoError(t, err)
 	require.NotNil(t, block)
 	require.NotNil(t, block.Data)
 	require.NotEmpty(t, block.Data.Data)
-
-	t.Logf("Actual tree: %s", test.GetTree(t, target))
-	return target, block, armaData
+	actualTree := test.GetTree(t, p.TargetPath)
+	t.Cleanup(func() {
+		t.Logf("Actual tree: %s", actualTree)
+	})
+	return block
 }
