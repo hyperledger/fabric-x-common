@@ -119,6 +119,10 @@ proto: FORCE $(PROTOS_SENTINEL)
 		-I="${PROTOS_DIR}" \
 		--go_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
         --go-grpc_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
+		--go_opt=Mcommon/common.proto=github.com/hyperledger/fabric-protos-go-apiv2/common \
+		--go_opt=Mcommon/ledger.proto=github.com/hyperledger/fabric-protos-go-apiv2/common \
+		--go-grpc_opt=Mcommon/common.proto=github.com/hyperledger/fabric-protos-go-apiv2/common \
+		--go-grpc_opt=Mcommon/ledger.proto=github.com/hyperledger/fabric-protos-go-apiv2/common \
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative \
 		--go_out=paths=source_relative:. \
