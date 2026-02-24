@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package blockledger
 
 import (
+	"context"
+
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"google.golang.org/protobuf/proto"
@@ -29,7 +31,7 @@ func init() {
 type NotFoundErrorIterator struct{}
 
 // Next returns nil, cb.Status_NOT_FOUND
-func (nfei *NotFoundErrorIterator) Next() (*cb.Block, cb.Status) {
+func (*NotFoundErrorIterator) Next(_ context.Context) (*cb.Block, cb.Status) {
 	return nil, cb.Status_NOT_FOUND
 }
 
@@ -57,7 +59,7 @@ func CreateNextBlock(rl Reader, messages []*cb.Envelope) *cb.Block {
 				Newest: &ab.SeekNewest{},
 			},
 		})
-		block, status := it.Next()
+		block, status := it.Next(context.Background())
 		if status != cb.Status_SUCCESS {
 			panic("Error seeking to newest block for chain with non-zero height")
 		}
@@ -94,7 +96,7 @@ func GetBlock(rl Reader, index uint64) *cb.Block {
 		return nil
 	}
 	defer iterator.Close()
-	block, status := iterator.Next()
+	block, status := iterator.Next(context.Background())
 	if status != cb.Status_SUCCESS {
 		return nil
 	}

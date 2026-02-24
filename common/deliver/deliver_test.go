@@ -347,7 +347,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 
 		ginkgo.Context("when multiple blocks are requested", func() {
 			ginkgo.BeforeEach(func() {
-				fakeBlockIterator.NextStub = func() (*cb.Block, cb.Status) {
+				fakeBlockIterator.NextStub = func(context.Context) (*cb.Block, cb.Status) {
 					blk := &cb.Block{
 						Header: &cb.BlockHeader{Number: 994 + uint64(fakeBlockIterator.NextCallCount())},
 					}
@@ -440,7 +440,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 				seekInfo = &ab.SeekInfo{Start: &ab.SeekPosition{}, Stop: seekNewest}
 
 				fakeBlockReader.HeightReturns(3)
-				fakeBlockIterator.NextStub = func() (*cb.Block, cb.Status) {
+				fakeBlockIterator.NextStub = func(context.Context) (*cb.Block, cb.Status) {
 					blk := &cb.Block{
 						Header: &cb.BlockHeader{Number: uint64(fakeBlockIterator.NextCallCount())},
 					}
@@ -475,7 +475,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 				fakeBlockReader.IteratorReturns(fakeBlockIterator, 0)
 				fakeBlockReader.HeightReturns(2)
 				fakeChain.ReaderReturns(fakeBlockReader)
-				fakeBlockIterator.NextStub = func() (*cb.Block, cb.Status) {
+				fakeBlockIterator.NextStub = func(context.Context) (*cb.Block, cb.Status) {
 					blk := &cb.Block{
 						Header: &cb.BlockHeader{Number: uint64(fakeBlockIterator.NextCallCount() - 1)},
 					}
@@ -509,7 +509,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 				}
 
 				fakeBlockReader.HeightReturns(3)
-				fakeBlockIterator.NextStub = func() (*cb.Block, cb.Status) {
+				fakeBlockIterator.NextStub = func(context.Context) (*cb.Block, cb.Status) {
 					blk := &cb.Block{
 						Header:   &cb.BlockHeader{Number: uint64(fakeBlockIterator.NextCallCount())},
 						Data:     &cb.BlockData{Data: [][]byte{{1}, {2}}},
@@ -555,7 +555,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 						ContentType: ab.SeekInfo_HEADER_WITH_SIG,
 					}
 					fakeBlockReader.HeightReturns(4)
-					fakeBlockIterator.NextStub = func() (*cb.Block, cb.Status) {
+					fakeBlockIterator.NextStub = func(context.Context) (*cb.Block, cb.Status) {
 						nxtCallCount := fakeBlockIterator.NextCallCount()
 						block := &cb.Block{
 							Header:   &cb.BlockHeader{Number: uint64(nxtCallCount)},
@@ -940,7 +940,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 				done = make(chan struct{})
 				ctx, cancel = context.WithCancel(context.Background())
 				cancel()
-				fakeBlockIterator.NextStub = func() (*cb.Block, cb.Status) {
+				fakeBlockIterator.NextStub = func(context.Context) (*cb.Block, cb.Status) {
 					<-done
 					return nil, cb.Status_BAD_REQUEST
 				}
@@ -993,7 +993,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 
 			ginkgo.BeforeEach(func() {
 				doneCh = make(chan struct{})
-				fakeBlockIterator.NextStub = func() (*cb.Block, cb.Status) {
+				fakeBlockIterator.NextStub = func(context.Context) (*cb.Block, cb.Status) {
 					<-doneCh
 					return &cb.Block{}, cb.Status_INTERNAL_SERVER_ERROR
 				}

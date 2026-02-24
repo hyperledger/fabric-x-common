@@ -519,7 +519,7 @@ func verifyQueriesOnBlocksAddedAfterBootstrapping(t *testing.T,
 
 		itr, err := bootstrappedBlockStore.RetrieveBlocks(b.Header.Number)
 		require.NoError(t, err)
-		blk, err := itr.Next()
+		blk, err := itr.Next(t.Context())
 		require.NoError(t, err)
 		require.Equal(t, b, blk)
 		itr.Close()

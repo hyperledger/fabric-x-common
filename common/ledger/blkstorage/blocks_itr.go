@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package blkstorage
 
 import (
+	"context"
 	"sync"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger"
@@ -25,13 +26,24 @@ type blocksItr struct {
 func newBlockItr(mgr *blockfileMgr, startBlockNum uint64) *blocksItr {
 	mgr.blkfilesInfoCond.L.Lock()
 	defer mgr.blkfilesInfoCond.L.Unlock()
-	return &blocksItr{mgr, mgr.blockfilesInfo.lastPersistedBlock, startBlockNum, nil, false, &sync.Mutex{}}
+	return &blocksItr{
+		mgr:                  mgr,
+		maxBlockNumAvailable: mgr.blockfilesInfo.lastPersistedBlock,
+		blockNumToRetrieve:   startBlockNum,
+		closeMarkerLock:      &sync.Mutex{},
+	}
 }
 
-func (itr *blocksItr) waitForBlock(blockNum uint64) uint64 {
+func (itr *blocksItr) waitForBlock(ctx context.Context, blockNum uint64) uint64 {
 	itr.mgr.blkfilesInfoCond.L.Lock()
 	defer itr.mgr.blkfilesInfoCond.L.Unlock()
-	for itr.mgr.blockfilesInfo.lastPersistedBlock < blockNum && !itr.shouldClose() {
+
+	stop := context.AfterFunc(ctx, func() {
+		itr.mgr.blkfilesInfoCond.Broadcast()
+	})
+	defer stop()
+
+	for itr.mgr.blockfilesInfo.lastPersistedBlock < blockNum && !itr.shouldClose() && ctx.Err() == nil {
 		logger.Debugf("Going to wait for newer blocks. maxAvailaBlockNumber=[%d], waitForBlockNum=[%d]",
 			itr.mgr.blockfilesInfo.lastPersistedBlock, blockNum)
 		itr.mgr.blkfilesInfoCond.Wait()
@@ -59,14 +71,17 @@ func (itr *blocksItr) shouldClose() bool {
 }
 
 // Next moves the cursor to next block and returns true iff the iterator is not exhausted
-func (itr *blocksItr) Next() (ledger.QueryResult, error) {
+func (itr *blocksItr) Next(ctx context.Context) (ledger.QueryResult, error) { //nolint:ireturn
 	if itr.maxBlockNumAvailable < itr.blockNumToRetrieve {
-		itr.maxBlockNumAvailable = itr.waitForBlock(itr.blockNumToRetrieve)
+		itr.maxBlockNumAvailable = itr.waitForBlock(ctx, itr.blockNumToRetrieve)
 	}
 	itr.closeMarkerLock.Lock()
 	defer itr.closeMarkerLock.Unlock()
 	if itr.closeMarker {
 		return nil, nil
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 
 	cachedBlock, existsInCache := itr.mgr.cache.get(itr.blockNumToRetrieve)

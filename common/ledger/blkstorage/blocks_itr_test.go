@@ -54,11 +54,11 @@ func TestBlockItrClose(t *testing.T) {
 	itr, err := blkfileMgr.retrieveBlocks(1)
 	require.NoError(t, err)
 
-	bh, _ := itr.Next()
+	bh, _ := itr.Next(t.Context())
 	require.NotNil(t, bh)
 	itr.Close()
 
-	bh, err = itr.Next()
+	bh, err = itr.Next(t.Context())
 	require.NoError(t, err)
 	require.Nil(t, bh)
 }
@@ -79,7 +79,7 @@ func TestRaceToDeadlock(t *testing.T) {
 			panic(err)
 		}
 		go func() {
-			itr.Next()
+			_, _ = itr.Next(t.Context())
 		}()
 		itr.Close()
 	}
@@ -92,7 +92,7 @@ func TestRaceToDeadlock(t *testing.T) {
 		go func() {
 			itr.Close()
 		}()
-		itr.Next()
+		_, _ = itr.Next(t.Context())
 	}
 }
 
@@ -144,7 +144,7 @@ func iterateInBackground(t *testing.T, itr *blocksItr, quitAfterBlkNum uint64, w
 	defer func() { require.Equal(t, expectedBlockNums, retrievedBlkNums) }()
 
 	for {
-		blk, err := itr.Next()
+		blk, err := itr.Next(t.Context())
 		require.NoError(t, err)
 		if blk == nil {
 			return
@@ -162,7 +162,7 @@ func testIterateAndVerify(t *testing.T, itr *blocksItr, blocks []*common.Block, 
 	blocksIterated := 0
 	for {
 		t.Logf("blocksIterated: %v", blocksIterated)
-		block, err := itr.Next()
+		block, err := itr.Next(t.Context())
 		require.NoError(t, err)
 		require.Equal(t, blocks[blocksIterated], block)
 		blocksIterated++

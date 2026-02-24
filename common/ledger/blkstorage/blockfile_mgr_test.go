@@ -141,12 +141,12 @@ func TestBlockfileMgrBlockIterator(t *testing.T) {
 func testBlockfileMgrBlockIterator(t *testing.T, blockfileMgr *blockfileMgr,
 	firstBlockNum, lastBlockNum int, expectedBlocks []*common.Block,
 ) {
-	itr, err := blockfileMgr.retrieveBlocks(uint64(firstBlockNum))
+	itr, err := blockfileMgr.retrieveBlocks(uint64(firstBlockNum)) //nolint:gosec // int > uint64
 	require.NoError(t, err, "Error while getting blocks iterator")
 	defer itr.Close()
 	numBlocksItrated := 0
 	for {
-		block, err := itr.Next()
+		block, err := itr.Next(t.Context())
 		require.NoError(t, err, "Error while getting block number [%d] from iterator", numBlocksItrated)
 		require.Equal(t, expectedBlocks[numBlocksItrated], block)
 		numBlocksItrated++
