@@ -2,6 +2,7 @@
 package mock
 
 import (
+	"context"
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -12,9 +13,10 @@ type BlockIterator struct {
 	closeMutex       sync.RWMutex
 	closeArgsForCall []struct {
 	}
-	NextStub        func() (*common.Block, common.Status)
+	NextStub        func(context.Context) (*common.Block, common.Status)
 	nextMutex       sync.RWMutex
 	nextArgsForCall []struct {
+		arg1 context.Context
 	}
 	nextReturns struct {
 		result1 *common.Block
@@ -52,17 +54,18 @@ func (fake *BlockIterator) CloseCalls(stub func()) {
 	fake.CloseStub = stub
 }
 
-func (fake *BlockIterator) Next() (*common.Block, common.Status) {
+func (fake *BlockIterator) Next(arg1 context.Context) (*common.Block, common.Status) {
 	fake.nextMutex.Lock()
 	ret, specificReturn := fake.nextReturnsOnCall[len(fake.nextArgsForCall)]
 	fake.nextArgsForCall = append(fake.nextArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.NextStub
 	fakeReturns := fake.nextReturns
-	fake.recordInvocation("Next", []interface{}{})
+	fake.recordInvocation("Next", []interface{}{arg1})
 	fake.nextMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -76,10 +79,17 @@ func (fake *BlockIterator) NextCallCount() int {
 	return len(fake.nextArgsForCall)
 }
 
-func (fake *BlockIterator) NextCalls(stub func() (*common.Block, common.Status)) {
+func (fake *BlockIterator) NextCalls(stub func(context.Context) (*common.Block, common.Status)) {
 	fake.nextMutex.Lock()
 	defer fake.nextMutex.Unlock()
 	fake.NextStub = stub
+}
+
+func (fake *BlockIterator) NextArgsForCall(i int) context.Context {
+	fake.nextMutex.RLock()
+	defer fake.nextMutex.RUnlock()
+	argsForCall := fake.nextArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *BlockIterator) NextReturns(result1 *common.Block, result2 common.Status) {

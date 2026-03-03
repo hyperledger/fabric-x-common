@@ -17,6 +17,8 @@ limitations under the License.
 package ledger
 
 import (
+	"context"
+
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 )
 
@@ -39,7 +41,7 @@ type Ledger interface {
 type ResultsIterator interface {
 	// Next returns the next item in the result set. The `QueryResult` is expected to be nil when
 	// the iterator gets exhausted
-	Next() (QueryResult, error)
+	Next(ctx context.Context) (QueryResult, error)
 	// Close releases resources occupied by the iterator
 	Close()
 }

@@ -298,7 +298,7 @@ func (h *Handler) deliverBlocks(ctx context.Context, srv *Server, envelope *cb.E
 
 		iterCh := make(chan struct{})
 		go func() {
-			block, status = cursor.Next()
+			block, status = cursor.Next(ctx)
 			close(iterCh)
 		}()
 

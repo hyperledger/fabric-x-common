@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package fileledger
 
 import (
+	"context"
+
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 
@@ -48,8 +50,8 @@ type fileLedgerIterator struct {
 
 // Next blocks until there is a new block available, or until Close is called.
 // It returns an error if the next block is no longer retrievable.
-func (i *fileLedgerIterator) Next() (*cb.Block, cb.Status) {
-	result, err := i.commonIterator.Next()
+func (i *fileLedgerIterator) Next(ctx context.Context) (*cb.Block, cb.Status) {
+	result, err := i.commonIterator.Next(ctx)
 	if err != nil {
 		logger.Error(err)
 		return nil, cb.Status_SERVICE_UNAVAILABLE

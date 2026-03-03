@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package blockledger
 
 import (
+	"context"
+
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 )
@@ -31,7 +33,7 @@ type Factory interface {
 type Iterator interface {
 	// Next blocks until there is a new block available, or returns an error if
 	// the next block is no longer retrievable
-	Next() (*cb.Block, cb.Status)
+	Next(ctx context.Context) (*cb.Block, cb.Status)
 	// Close releases resources acquired by the Iterator
 	Close()
 }

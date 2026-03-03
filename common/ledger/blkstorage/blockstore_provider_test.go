@@ -7,13 +7,16 @@ SPDX-License-Identifier: Apache-2.0
 package blkstorage
 
 import (
+	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/common/ledger"
 	"github.com/hyperledger/fabric-x-common/common/ledger/testutil"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/pkg/txflags"
@@ -101,7 +104,7 @@ func checkBlocks(t *testing.T, expectedBlocks []*common.Block, store *BlockStore
 
 	itr, _ := store.RetrieveBlocks(0)
 	for i := 0; i < len(expectedBlocks); i++ {
-		block, _ := itr.Next()
+		block, _ := itr.Next(t.Context())
 		require.Equal(t, expectedBlocks[i], block)
 	}
 
@@ -244,6 +247,46 @@ func TestDrop(t *testing.T) {
 	// negative test
 	provider.Close()
 	require.EqualError(t, provider.Drop("ledger2"), "internal leveldb error while obtaining db iterator: leveldb: closed")
+}
+
+func TestBlocksItrContextCancel(t *testing.T) {
+	t.Parallel()
+	env := newTestEnv(t, NewConf(t.TempDir(), 0))
+	t.Cleanup(env.Cleanup)
+	store, err := env.provider.Open("testledger-ctx")
+	require.NoError(t, err)
+	t.Cleanup(store.Shutdown)
+
+	// Add one block so the store is initialized
+	blocks := testutil.ConstructTestBlocks(t, 1)
+	require.NoError(t, store.AddBlock(blocks[0]))
+
+	// Create a cancellable context and an iterator starting at block 1 (not yet available)
+	ctx, cancel := context.WithCancel(t.Context())
+	itr, err := store.RetrieveBlocks(1)
+	require.NoError(t, err)
+	t.Cleanup(itr.Close)
+
+	// Next() should block waiting for block 1. Cancel the context to unblock it.
+	done := make(chan any)
+	var result ledger.QueryResult
+	var nextErr error
+	go func() {
+		result, nextErr = itr.Next(ctx)
+		close(done)
+	}()
+
+	// Cancel the context — this should wake up waitForBlock
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Next() did not return after context cancellation")
+	}
+
+	require.Nil(t, result)
+	require.ErrorIs(t, nextErr, context.Canceled)
 }
 
 func constructLedgerid(id int) string {
