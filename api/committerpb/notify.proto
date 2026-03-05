@@ -37,4 +37,11 @@ message NotificationRequest {
 message NotificationResponse {
     repeated TxStatus tx_status_events = 1; // List of transaction status events.
     repeated string timeout_tx_ids = 2;     // List of timeout events.
+    RejectedTxIds rejected_tx_ids = 3;      // List of rejected transaction IDs with a reason.
+}
+
+// RejectedTxIds contains a list of transaction IDs that were rejected along with the reason.
+message RejectedTxIds {
+    repeated string tx_ids = 1; // List of rejected transaction IDs.
+    string reason = 2;          // The reason for rejection.
 }
