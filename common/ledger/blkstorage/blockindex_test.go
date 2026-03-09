@@ -67,7 +67,7 @@ func testBlockIndexSync(t *testing.T, numBlocks int, numBlocksToIndex int, syncB
 		// Before, we test for index sync-up, verify that the last set of blocks not indexed in the original index
 		for i := numBlocksToIndex + 1; i <= numBlocks; i++ {
 			_, err := blkfileMgr.retrieveBlockByNumber(uint64(i))
-			require.EqualError(t, err, fmt.Sprintf("no such block number [%d] in index", i))
+			requireNotFoundError(t, err, fmt.Sprintf("block number [%d]", i))
 		}
 
 		// perform index sync

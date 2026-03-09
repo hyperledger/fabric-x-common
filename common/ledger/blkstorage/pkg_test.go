@@ -113,7 +113,7 @@ func (w *testBlockfileMgrWrapper) testGetBlockByHashNotIndexed(blocks []*common.
 	for _, block := range blocks {
 		hash := protoutil.BlockHeaderHash(block.Header)
 		_, err := w.blockfileMgr.retrieveBlockByHash(hash)
-		require.EqualError(w.t, err, fmt.Sprintf("no such block hash [%x] in index", hash))
+		requireNotFoundError(w.t, err, "block hash")
 	}
 }
 
@@ -123,7 +123,7 @@ func (w *testBlockfileMgrWrapper) testGetBlockByTxIDNotIndexed(blocks []*common.
 			txID, err := protoutil.GetOrComputeTxIDFromEnvelope(txEnv)
 			require.NoError(w.t, err)
 			_, err = w.blockfileMgr.retrieveBlockByTxID(txID)
-			require.EqualError(w.t, err, fmt.Sprintf("no such transaction ID [%s] in index", txID))
+			requireNotFoundError(w.t, err, fmt.Sprintf("transaction ID [%s]", txID))
 		}
 	}
 }

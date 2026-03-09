@@ -236,7 +236,7 @@ func assertBlockStorePostReset(t *testing.T, store *BlockStore, originallyCommit
 	require.Equal(t, originallyCommittedBlocks[0], blk)
 
 	_, err = store.RetrieveBlockByNumber(1)
-	require.EqualError(t, err, "no such block number [1] in index")
+	requireNotFoundError(t, err, "block number [1]")
 
 	err = store.AddBlock(originallyCommittedBlocks[0])
 	require.EqualError(t, err, "block number should have been 1 but was 0")

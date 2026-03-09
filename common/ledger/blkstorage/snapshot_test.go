@@ -285,7 +285,7 @@ func TestImportFromSnapshot(t *testing.T) {
 
 			// before, we test for index sync-up, verify that the last set of blocks not indexed in the original index
 			_, err := blkfileMgr.retrieveBlockByNumber(block.Header.Number)
-			require.EqualError(t, err, fmt.Sprintf("no such block number [%d] in index", block.Header.Number))
+			requireNotFoundError(t, err, fmt.Sprintf("block number [%d]", block.Header.Number))
 
 			// close and open should be able to sync-up the index
 			closeBlockStore()
@@ -472,7 +472,7 @@ func verifyQueriesOnBlocksPriorToSnapshot(
 		require.EqualError(t, err, expectedErrStr)
 
 		_, err = bootstrappedBlockStore.RetrieveBlockByHash(blockHash)
-		require.EqualError(t, err, fmt.Sprintf("no such block hash [%x] in index", blockHash))
+		requireNotFoundError(t, err, "block hash")
 	}
 
 	bootstrappingSnapshotHeight := uint64(len(blocksDetailsBeforeSnapshot))
