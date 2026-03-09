@@ -143,24 +143,24 @@ func checkBlocks(t *testing.T, expectedBlocks []*common.Block, store *BlockStore
 func checkWithWrongInputs(t *testing.T, store *BlockStore, numBlocks int) {
 	block, err := store.RetrieveBlockByHash([]byte("non-existent-hash"))
 	require.Nil(t, block)
-	require.EqualError(t, err, fmt.Sprintf("no such block hash [%x] in index", []byte("non-existent-hash")))
+	requireNotFoundError(t, err, "block hash")
 
 	block, err = store.RetrieveBlockByTxID("non-existent-txid")
 	require.Nil(t, block)
-	require.EqualError(t, err, "no such transaction ID [non-existent-txid] in index")
+	requireNotFoundError(t, err, "transaction ID [non-existent-txid]")
 
 	tx, err := store.RetrieveTxByID("non-existent-txid")
 	require.Nil(t, tx)
-	require.EqualError(t, err, "no such transaction ID [non-existent-txid] in index")
+	requireNotFoundError(t, err, "transaction ID [non-existent-txid]")
 
 	tx, err = store.RetrieveTxByBlockNumTranNum(uint64(numBlocks+1), uint64(0))
 	require.Nil(t, tx)
-	require.EqualError(t, err, fmt.Sprintf("no such blockNumber, transactionNumber <%d, 0> in index", numBlocks+1))
+	requireNotFoundError(t, err, fmt.Sprintf("blockNumber, transactionNumber <%d, 0>", numBlocks+1))
 
 	txCode, blkNum, err := store.RetrieveTxValidationCodeByTxID("non-existent-txid")
 	require.Equal(t, peer.TxValidationCode(-1), txCode)
 	require.Equal(t, uint64(0), blkNum)
-	require.EqualError(t, err, "no such transaction ID [non-existent-txid] in index")
+	requireNotFoundError(t, err, "transaction ID [non-existent-txid]")
 }
 
 func TestBlockStoreProvider(t *testing.T) {

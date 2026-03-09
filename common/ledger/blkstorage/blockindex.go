@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 	"unicode/utf8"
 
+	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
-	"github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 
@@ -35,6 +35,9 @@ const (
 	snapshotDataFileName     = "txids.data"
 	snapshotMetadataFileName = "txids.metadata"
 )
+
+// ErrNotFound is returned when a requested item is not found in the block index.
+var ErrNotFound = errors.New("not found in index")
 
 var (
 	indexSavePointKey              = []byte(indexSavePointKeyStr)
@@ -157,7 +160,7 @@ func (index *blockIndex) getBlockLocByHash(blockHash []byte) (*fileLocPointer, e
 		return nil, err
 	}
 	if b == nil {
-		return nil, errors.Errorf("no such block hash [%x] in index", blockHash)
+		return nil, errors.Wrapf(ErrNotFound, "block hash [%x]", blockHash)
 	}
 	blkLoc := &fileLocPointer{}
 	if err := blkLoc.unmarshal(b); err != nil {
@@ -175,7 +178,7 @@ func (index *blockIndex) getBlockLocByBlockNum(blockNum uint64) (*fileLocPointer
 		return nil, err
 	}
 	if b == nil {
-		return nil, errors.Errorf("no such block number [%d] in index", blockNum)
+		return nil, errors.Wrapf(ErrNotFound, "block number [%d]", blockNum)
 	}
 	blkLoc := &fileLocPointer{}
 	if err := blkLoc.unmarshal(b); err != nil {
@@ -250,7 +253,7 @@ func (index *blockIndex) getTxIDVal(txID string) (*TxIDIndexValue, uint64, error
 		return nil, 0, errors.Wrapf(err, "error while trying to retrieve transaction info by TXID [%s]", txID)
 	}
 	if !present {
-		return nil, 0, errors.Errorf("no such transaction ID [%s] in index", txID)
+		return nil, 0, errors.Wrapf(ErrNotFound, "transaction ID [%s]", txID)
 	}
 	valBytes := itr.Value()
 	if len(valBytes) == 0 {
@@ -276,7 +279,7 @@ func (index *blockIndex) getTXLocByBlockNumTranNum(blockNum uint64, tranNum uint
 		return nil, err
 	}
 	if b == nil {
-		return nil, errors.Errorf("no such blockNumber, transactionNumber <%d, %d> in index", blockNum, tranNum)
+		return nil, errors.Wrapf(ErrNotFound, "blockNumber, transactionNumber <%d, %d>", blockNum, tranNum)
 	}
 	txFLP := &fileLocPointer{}
 	if err := txFLP.unmarshal(b); err != nil {
@@ -358,7 +361,8 @@ func (index *blockIndex) exportUniqueTxIDs(dir string, newHashFunc snapshot.NewH
 func importTxIDsFromSnapshot(
 	snapshotDir string,
 	lastBlockNumInSnapshot uint64,
-	db *leveldbhelper.DBHandle) error {
+	db *leveldbhelper.DBHandle,
+) error {
 	txIDsMetadata, err := snapshot.OpenFile(filepath.Join(snapshotDir, snapshotMetadataFileName), snapshotFileFormat)
 	if err != nil {
 		return err
