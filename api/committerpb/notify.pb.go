@@ -91,6 +91,7 @@ type NotificationResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	TxStatusEvents []*TxStatus            `protobuf:"bytes,1,rep,name=tx_status_events,json=txStatusEvents,proto3" json:"tx_status_events,omitempty"` // List of transaction status events.
 	TimeoutTxIds   []string               `protobuf:"bytes,2,rep,name=timeout_tx_ids,json=timeoutTxIds,proto3" json:"timeout_tx_ids,omitempty"`       // List of timeout events.
+	RejectedTxIds  *RejectedTxIds         `protobuf:"bytes,3,opt,name=rejected_tx_ids,json=rejectedTxIds,proto3" json:"rejected_tx_ids,omitempty"`    // List of rejected transaction IDs with a reason.
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -139,6 +140,66 @@ func (x *NotificationResponse) GetTimeoutTxIds() []string {
 	return nil
 }
 
+func (x *NotificationResponse) GetRejectedTxIds() *RejectedTxIds {
+	if x != nil {
+		return x.RejectedTxIds
+	}
+	return nil
+}
+
+// RejectedTxIds contains a list of transaction IDs that were rejected along with the reason.
+type RejectedTxIds struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TxIds         []string               `protobuf:"bytes,1,rep,name=tx_ids,json=txIds,proto3" json:"tx_ids,omitempty"` // List of rejected transaction IDs.
+	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`            // The reason for rejection.
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RejectedTxIds) Reset() {
+	*x = RejectedTxIds{}
+	mi := &file_api_committerpb_notify_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectedTxIds) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectedTxIds) ProtoMessage() {}
+
+func (x *RejectedTxIds) ProtoReflect() protoreflect.Message {
+	mi := &file_api_committerpb_notify_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectedTxIds.ProtoReflect.Descriptor instead.
+func (*RejectedTxIds) Descriptor() ([]byte, []int) {
+	return file_api_committerpb_notify_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RejectedTxIds) GetTxIds() []string {
+	if x != nil {
+		return x.TxIds
+	}
+	return nil
+}
+
+func (x *RejectedTxIds) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
 var File_api_committerpb_notify_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_notify_proto_rawDesc = "" +
@@ -147,10 +208,14 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\x13NotificationRequest\x12H\n" +
 	"\x11tx_status_request\x18\x01 \x01(\v2\x17.committerpb.TxIDsBatchH\x00R\x0ftxStatusRequest\x88\x01\x01\x123\n" +
 	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\atimeoutB\x14\n" +
-	"\x12_tx_status_request\"}\n" +
+	"\x12_tx_status_request\"\xc1\x01\n" +
 	"\x14NotificationResponse\x12?\n" +
 	"\x10tx_status_events\x18\x01 \x03(\v2\x15.committerpb.TxStatusR\x0etxStatusEvents\x12$\n" +
-	"\x0etimeout_tx_ids\x18\x02 \x03(\tR\ftimeoutTxIds2m\n" +
+	"\x0etimeout_tx_ids\x18\x02 \x03(\tR\ftimeoutTxIds\x12B\n" +
+	"\x0frejected_tx_ids\x18\x03 \x01(\v2\x1a.committerpb.RejectedTxIdsR\rrejectedTxIds\">\n" +
+	"\rRejectedTxIds\x12\x15\n" +
+	"\x06tx_ids\x18\x01 \x03(\tR\x05txIds\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason2m\n" +
 	"\bNotifier\x12a\n" +
 	"\x16OpenNotificationStream\x12 .committerpb.NotificationRequest\x1a!.committerpb.NotificationResponse(\x010\x01B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
@@ -166,25 +231,27 @@ func file_api_committerpb_notify_proto_rawDescGZIP() []byte {
 	return file_api_committerpb_notify_proto_rawDescData
 }
 
-var file_api_committerpb_notify_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_committerpb_notify_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_api_committerpb_notify_proto_goTypes = []any{
 	(*NotificationRequest)(nil),  // 0: committerpb.NotificationRequest
 	(*NotificationResponse)(nil), // 1: committerpb.NotificationResponse
-	(*TxIDsBatch)(nil),           // 2: committerpb.TxIDsBatch
-	(*durationpb.Duration)(nil),  // 3: google.protobuf.Duration
-	(*TxStatus)(nil),             // 4: committerpb.TxStatus
+	(*RejectedTxIds)(nil),        // 2: committerpb.RejectedTxIds
+	(*TxIDsBatch)(nil),           // 3: committerpb.TxIDsBatch
+	(*durationpb.Duration)(nil),  // 4: google.protobuf.Duration
+	(*TxStatus)(nil),             // 5: committerpb.TxStatus
 }
 var file_api_committerpb_notify_proto_depIdxs = []int32{
-	2, // 0: committerpb.NotificationRequest.tx_status_request:type_name -> committerpb.TxIDsBatch
-	3, // 1: committerpb.NotificationRequest.timeout:type_name -> google.protobuf.Duration
-	4, // 2: committerpb.NotificationResponse.tx_status_events:type_name -> committerpb.TxStatus
-	0, // 3: committerpb.Notifier.OpenNotificationStream:input_type -> committerpb.NotificationRequest
-	1, // 4: committerpb.Notifier.OpenNotificationStream:output_type -> committerpb.NotificationResponse
-	4, // [4:5] is the sub-list for method output_type
-	3, // [3:4] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	3, // 0: committerpb.NotificationRequest.tx_status_request:type_name -> committerpb.TxIDsBatch
+	4, // 1: committerpb.NotificationRequest.timeout:type_name -> google.protobuf.Duration
+	5, // 2: committerpb.NotificationResponse.tx_status_events:type_name -> committerpb.TxStatus
+	2, // 3: committerpb.NotificationResponse.rejected_tx_ids:type_name -> committerpb.RejectedTxIds
+	0, // 4: committerpb.Notifier.OpenNotificationStream:input_type -> committerpb.NotificationRequest
+	1, // 5: committerpb.Notifier.OpenNotificationStream:output_type -> committerpb.NotificationResponse
+	5, // [5:6] is the sub-list for method output_type
+	4, // [4:5] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_api_committerpb_notify_proto_init() }
@@ -201,7 +268,7 @@ func file_api_committerpb_notify_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_committerpb_notify_proto_rawDesc), len(file_api_committerpb_notify_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
