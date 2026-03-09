@@ -36,13 +36,14 @@ const (
 	snapshotMetadataFileName = "txids.metadata"
 )
 
+// ErrNotFound is returned when a requested item is not found in the block index.
+var ErrNotFound = errors.New("not found in index")
+
 var (
 	indexSavePointKey              = []byte(indexSavePointKeyStr)
 	errIndexSavePointKeyNotPresent = errors.New("NoBlockIndexed")
 	errNilValue                    = errors.New("")
-	// ErrNotFound is returned when a requested item is not found in the block index.
-	ErrNotFound          = errors.New("not found in index")
-	importTxIDsBatchSize = uint64(10000) // txID is 64 bytes, so batch size roughly translates to 640KB
+	importTxIDsBatchSize           = uint64(10000) // txID is 64 bytes, so batch size roughly translates to 640KB
 )
 
 type blockIdxInfo struct {

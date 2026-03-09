@@ -17,5 +17,5 @@ import (
 func requireNotFoundError(tb testing.TB, err error, expectedContext string) {
 	tb.Helper()
 	require.ErrorIs(tb, err, ErrNotFound)
-	require.Contains(tb, err.Error(), expectedContext)
+	require.ErrorContains(tb, err, expectedContext)
 }
