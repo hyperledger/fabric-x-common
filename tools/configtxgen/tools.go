@@ -88,23 +88,10 @@ func DoOutputChannelCreateTx(conf, baseProfile *Profile, channelID, outputChanne
 	return nil
 }
 
-// ReadBlock reads a block.
-func ReadBlock(blockPath string) (*cb.Block, error) {
-	data, err := os.ReadFile(blockPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not read block %s", blockPath)
-	}
-	block, err := protoutil.UnmarshalBlock(data)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling to block: %s", err)
-	}
-	return block, nil
-}
-
 // DoInspectBlock inspects a block from a file.
 func DoInspectBlock(inspectBlock string) error {
 	logger.Info("Inspecting block")
-	block, err := ReadBlock(inspectBlock)
+	block, err := protoutil.ReadBlockFromFile(inspectBlock)
 	if err != nil {
 		return err
 	}

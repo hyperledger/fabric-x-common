@@ -23,7 +23,8 @@ import (
 
 func TestInspectMissing(t *testing.T) {
 	t.Parallel()
-	require.EqualError(t, DoInspectBlock("NonSenseBlockFileThatDoesn'tActuallyExist"), "could not read block NonSenseBlockFileThatDoesn'tActuallyExist")
+	err := DoInspectBlock("NonSenseBlockFileThatDoesn'tActuallyExist")
+	require.ErrorContains(t, err, "could not read block NonSenseBlockFileThatDoesn'tActuallyExist")
 }
 
 func TestInspectBlock(t *testing.T) {
@@ -40,8 +41,9 @@ func TestInspectBlockErr(t *testing.T) {
 	t.Parallel()
 	config := Load(SampleAppChannelInsecureSoloProfile, configtest.GetDevConfigDir())
 
-	require.EqualError(t, DoOutputBlock(config, "foo", ""), "error writing genesis block: open : no such file or directory")
-	require.EqualError(t, DoInspectBlock(""), "could not read block ")
+	err := DoOutputBlock(config, "foo", "")
+	require.EqualError(t, err, "error writing genesis block: open : no such file or directory")
+	require.ErrorContains(t, DoInspectBlock(""), "could not read block ")
 }
 
 func TestMissingOrdererSection(t *testing.T) {
@@ -51,7 +53,8 @@ func TestMissingOrdererSection(t *testing.T) {
 	config := Load(SampleAppChannelInsecureSoloProfile, configtest.GetDevConfigDir())
 	config.Orderer = nil
 
-	require.EqualError(t, DoOutputBlock(config, "foo", blockDest), "refusing to generate block which is missing orderer section")
+	err := DoOutputBlock(config, "foo", blockDest)
+	require.EqualError(t, err, "refusing to generate block which is missing orderer section")
 }
 
 func TestApplicationChannelGenesisBlock(t *testing.T) {
@@ -70,7 +73,8 @@ func TestApplicationChannelMissingApplicationSection(t *testing.T) {
 	config := Load(SampleAppChannelInsecureSoloProfile, configtest.GetDevConfigDir())
 	config.Application = nil
 
-	require.EqualError(t, DoOutputBlock(config, "foo", blockDest), "refusing to generate application channel block which is missing application section")
+	err := DoOutputBlock(config, "foo", blockDest)
+	require.EqualError(t, err, "refusing to generate application channel block which is missing application section")
 }
 
 func TestMissingConsortiumValue(t *testing.T) {
@@ -80,7 +84,9 @@ func TestMissingConsortiumValue(t *testing.T) {
 	config := Load(SampleSingleMSPChannelProfile, configtest.GetDevConfigDir())
 	config.Consortium = ""
 
-	require.EqualError(t, DoOutputChannelCreateTx(config, nil, "foo", configTxDest), "config update generation failure: cannot define a new channel with no Consortium value")
+	err := DoOutputChannelCreateTx(config, nil, "foo", configTxDest)
+	require.EqualError(t, err,
+		"config update generation failure: cannot define a new channel with no Consortium value")
 }
 
 func TestUnsuccessfulChannelTxFileCreation(t *testing.T) {
@@ -89,7 +95,9 @@ func TestUnsuccessfulChannelTxFileCreation(t *testing.T) {
 
 	config := Load(SampleSingleMSPChannelProfile, configtest.GetDevConfigDir())
 	require.NoError(t, os.WriteFile(configTxDest, []byte{}, 0o440))
-	require.EqualError(t, DoOutputChannelCreateTx(config, nil, "foo", configTxDest), fmt.Sprintf("error writing channel create tx: open %s: permission denied", configTxDest))
+	err := DoOutputChannelCreateTx(config, nil, "foo", configTxDest)
+	require.EqualError(t, err,
+		fmt.Sprintf("error writing channel create tx: open %s: permission denied", configTxDest))
 }
 
 func TestMissingApplicationValue(t *testing.T) {
@@ -99,12 +107,16 @@ func TestMissingApplicationValue(t *testing.T) {
 	config := Load(SampleSingleMSPChannelProfile, configtest.GetDevConfigDir())
 	config.Application = nil
 
-	require.EqualError(t, DoOutputChannelCreateTx(config, nil, "foo", configTxDest), "could not generate default config template: channel template configs must contain an application section")
+	err := DoOutputChannelCreateTx(config, nil, "foo", configTxDest)
+	require.EqualError(t, err, "could not generate default config template: "+
+		"channel template configs must contain an application section")
 }
 
 func TestInspectMissingConfigTx(t *testing.T) {
 	t.Parallel()
-	require.EqualError(t, DoInspectChannelCreateTx("ChannelCreateTxFileWhichDoesn'tReallyExist"), "could not read channel create tx: open ChannelCreateTxFileWhichDoesn'tReallyExist: no such file or directory")
+	err := DoInspectChannelCreateTx("ChannelCreateTxFileWhichDoesn'tReallyExist")
+	require.EqualError(t, err, "could not read channel create tx: "+
+		"open ChannelCreateTxFileWhichDoesn'tReallyExist: no such file or directory")
 }
 
 func TestInspectConfigTx(t *testing.T) {
@@ -113,7 +125,8 @@ func TestInspectConfigTx(t *testing.T) {
 
 	config := Load(SampleSingleMSPChannelProfile, configtest.GetDevConfigDir())
 
-	require.NoError(t, DoOutputChannelCreateTx(config, nil, "foo", configTxDest), "Good outputChannelCreateTx generation request")
+	err := DoOutputChannelCreateTx(config, nil, "foo", configTxDest)
+	require.NoError(t, err, "Good outputChannelCreateTx generation request")
 	require.NoError(t, DoInspectChannelCreateTx(configTxDest), "Good configtx inspection request")
 }
 
@@ -202,7 +215,7 @@ func TestFabricXGenesisBlock(t *testing.T) {
 			config.Orderer.Arma.Path = armaPath
 			require.NoError(t, DoOutputBlock(config, "foo", blockDest))
 
-			configBlock, err := ReadBlock(blockDest)
+			configBlock, err := protoutil.ReadBlockFromFile(blockDest)
 			require.NoError(t, err)
 			require.NotNil(t, configBlock)
 
