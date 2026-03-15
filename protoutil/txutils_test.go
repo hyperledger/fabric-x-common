@@ -7,7 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package protoutil_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/hex"
+	"encoding/pem"
 	"errors"
 	"strconv"
 	"strings"
@@ -15,10 +22,13 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/protoutil/identity/mocks"
 )
@@ -118,6 +128,85 @@ func TestGetPayloads(t *testing.T) {
 	_, _, err = protoutil.GetPayloads(txAction)
 	require.Error(t, err, "Expected error with malformed transaction action payload")
 	t.Logf("error6 [%s]", err)
+}
+
+func TestHashTLSCertificate(t *testing.T) {
+	t.Parallel()
+
+	t.Run("PEM encoded certificate", func(t *testing.T) {
+		t.Parallel()
+		_, certPEM := generateTestCertPEM(t, "CERTIFICATE")
+
+		hash, err := protoutil.HashTLSCertificate(certPEM)
+		require.NoError(t, err)
+		require.NotNil(t, hash)
+		require.Len(t, hash, 32) // SHA256 produces 32 bytes
+
+		// The hash should be deterministic.
+		hash2, err := protoutil.HashTLSCertificate(certPEM)
+		require.NoError(t, err)
+		require.Equal(t, hash, hash2)
+	})
+
+	t.Run("Hash matches server-side extraction", func(t *testing.T) {
+		t.Parallel()
+		certDER, certPEM := generateTestCertPEM(t, "CERTIFICATE")
+
+		// Simulate server-side: create a gRPC context with TLS peer info
+		cert, err := x509.ParseCertificate(certDER)
+		require.NoError(t, err)
+		ctx := peer.NewContext(t.Context(), &peer.Peer{
+			AuthInfo: credentials.TLSInfo{
+				State: tls.ConnectionState{PeerCertificates: []*x509.Certificate{cert}},
+			},
+		})
+		// Use ExtractRawCertificateFromContext (server-side).
+		rawCert := util.ExtractRawCertificateFromContext(ctx)
+		require.NotNil(t, rawCert)
+
+		// Hash the raw certificate (server-side).
+		serverHash := sha256.Sum256(rawCert)
+
+		// Hash using HashTLSCertificate (client-side).
+		clientHash, err := protoutil.HashTLSCertificate(certPEM)
+		require.NoError(t, err)
+
+		// Verify both hashes match.
+		require.Equal(t, serverHash[:], clientHash, "Client-side hash should match server-side hash")
+	})
+
+	_, wrongCertPEMBlockType := generateTestCertPEM(t, "EC PRIVATE KEY")
+	for _, tc := range []struct {
+		name string
+		cert []byte
+	}{
+		{name: "Empty certificate", cert: nil},
+		{name: "Invalid certificate", cert: []byte("not a valid PEM certificate")},
+		{name: "Wrong PEM block type", cert: wrongCertPEMBlockType},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			_, err := protoutil.HashTLSCertificate(tc.cert)
+			require.ErrorContains(t, err, "failed to find any PEM data in certificate input")
+		})
+	}
+}
+
+func generateTestCertPEM(t *testing.T, blockType string) (certDER, certPEM []byte) {
+	t.Helper()
+
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{}
+	certDER, err = x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
+	require.NoError(t, err)
+	require.NotNil(t, certDER)
+
+	certPEM = pem.EncodeToMemory(&pem.Block{Type: blockType, Bytes: certDER})
+	require.NotNil(t, certPEM)
+
+	return certDER, certPEM
 }
 
 func TestDeduplicateEndorsements(t *testing.T) {

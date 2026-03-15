@@ -25,4 +25,5 @@ TESTS*.xml
 .tox/
 .vagrant/
 .vscode
+.bob
 *coverage.profile
