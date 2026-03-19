@@ -10,10 +10,9 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/proto"
-
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
@@ -190,7 +189,8 @@ func TestArmaSharedConfigVariablyOpaqueMsg(t *testing.T) {
 				}
 				return marshaled
 			}(),
-		}}
+		},
+	}
 
 	var buffer bytes.Buffer
 	err := DeepMarshalJSON(&buffer, ct)

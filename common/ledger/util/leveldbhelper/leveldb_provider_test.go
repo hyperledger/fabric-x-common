@@ -11,11 +11,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb"
 
 	"github.com/hyperledger/fabric-x-common/common/ledger/dataformat"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestMain(m *testing.M) {

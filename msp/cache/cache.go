@@ -7,11 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package cache
 
 import (
+	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	pmsp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/api/msppb"
-	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/msp"
 )
 
@@ -21,7 +21,7 @@ const (
 	satisfiesPrincipalCacheSize  = 100
 )
 
-var mspLogger = util.MustGetLogger("msp")
+var mspLogger = flogging.MustGetLogger("msp")
 
 func New(o msp.MSP) (msp.MSP, error) {
 	mspLogger.Debugf("Creating Cache-MSP instance")

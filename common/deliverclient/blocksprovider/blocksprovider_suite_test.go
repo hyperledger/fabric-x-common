@@ -9,10 +9,9 @@ package blocksprovider_test
 import (
 	"testing"
 
+	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 )
 
 //go:generate counterfeiter -o fake/ab_deliver_client.go --fake-name DeliverClient . abDeliverClient

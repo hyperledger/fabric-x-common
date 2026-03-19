@@ -10,15 +10,15 @@ import (
 	"fmt"
 
 	"github.com/cockroachdb/errors"
+	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 
 	"github.com/hyperledger/fabric-x-common/common/policies"
-	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
-var logger = util.MustGetLogger("policy")
+var logger = flogging.MustGetLogger("policy")
 
 // PolicyChecker offers methods to check a signed proposal against a specific policy
 // defined in a channel or not.

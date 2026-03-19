@@ -11,13 +11,12 @@ import (
 	"path"
 	"time"
 
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
-
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/smartbft"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/types"
