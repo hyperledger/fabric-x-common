@@ -12,17 +12,17 @@ import (
 	"path/filepath"
 
 	"github.com/cockroachdb/errors"
+	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 
-	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/ordererext"
 	"github.com/hyperledger/fabric-x-common/protolator/protoext/peerext"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
-var logger = util.MustGetLogger("common.tools.configtxgen")
+var logger = flogging.MustGetLogger("common.tools.configtxgen")
 
 // GetOutputBlock generates a genesis block.
 func GetOutputBlock(config *Profile, channelID string) (*cb.Block, error) {
