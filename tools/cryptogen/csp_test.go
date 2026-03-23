@@ -83,8 +83,8 @@ func TestLoadPrivateKey_BadPEM(t *testing.T) {
 			)
 			require.NoError(t, writeErr, "failed to write to wrong encoding file")
 
-			_, err = loadPrivateKey(badPEMFile)
-			require.ErrorContains(t, err, test.errMsg)
+			_, loadErr := loadPrivateKey(badPEMFile)
+			require.ErrorContains(t, loadErr, test.errMsg)
 		})
 	}
 }

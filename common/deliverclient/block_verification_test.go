@@ -14,12 +14,12 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
+	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
-	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
@@ -41,7 +41,7 @@ func TestNewBlockVerificationAssistantFromConfig(t *testing.T) {
 	blockHeaderHash := protoutil.BlockHeaderHash(block.Header)
 
 	config := &common.Config{ChannelGroup: group}
-	logger := util.MustGetLogger("logger")
+	logger := flogging.MustGetLogger("logger")
 	blockVerifierAssembler := &BlockVerifierAssembler{Logger: logger, BCCSP: cryptoProvider}
 	require.NoError(t, err)
 
@@ -88,7 +88,7 @@ func TestNewBlockVerificationAssistantFromConfigBlock(t *testing.T) {
 	configBlock := blockWithGroups(group, "channel1", 0)
 	lastBlock := nonConfigBlock("channel1", 10)
 	nextBlock := nonConfigBlock("channel1", 11)
-	logger := util.MustGetLogger("logger")
+	logger := flogging.MustGetLogger("logger")
 
 	blockVerifierAssembler := &BlockVerifierAssembler{Logger: logger, BCCSP: cryptoProvider}
 	require.NoError(t, err)
@@ -152,7 +152,7 @@ func TestBlockVerificationAssistant_VerifyBlock(t *testing.T) {
 	config := &common.Config{ChannelGroup: group}
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
-	logger := util.MustGetLogger("logger")
+	logger := flogging.MustGetLogger("logger")
 
 	t.Run("success: verify config block ", func(t *testing.T) {
 		block := blockWithGroups(group, "channel1", 1)
@@ -361,7 +361,7 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 		configBlock := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
 		config := &common.Config{ChannelGroup: group}
-		logger := util.MustGetLogger("logger")
+		logger := flogging.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
@@ -381,7 +381,7 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 		configBlock := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
 		config := &common.Config{ChannelGroup: group}
-		logger := util.MustGetLogger("logger")
+		logger := flogging.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
@@ -411,7 +411,7 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 		configBlock := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
 		config := &common.Config{ChannelGroup: group}
-		logger := util.MustGetLogger("logger")
+		logger := flogging.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
@@ -431,7 +431,7 @@ func TestBlockVerificationAssistant_UpdateConfig(t *testing.T) {
 		configBlock := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
 		config := &common.Config{ChannelGroup: group}
-		logger := util.MustGetLogger("logger")
+		logger := flogging.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel2", cryptoProvider, logger)
 		require.NoError(t, err)
@@ -460,7 +460,7 @@ func TestBlockVerificationAssistant_UpdateBlockHeader(t *testing.T) {
 	block := blockWithGroups(group, "channel1", 1)
 	lastBlockHeaderHash := []byte{1, 2, 3}
 	config := &common.Config{ChannelGroup: group}
-	logger := util.MustGetLogger("logger")
+	logger := flogging.MustGetLogger("logger")
 
 	assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel2", cryptoProvider, logger)
 	require.NoError(t, err)
@@ -486,7 +486,7 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 		block := nonConfigBlock("channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
 		config := &common.Config{ChannelGroup: group}
-		logger := util.MustGetLogger("logger")
+		logger := flogging.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
@@ -502,7 +502,7 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 		block := nonConfigBlock("channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
 		config := &common.Config{ChannelGroup: group}
-		logger := util.MustGetLogger("logger")
+		logger := flogging.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
@@ -518,7 +518,7 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 		block := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
 		config := &common.Config{ChannelGroup: group}
-		logger := util.MustGetLogger("logger")
+		logger := flogging.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
@@ -535,7 +535,7 @@ func TestBlockVerificationAssistant_VerifyBlockAttestation(t *testing.T) {
 		block := blockWithGroups(group, "channel1", 1)
 		lastBlockHeaderHash := []byte{1, 2, 3}
 		config := &common.Config{ChannelGroup: group}
-		logger := util.MustGetLogger("logger")
+		logger := flogging.MustGetLogger("logger")
 
 		assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 		require.NoError(t, err)
@@ -561,7 +561,7 @@ func TestBlockVerificationAssistant_Clone(t *testing.T) {
 
 	lastBlockHeaderHash := []byte{1, 2, 3}
 	config := &common.Config{ChannelGroup: group}
-	logger := util.MustGetLogger("logger")
+	logger := flogging.MustGetLogger("logger")
 
 	assistant, err := NewBlockVerificationAssistantFromConfig(config, 0, lastBlockHeaderHash, "channel1", cryptoProvider, logger)
 	require.NoError(t, err)

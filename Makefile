@@ -52,15 +52,15 @@ help:
 ## Builds all tools
 tools: $(TOOLS_EXES)
 
-GO_TEST_FMT_FLAGS := -hide empty-packages
+go_test_cmd=gotestsum --rerun-fails=0 --format dots -- -v -timeout 30m  ./...
 
-## Run all tests
+## Run all tests.
 test: FORCE
-	@$(go_test) ./... | gotestfmt ${GO_TEST_FMT_FLAGS}
+	@$(go_test_cmd) -race
 
 # Runs test with coverage analysis.
 test-cover: FORCE
-	@$(go_test) -coverprofile=coverage.profile -coverpkg=./... ./... | gotestfmt ${GO_TEST_FMT_FLAGS}
+	@$(go_test_cmd) -coverprofile=coverage.profile -coverpkg=./...
 	@scripts/test-coverage-filter-files.sh
 
 cover-report: FORCE

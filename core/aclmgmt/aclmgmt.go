@@ -6,9 +6,11 @@ SPDX-License-Identifier: Apache-2.0
 
 package aclmgmt
 
-import "github.com/hyperledger/fabric-x-common/common/util"
+import (
+	"github.com/hyperledger/fabric-lib-go/common/flogging"
+)
 
-var aclLogger = util.MustGetLogger("aclmgmt")
+var aclLogger = flogging.MustGetLogger("aclmgmt")
 
 type ACLProvider interface {
 	// CheckACL checks the ACL for the resource for the channel using the

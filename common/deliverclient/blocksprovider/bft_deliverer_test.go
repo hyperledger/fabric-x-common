@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
+	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	. "github.com/onsi/gomega"
@@ -29,7 +30,6 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/blocksprovider/fake"
 	"github.com/hyperledger/fabric-x-common/common/deliverclient/orderers"
-	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/protoutil/identity/mocks"
 )
@@ -222,7 +222,7 @@ func (s *bftDelivererTestSetup) initialize(t *testing.T) {
 		Signer:                          s.fakeSigner,
 		DeliverStreamer:                 s.fakeDeliverStreamer,
 		CensorshipDetectorFactory:       s.fakeCensorshipMonFactory,
-		Logger:                          util.MustGetLogger("BFTDeliverer.test"),
+		Logger:                          flogging.MustGetLogger("BFTDeliverer.test"),
 		TLSCertHash:                     []byte("tls-cert-hash"),
 		MaxRetryInterval:                10 * time.Second,
 		InitialRetryInterval:            100 * time.Millisecond,

@@ -7,11 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package configtxgen
 
 import (
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
@@ -45,26 +44,26 @@ func hasModPolicySet(groupName string, cg *cb.ConfigGroup) error {
 	return nil
 }
 
-var _ = Describe("Integration", func() {
-	DescribeTable("successfully parses the profile",
+var _ = ginkgo.Describe("Integration", func() {
+	ginkgo.DescribeTable("successfully parses the profile",
 		func(profile string) {
 			config := Load(profile, configtest.GetDevConfigDir())
 			config.Capabilities = map[string]bool{"V2_0": true}
 			group, err := NewChannelGroup(config)
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 			cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			_, err = channelconfig.NewBundle("test", &cb.Config{
 				ChannelGroup: group,
 			}, cryptoProvider)
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 			err = hasModPolicySet("Channel", group)
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		},
-		Entry("Sample Insecure Solo Profile", SampleInsecureSoloProfile),
-		Entry("Sample Single MSP Solo Profile", SampleSingleMSPSoloProfile),
-		Entry("Sample DevMode Solo Profile", SampleDevModeSoloProfile),
+		ginkgo.Entry("Sample Insecure Solo Profile", SampleInsecureSoloProfile),
+		ginkgo.Entry("Sample Single MSP Solo Profile", SampleSingleMSPSoloProfile),
+		ginkgo.Entry("Sample DevMode Solo Profile", SampleDevModeSoloProfile),
 	)
 })

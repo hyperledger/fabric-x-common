@@ -10,6 +10,9 @@ on:
   pull_request:
     branches: [ "**" ]
 
+env:
+  FABRIC_LOGGING_SPEC: info:grpc=error
+
 jobs:
 
   lint:
@@ -39,8 +42,19 @@ jobs:
       - name: Build tools
         run: make tools
 
-  test:
-    name: Unit Tests
+  test-race:
+    name: Unit Tests (race)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: scripts/install-dev-dependencies.sh
+      - run: make test
+
+  test-cover:
+    name: Unit Tests (coverage)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
