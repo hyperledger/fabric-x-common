@@ -9,6 +9,7 @@ package protoutil_test
 import (
 	"crypto/sha256"
 	"encoding/asn1"
+	"encoding/binary"
 	"math"
 	"testing"
 
@@ -54,6 +55,74 @@ func TestNewBlock(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, asn1Bytes, protoutil.BlockHeaderBytes(block.Header), "Incorrect marshaled blockheader bytes")
 	require.Equal(t, headerHash[:], protoutil.BlockHeaderHash(block.Header), "Incorrect blockheader hash")
+}
+
+func TestComputeBlockDataHash(t *testing.T) {
+	// lengthDelimitedHash is a test helper that computes the expected
+	// length-delimited SHA-256 hash for the given data items.
+	lengthDelimitedHash := func(items [][]byte) []byte {
+		h := sha256.New()
+		lenBuf := make([]byte, 4)
+		for _, item := range items {
+			binary.BigEndian.PutUint32(lenBuf, uint32(len(item)))
+			h.Write(lenBuf)
+			h.Write(item)
+		}
+		return h.Sum(nil)
+	}
+
+	tests := []struct {
+		name string
+		data *cb.BlockData
+	}{
+		{
+			name: "empty block data (no items)",
+			data: &cb.BlockData{},
+		},
+		{
+			name: "single data item",
+			data: &cb.BlockData{Data: [][]byte{[]byte("hello")}},
+		},
+		{
+			name: "multiple data items",
+			data: &cb.BlockData{Data: [][]byte{[]byte("foo"), []byte("bar"), []byte("baz")}},
+		},
+		{
+			name: "empty data item (zero-length bytes)",
+			data: &cb.BlockData{Data: [][]byte{{}}},
+		},
+		{
+			name: "mixed empty and non-empty items",
+			data: &cb.BlockData{Data: [][]byte{{}, []byte("data"), {}}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hash := protoutil.ComputeBlockDataHash(tt.data)
+			expected := lengthDelimitedHash(tt.data.Data)
+			require.Equal(t, expected, hash)
+		})
+	}
+
+	t.Run("deterministic across calls", func(t *testing.T) {
+		data := &cb.BlockData{Data: [][]byte{[]byte("test")}}
+		require.Equal(t, protoutil.ComputeBlockDataHash(data), protoutil.ComputeBlockDataHash(data))
+	})
+
+	t.Run("length-delimited prevents ambiguity", func(t *testing.T) {
+		// [ab, cd] vs [a, bcd] produce the same simple concatenation
+		// but must produce different length-prefixed hashes.
+		data1 := &cb.BlockData{Data: [][]byte{[]byte("ab"), []byte("cd")}}
+		data2 := &cb.BlockData{Data: [][]byte{[]byte("a"), []byte("bcd")}}
+		require.NotEqual(t, protoutil.ComputeBlockDataHash(data1), protoutil.ComputeBlockDataHash(data2))
+	})
+
+	t.Run("nil block data panics", func(t *testing.T) {
+		require.Panics(t, func() {
+			protoutil.ComputeBlockDataHash(nil)
+		})
+	})
 }
 
 func TestGoodBlockHeaderBytes(t *testing.T) {
