@@ -84,9 +84,10 @@ func ComputeBlockDataHash(b *cb.BlockData) []byte {
 	sizeBuff := make([]byte, 4)
 	h := sha256.New()
 	for _, d := range b.Data {
+		//nolint:gosec // block data items are always well within uint32 range
 		binary.BigEndian.PutUint32(sizeBuff, uint32(len(d)))
-		h.Write(sizeBuff)
-		h.Write(d)
+		h.Write(sizeBuff) //nolint:revive // hash.Write never returns an error
+		h.Write(d)        //nolint:revive // hash.Write never returns an error
 	}
 	return h.Sum(nil)
 }

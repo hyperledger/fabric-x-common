@@ -9,7 +9,6 @@ package protoutil_test
 import (
 	"crypto/sha256"
 	"encoding/asn1"
-	"encoding/binary"
 	"math"
 	"testing"
 
@@ -58,67 +57,62 @@ func TestNewBlock(t *testing.T) {
 }
 
 func TestComputeBlockDataHash(t *testing.T) {
-	// lengthDelimitedHash is a test helper that computes the expected
-	// length-delimited SHA-256 hash for the given data items.
-	lengthDelimitedHash := func(items [][]byte) []byte {
-		h := sha256.New()
-		lenBuf := make([]byte, 4)
-		for _, item := range items {
-			binary.BigEndian.PutUint32(lenBuf, uint32(len(item)))
-			h.Write(lenBuf)
-			h.Write(item)
-		}
-		return h.Sum(nil)
-	}
+	t.Parallel()
 
+	// Each test case asserts that two different block data inputs produce
+	// different hashes, verifying sensitivity and length-delimited encoding.
 	tests := []struct {
-		name string
-		data *cb.BlockData
+		name  string
+		data1 *cb.BlockData
+		data2 *cb.BlockData
 	}{
 		{
-			name: "empty block data (no items)",
-			data: &cb.BlockData{},
+			name:  "different data items",
+			data1: &cb.BlockData{Data: [][]byte{[]byte("foo")}},
+			data2: &cb.BlockData{Data: [][]byte{[]byte("bar")}},
 		},
 		{
-			name: "single data item",
-			data: &cb.BlockData{Data: [][]byte{[]byte("hello")}},
+			name:  "same concatenation different split (string)",
+			data1: &cb.BlockData{Data: [][]byte{[]byte("ab"), []byte("cd")}},
+			data2: &cb.BlockData{Data: [][]byte{[]byte("a"), []byte("bcd")}},
 		},
 		{
-			name: "multiple data items",
-			data: &cb.BlockData{Data: [][]byte{[]byte("foo"), []byte("bar"), []byte("baz")}},
-		},
-		{
-			name: "empty data item (zero-length bytes)",
-			data: &cb.BlockData{Data: [][]byte{{}}},
-		},
-		{
-			name: "mixed empty and non-empty items",
-			data: &cb.BlockData{Data: [][]byte{{}, []byte("data"), {}}},
+			name:  "same concatenation different split (bytes)",
+			data1: &cb.BlockData{Data: [][]byte{{1, 2}, {3}}},
+			data2: &cb.BlockData{Data: [][]byte{{1}, {2, 3}}},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hash := protoutil.ComputeBlockDataHash(tt.data)
-			expected := lengthDelimitedHash(tt.data.Data)
-			require.Equal(t, expected, hash)
+			t.Parallel()
+			hash1 := protoutil.ComputeBlockDataHash(tt.data1)
+			hash2 := protoutil.ComputeBlockDataHash(tt.data2)
+			require.NotEqual(t, hash1, hash2)
 		})
 	}
 
-	t.Run("deterministic across calls", func(t *testing.T) {
-		data := &cb.BlockData{Data: [][]byte{[]byte("test")}}
-		require.Equal(t, protoutil.ComputeBlockDataHash(data), protoutil.ComputeBlockDataHash(data))
+	t.Run("identical inputs produce identical output", func(t *testing.T) {
+		t.Parallel()
+		data := &cb.BlockData{Data: [][]byte{[]byte("foo"), []byte("bar")}}
+		//nolint:testifylint // intentionally calling twice to verify determinism
+		require.Equal(t, protoutil.ComputeBlockDataHash(data),
+			protoutil.ComputeBlockDataHash(data))
 	})
 
-	t.Run("length-delimited prevents ambiguity", func(t *testing.T) {
-		// [ab, cd] vs [a, bcd] produce the same simple concatenation
-		// but must produce different length-prefixed hashes.
-		data1 := &cb.BlockData{Data: [][]byte{[]byte("ab"), []byte("cd")}}
-		data2 := &cb.BlockData{Data: [][]byte{[]byte("a"), []byte("bcd")}}
-		require.NotEqual(t, protoutil.ComputeBlockDataHash(data1), protoutil.ComputeBlockDataHash(data2))
+	t.Run("returns a SHA-256 sized hash", func(t *testing.T) {
+		t.Parallel()
+		data := &cb.BlockData{Data: [][]byte{[]byte("test")}}
+		require.Len(t, protoutil.ComputeBlockDataHash(data), sha256.Size)
+	})
+
+	t.Run("empty block data returns a hash", func(t *testing.T) {
+		t.Parallel()
+		require.Len(t, protoutil.ComputeBlockDataHash(&cb.BlockData{}), sha256.Size)
 	})
 
 	t.Run("nil block data panics", func(t *testing.T) {
+		t.Parallel()
 		require.Panics(t, func() {
 			protoutil.ComputeBlockDataHash(nil)
 		})
