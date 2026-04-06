@@ -56,6 +56,69 @@ func TestNewBlock(t *testing.T) {
 	require.Equal(t, headerHash[:], protoutil.BlockHeaderHash(block.Header), "Incorrect blockheader hash")
 }
 
+func TestComputeBlockDataHash(t *testing.T) {
+	t.Parallel()
+
+	// Each test case asserts that two different block data inputs produce
+	// different hashes, verifying sensitivity and length-delimited encoding.
+	tests := []struct {
+		name  string
+		data1 *cb.BlockData
+		data2 *cb.BlockData
+	}{
+		{
+			name:  "different data items",
+			data1: &cb.BlockData{Data: [][]byte{[]byte("foo")}},
+			data2: &cb.BlockData{Data: [][]byte{[]byte("bar")}},
+		},
+		{
+			name:  "same concatenation different split (string)",
+			data1: &cb.BlockData{Data: [][]byte{[]byte("ab"), []byte("cd")}},
+			data2: &cb.BlockData{Data: [][]byte{[]byte("a"), []byte("bcd")}},
+		},
+		{
+			name:  "same concatenation different split (bytes)",
+			data1: &cb.BlockData{Data: [][]byte{{1, 2}, {3}}},
+			data2: &cb.BlockData{Data: [][]byte{{1}, {2, 3}}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			hash1 := protoutil.ComputeBlockDataHash(tt.data1)
+			hash2 := protoutil.ComputeBlockDataHash(tt.data2)
+			require.NotEqual(t, hash1, hash2)
+		})
+	}
+
+	t.Run("identical inputs produce identical output", func(t *testing.T) {
+		t.Parallel()
+		data := &cb.BlockData{Data: [][]byte{[]byte("foo"), []byte("bar")}}
+		//nolint:testifylint // intentionally calling twice to verify determinism
+		require.Equal(t, protoutil.ComputeBlockDataHash(data),
+			protoutil.ComputeBlockDataHash(data))
+	})
+
+	t.Run("returns a SHA-256 sized hash", func(t *testing.T) {
+		t.Parallel()
+		data := &cb.BlockData{Data: [][]byte{[]byte("test")}}
+		require.Len(t, protoutil.ComputeBlockDataHash(data), sha256.Size)
+	})
+
+	t.Run("empty block data returns a hash", func(t *testing.T) {
+		t.Parallel()
+		require.Len(t, protoutil.ComputeBlockDataHash(&cb.BlockData{}), sha256.Size)
+	})
+
+	t.Run("nil block data panics", func(t *testing.T) {
+		t.Parallel()
+		require.Panics(t, func() {
+			protoutil.ComputeBlockDataHash(nil)
+		})
+	})
+}
+
 func TestGoodBlockHeaderBytes(t *testing.T) {
 	goodBlockHeader := &cb.BlockHeader{
 		Number:       1,
