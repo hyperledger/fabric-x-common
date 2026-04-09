@@ -192,8 +192,12 @@ type ConsensusMetadata struct {
 	Path string `yaml:"Path"`
 }
 
-var genesisDefaults = TopLevel{
-	Orderer: &Orderer{
+// newOrdererDefaults returns a new Orderer populated with default values.
+// A fresh copy is returned on every call to avoid shared mutable state across
+// concurrent callers (which would cause data races when the returned pointers
+// are later modified by the caller).
+func newOrdererDefaults() *Orderer {
+	return &Orderer{
 		OrdererType:  "solo",
 		BatchTimeout: 2 * time.Second,
 		BatchSize: BatchSize{
@@ -228,7 +232,7 @@ var genesisDefaults = TopLevel{
 			SpeedUpViewChange:         smartbfttypes.DefaultConfig.SpeedUpViewChange,
 		},
 		Arma: &ConsensusMetadata{},
-	},
+	}
 }
 
 // LoadTopLevel simply loads the configtx.yaml file into the structs above and
@@ -337,24 +341,28 @@ func (org *Organization) completeInitialization(configDir string) {
 }
 
 func (ord *Orderer) completeInitialization(configDir string) {
+	// Obtain a fresh copy of defaults on every call so that pointer fields are
+	// never shared between concurrent callers, preventing data races.
+	defaults := newOrdererDefaults()
+
 loop:
 	for {
 		switch {
 		case ord.OrdererType == "":
-			logger.Infof("Orderer.OrdererType unset, setting to %v", genesisDefaults.Orderer.OrdererType)
-			ord.OrdererType = genesisDefaults.Orderer.OrdererType
+			logger.Infof("Orderer.OrdererType unset, setting to %v", defaults.OrdererType)
+			ord.OrdererType = defaults.OrdererType
 		case ord.BatchTimeout == 0:
-			logger.Infof("Orderer.BatchTimeout unset, setting to %s", genesisDefaults.Orderer.BatchTimeout)
-			ord.BatchTimeout = genesisDefaults.Orderer.BatchTimeout
+			logger.Infof("Orderer.BatchTimeout unset, setting to %s", defaults.BatchTimeout)
+			ord.BatchTimeout = defaults.BatchTimeout
 		case ord.BatchSize.MaxMessageCount == 0:
-			logger.Infof("Orderer.BatchSize.MaxMessageCount unset, setting to %v", genesisDefaults.Orderer.BatchSize.MaxMessageCount)
-			ord.BatchSize.MaxMessageCount = genesisDefaults.Orderer.BatchSize.MaxMessageCount
+			logger.Infof("Orderer.BatchSize.MaxMessageCount unset, setting to %v", defaults.BatchSize.MaxMessageCount)
+			ord.BatchSize.MaxMessageCount = defaults.BatchSize.MaxMessageCount
 		case ord.BatchSize.AbsoluteMaxBytes == 0:
-			logger.Infof("Orderer.BatchSize.AbsoluteMaxBytes unset, setting to %v", genesisDefaults.Orderer.BatchSize.AbsoluteMaxBytes)
-			ord.BatchSize.AbsoluteMaxBytes = genesisDefaults.Orderer.BatchSize.AbsoluteMaxBytes
+			logger.Infof("Orderer.BatchSize.AbsoluteMaxBytes unset, setting to %v", defaults.BatchSize.AbsoluteMaxBytes)
+			ord.BatchSize.AbsoluteMaxBytes = defaults.BatchSize.AbsoluteMaxBytes
 		case ord.BatchSize.PreferredMaxBytes == 0:
-			logger.Infof("Orderer.BatchSize.PreferredMaxBytes unset, setting to %v", genesisDefaults.Orderer.BatchSize.PreferredMaxBytes)
-			ord.BatchSize.PreferredMaxBytes = genesisDefaults.Orderer.BatchSize.PreferredMaxBytes
+			logger.Infof("Orderer.BatchSize.PreferredMaxBytes unset, setting to %v", defaults.BatchSize.PreferredMaxBytes)
+			ord.BatchSize.PreferredMaxBytes = defaults.BatchSize.PreferredMaxBytes
 		default:
 			break loop
 		}
@@ -371,31 +379,31 @@ loop:
 			logger.Panicf("%s configuration missing", EtcdRaft)
 		}
 		if ord.EtcdRaft.Options == nil {
-			logger.Infof("Orderer.EtcdRaft.Options unset, setting to %v", genesisDefaults.Orderer.EtcdRaft.Options)
-			ord.EtcdRaft.Options = genesisDefaults.Orderer.EtcdRaft.Options
+			logger.Infof("Orderer.EtcdRaft.Options unset, setting to %v", defaults.EtcdRaft.Options)
+			ord.EtcdRaft.Options = defaults.EtcdRaft.Options
 		}
 	second_loop:
 		for {
 			switch {
 			case ord.EtcdRaft.Options.TickInterval == "":
-				logger.Infof("Orderer.EtcdRaft.Options.TickInterval unset, setting to %v", genesisDefaults.Orderer.EtcdRaft.Options.TickInterval)
-				ord.EtcdRaft.Options.TickInterval = genesisDefaults.Orderer.EtcdRaft.Options.TickInterval
+				logger.Infof("Orderer.EtcdRaft.Options.TickInterval unset, setting to %v", defaults.EtcdRaft.Options.TickInterval)
+				ord.EtcdRaft.Options.TickInterval = defaults.EtcdRaft.Options.TickInterval
 
 			case ord.EtcdRaft.Options.ElectionTick == 0:
-				logger.Infof("Orderer.EtcdRaft.Options.ElectionTick unset, setting to %v", genesisDefaults.Orderer.EtcdRaft.Options.ElectionTick)
-				ord.EtcdRaft.Options.ElectionTick = genesisDefaults.Orderer.EtcdRaft.Options.ElectionTick
+				logger.Infof("Orderer.EtcdRaft.Options.ElectionTick unset, setting to %v", defaults.EtcdRaft.Options.ElectionTick)
+				ord.EtcdRaft.Options.ElectionTick = defaults.EtcdRaft.Options.ElectionTick
 
 			case ord.EtcdRaft.Options.HeartbeatTick == 0:
-				logger.Infof("Orderer.EtcdRaft.Options.HeartbeatTick unset, setting to %v", genesisDefaults.Orderer.EtcdRaft.Options.HeartbeatTick)
-				ord.EtcdRaft.Options.HeartbeatTick = genesisDefaults.Orderer.EtcdRaft.Options.HeartbeatTick
+				logger.Infof("Orderer.EtcdRaft.Options.HeartbeatTick unset, setting to %v", defaults.EtcdRaft.Options.HeartbeatTick)
+				ord.EtcdRaft.Options.HeartbeatTick = defaults.EtcdRaft.Options.HeartbeatTick
 
 			case ord.EtcdRaft.Options.MaxInflightBlocks == 0:
-				logger.Infof("Orderer.EtcdRaft.Options.MaxInflightBlocks unset, setting to %v", genesisDefaults.Orderer.EtcdRaft.Options.MaxInflightBlocks)
-				ord.EtcdRaft.Options.MaxInflightBlocks = genesisDefaults.Orderer.EtcdRaft.Options.MaxInflightBlocks
+				logger.Infof("Orderer.EtcdRaft.Options.MaxInflightBlocks unset, setting to %v", defaults.EtcdRaft.Options.MaxInflightBlocks)
+				ord.EtcdRaft.Options.MaxInflightBlocks = defaults.EtcdRaft.Options.MaxInflightBlocks
 
 			case ord.EtcdRaft.Options.SnapshotIntervalSize == 0:
-				logger.Infof("Orderer.EtcdRaft.Options.SnapshotIntervalSize unset, setting to %v", genesisDefaults.Orderer.EtcdRaft.Options.SnapshotIntervalSize)
-				ord.EtcdRaft.Options.SnapshotIntervalSize = genesisDefaults.Orderer.EtcdRaft.Options.SnapshotIntervalSize
+				logger.Infof("Orderer.EtcdRaft.Options.SnapshotIntervalSize unset, setting to %v", defaults.EtcdRaft.Options.SnapshotIntervalSize)
+				ord.EtcdRaft.Options.SnapshotIntervalSize = defaults.EtcdRaft.Options.SnapshotIntervalSize
 
 			case len(ord.EtcdRaft.Consenters) == 0:
 				logger.Panicf("%s configuration did not specify any consenter", EtcdRaft)
@@ -436,14 +444,14 @@ loop:
 		}
 	case BFT:
 		if ord.SmartBFT == nil {
-			logger.Infof("Orderer.SmartBFT.Options unset, setting to %v", genesisDefaults.Orderer.SmartBFT)
-			ord.SmartBFT = genesisDefaults.Orderer.SmartBFT
+			logger.Infof("Orderer.SmartBFT.Options unset, setting to %v", defaults.SmartBFT)
+			ord.SmartBFT = defaults.SmartBFT
 		}
 		ord.translateConsenterMapping(configDir, BFT)
 	case Arma:
 		if ord.Arma == nil {
-			logger.Infof("Orderer.Arma unset, setting to %v", genesisDefaults.Orderer.Arma)
-			ord.Arma = genesisDefaults.Orderer.Arma
+			logger.Infof("Orderer.Arma unset, setting to %v", defaults.Arma)
+			ord.Arma = defaults.Arma
 		}
 		if ord.Arma.Path != "" {
 			cf.TranslatePathInPlace(configDir, &ord.Arma.Path)

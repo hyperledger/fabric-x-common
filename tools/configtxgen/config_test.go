@@ -7,10 +7,12 @@ SPDX-License-Identifier: Apache-2.0
 package configtxgen
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
 	"github.com/hyperledger/fabric-x-common/core/config/configtest"
@@ -87,7 +89,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 		}
 		profile.CompleteInitialization(devConfigDir)
 
-		require.Equal(t, profile.Orderer.OrdererType, genesisDefaults.Orderer.OrdererType)
+		require.Equal(t, profile.Orderer.OrdererType, newOrdererDefaults().OrdererType)
 	})
 
 	t.Run("unknown orderer type", func(t *testing.T) {
@@ -197,7 +199,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 					"Client TLS cert path should be correctly set")
 
 				// specific assertion for this test context
-				require.Equal(t, profile.Orderer.EtcdRaft.Options, genesisDefaults.Orderer.EtcdRaft.Options,
+				require.True(t, proto.Equal(profile.Orderer.EtcdRaft.Options, newOrdererDefaults().EtcdRaft.Options),
 					"Options should be set to the default value")
 			})
 
@@ -212,7 +214,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 				// specific assertions for this test context
 				require.Equal(t, profile.Orderer.EtcdRaft.Options.HeartbeatTick, heartbeatTick,
 					"HeartbeatTick should be set to the specified value")
-				require.Equal(t, profile.Orderer.EtcdRaft.Options.ElectionTick, genesisDefaults.Orderer.EtcdRaft.Options.ElectionTick,
+				require.Equal(t, profile.Orderer.EtcdRaft.Options.ElectionTick, newOrdererDefaults().EtcdRaft.Options.ElectionTick,
 					"ElectionTick should be set to the default value")
 			})
 
@@ -227,7 +229,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 				// specific assertions for this test context
 				require.Equal(t, profile.Orderer.EtcdRaft.Options.ElectionTick, electionTick,
 					"ElectionTick should be set to the specified value")
-				require.Equal(t, profile.Orderer.EtcdRaft.Options.HeartbeatTick, genesisDefaults.Orderer.EtcdRaft.Options.HeartbeatTick,
+				require.Equal(t, profile.Orderer.EtcdRaft.Options.HeartbeatTick, newOrdererDefaults().EtcdRaft.Options.HeartbeatTick,
 					"HeartbeatTick should be set to the default value")
 			})
 
@@ -286,4 +288,30 @@ func TestLoadConfigCache(t *testing.T) {
 	updated, err = c.load(cfg, configPath)
 	require.NoError(t, err)
 	require.NotEqual(t, initial, updated, "expected %#v to not equal %#v", updated, initial)
+}
+
+// TestCompleteInitializationConcurrent verifies that calling CompleteInitialization
+// from multiple goroutines simultaneously does not cause data races.
+// Run with: go test -race ./tools/configtxgen/...
+func TestCompleteInitializationConcurrent(t *testing.T) {
+	devConfigDir := configtest.GetDevConfigDir()
+
+	const goroutines = 20
+	var wg sync.WaitGroup
+	wg.Add(goroutines)
+
+	for i := 0; i < goroutines; i++ {
+		go func() {
+			defer wg.Done()
+			profile := &Profile{
+				Orderer: &Orderer{
+					OrdererType: "",
+				},
+			}
+			profile.CompleteInitialization(devConfigDir)
+			require.Equal(t, newOrdererDefaults().OrdererType, profile.Orderer.OrdererType)
+		}()
+	}
+
+	wg.Wait()
 }
