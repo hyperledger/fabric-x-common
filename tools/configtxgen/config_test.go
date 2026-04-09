@@ -87,7 +87,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 		}
 		profile.CompleteInitialization(devConfigDir)
 
-		require.Equal(t, profile.Orderer.OrdererType, genesisDefaults.Orderer.OrdererType)
+		require.Equal(t, profile.Orderer.OrdererType, genesisOrdererDefaults().OrdererType)
 	})
 
 	t.Run("unknown orderer type", func(t *testing.T) {
@@ -197,7 +197,8 @@ func TestConsensusSpecificInit(t *testing.T) {
 					"Client TLS cert path should be correctly set")
 
 				// specific assertion for this test context
-				require.Equal(t, profile.Orderer.EtcdRaft.Options, genesisDefaults.Orderer.EtcdRaft.Options,
+				expected := genesisOrdererDefaults().EtcdRaft.Options
+				require.EqualExportedValues(t, expected, profile.Orderer.EtcdRaft.Options,
 					"Options should be set to the default value")
 			})
 
@@ -212,7 +213,8 @@ func TestConsensusSpecificInit(t *testing.T) {
 				// specific assertions for this test context
 				require.Equal(t, profile.Orderer.EtcdRaft.Options.HeartbeatTick, heartbeatTick,
 					"HeartbeatTick should be set to the specified value")
-				require.Equal(t, profile.Orderer.EtcdRaft.Options.ElectionTick, genesisDefaults.Orderer.EtcdRaft.Options.ElectionTick,
+				require.Equal(t, profile.Orderer.EtcdRaft.Options.ElectionTick,
+					genesisOrdererDefaults().EtcdRaft.Options.ElectionTick,
 					"ElectionTick should be set to the default value")
 			})
 
@@ -227,7 +229,8 @@ func TestConsensusSpecificInit(t *testing.T) {
 				// specific assertions for this test context
 				require.Equal(t, profile.Orderer.EtcdRaft.Options.ElectionTick, electionTick,
 					"ElectionTick should be set to the specified value")
-				require.Equal(t, profile.Orderer.EtcdRaft.Options.HeartbeatTick, genesisDefaults.Orderer.EtcdRaft.Options.HeartbeatTick,
+				require.Equal(t, profile.Orderer.EtcdRaft.Options.HeartbeatTick,
+					genesisOrdererDefaults().EtcdRaft.Options.HeartbeatTick,
 					"HeartbeatTick should be set to the default value")
 			})
 
