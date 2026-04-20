@@ -74,13 +74,13 @@ func PrepareBlockHeaderAndMetadata(block *common.Block, p BlockPrepareParameters
 	// 2. The value to be signed includes the OrdererBlockMetadata bytes and the Block Header
 	// Fabric 3.0 signs the concatenation of (MetadataValue + Header + BlockHeader)
 	// where Header is either SignatureHeader (non-BFT) or IdentifierHeader (BFT).
-	sigs := make([]*common.MetadataSignature, len(p.ConsenterSigners))
+	sigs := make([]*common.MetadataSignature, 0, len(p.ConsenterSigners))
 	for i, signer := range p.ConsenterSigners {
-		var headerBytes []byte
+		var sig common.MetadataSignature
 
 		if p.UseIdentifierHeader {
 			// BFT mode: use IdentifierHeader
-			headerBytes = protoutil.MarshalOrPanic(&common.IdentifierHeader{Identifier: p.ConsenterIDs[i]})
+			sig.IdentifierHeader = protoutil.MarshalOrPanic(&common.IdentifierHeader{Identifier: p.ConsenterIDs[i]})
 		} else {
 			// Non-BFT mode: use SignatureHeader
 			creator, err := signer.Serialize()
@@ -88,28 +88,20 @@ func PrepareBlockHeaderAndMetadata(block *common.Block, p BlockPrepareParameters
 				logger.Warnf("failed to serialize signer: %v", err)
 				continue
 			}
-			headerBytes = protoutil.MarshalOrPanic(&common.SignatureHeader{Creator: creator})
+			sig.SignatureHeader = protoutil.MarshalOrPanic(&common.SignatureHeader{Creator: creator})
 		}
 
 		// Concat: MetadataValue + IdentifierHeader/SignatureHeader + BlockHeader
-		signingPayload := slices.Concat(ordererMetadataBytes, headerBytes, blockHeaderBytes)
-		signature, err := signer.Sign(signingPayload)
+		signingPayload := slices.Concat(
+			ordererMetadataBytes, sig.IdentifierHeader, sig.SignatureHeader, blockHeaderBytes,
+		)
+		var err error
+		sig.Signature, err = signer.Sign(signingPayload)
 		if err != nil {
 			logger.Warnf("failed to sign orderer: %v", err)
 			continue
 		}
-
-		if p.UseIdentifierHeader {
-			sigs[i] = &common.MetadataSignature{
-				IdentifierHeader: headerBytes,
-				Signature:        signature,
-			}
-		} else {
-			sigs[i] = &common.MetadataSignature{
-				SignatureHeader: headerBytes,
-				Signature:       signature,
-			}
-		}
+		sigs = append(sigs, &sig)
 	}
 
 	// 3. Assemble the final Metadata structure at the SIGNATURES index
