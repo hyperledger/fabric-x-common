@@ -287,10 +287,10 @@ func createConsenter(o *OrganizationParameters, ids []uint32) ([]*configtxgen.Co
 func getOrgPath(o *OrganizationParameters) string {
 	switch orgOU(o) {
 	case PeerOU:
-		return path.Join(PeerOrganizationsDir, o.Name)
+		return path.Join(PeerOrganizationsDir, o.Domain)
 	case OrdererOU:
-		return path.Join(OrdererOrganizationsDir, o.Name)
+		return path.Join(OrdererOrganizationsDir, o.Domain)
 	default:
-		return path.Join(GenericOrganizationsDir, o.Name)
+		return path.Join(GenericOrganizationsDir, o.Domain)
 	}
 }

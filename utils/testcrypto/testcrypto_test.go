@@ -161,7 +161,7 @@ func TestCreateOrExtendConfigBlockWithCrypto(t *testing.T) { //nolint:gocognit
 		require.NoError(t, err)
 
 		// Verify orderer node directories exist with correct names
-		ordererOrgPath := filepath.Join(cryptoPath, cryptogen.OrdererOrganizationsDir, "orderer-org-0", "orderers")
+		ordererOrgPath := filepath.Join(cryptoPath, cryptogen.OrdererOrganizationsDir, "orderer-org-0.com", "orderers")
 		require.DirExists(t, ordererOrgPath)
 
 		entries, err := os.ReadDir(ordererOrgPath)
@@ -351,7 +351,7 @@ func TestGetSigningIdentities(t *testing.T) {
 		require.NoError(t, err)
 
 		peerMspDirs := GetPeersMspDirs(cryptoPath)
-		ordererMspDirs := GetOrdererMspDirs(cryptoPath)
+		ordererMspDirs := GetConsenterMspDirs(cryptoPath)
 		allMspDirs := make([]*msp.DirLoadParameters, 0, len(peerMspDirs)+len(ordererMspDirs))
 		allMspDirs = append(allMspDirs, peerMspDirs...)
 		allMspDirs = append(allMspDirs, ordererMspDirs...)
@@ -437,7 +437,7 @@ func TestMspDirectoryRetrieval(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		mspDirs := GetOrdererMspDirs(cryptoPath)
+		mspDirs := GetConsenterMspDirs(cryptoPath)
 		require.Len(t, mspDirs, 3)
 
 		for i, mspDir := range mspDirs {
@@ -473,8 +473,8 @@ func TestMspDirectoryRetrieval(t *testing.T) {
 		t.Parallel()
 
 		// Non-existent paths
-		require.Nil(t, GetPeersMspDirs("/non/existent/path"))
-		require.Nil(t, GetOrdererMspDirs("/non/existent/path"))
+		require.Empty(t, GetPeersMspDirs("/non/existent/path"))
+		require.Empty(t, GetConsenterMspDirs("/non/existent/path"))
 
 		// Empty directories
 		cryptoPath := t.TempDir()
@@ -485,7 +485,7 @@ func TestMspDirectoryRetrieval(t *testing.T) {
 		require.NoError(t, os.MkdirAll(ordererOrgPath, 0o750))
 
 		require.Empty(t, GetPeersMspDirs(cryptoPath))
-		require.Empty(t, GetOrdererMspDirs(cryptoPath))
+		require.Empty(t, GetConsenterMspDirs(cryptoPath))
 	})
 }
 
@@ -503,9 +503,7 @@ func TestGetMspDirs(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		peerOrgPath := filepath.Join(cryptoPath, cryptogen.PeerOrganizationsDir)
-		mspDirs := GetMspDirs(peerOrgPath)
-
+		mspDirs := GetPeersMspDirs(cryptoPath)
 		require.Len(t, mspDirs, 2)
 		for _, mspDir := range mspDirs {
 			require.NotNil(t, mspDir)
@@ -516,15 +514,18 @@ func TestGetMspDirs(t *testing.T) {
 
 	t.Run("directory filtering", func(t *testing.T) {
 		t.Parallel()
-		dirPath := t.TempDir()
+		cryptoPath := t.TempDir()
+
+		_, err := CreateOrExtendConfigBlockWithCrypto(cryptoPath, &ConfigBlock{
+			ChannelID:             "test-channel",
+			PeerOrganizationCount: 3,
+		})
+		require.NoError(t, err)
 
 		// Create mixed content
-		require.NoError(t, os.WriteFile(filepath.Join(dirPath, "file.txt"), []byte("content"), 0o600))
-		require.NoError(t, os.Mkdir(filepath.Join(dirPath, "org1"), 0o750))
-		require.NoError(t, os.Mkdir(filepath.Join(dirPath, "org2"), 0o750))
-		require.NoError(t, os.Mkdir(filepath.Join(dirPath, "org3"), 0o750))
+		require.NoError(t, os.WriteFile(filepath.Join(cryptoPath, "file.txt"), []byte("content"), 0o600))
 
-		mspDirs := GetMspDirs(dirPath)
+		mspDirs := GetPeersMspDirs(cryptoPath)
 		require.Len(t, mspDirs, 3)
 
 		orgNames := make(map[string]any)
@@ -532,26 +533,26 @@ func TestGetMspDirs(t *testing.T) {
 			orgNames[mspDir.MspName] = nil
 		}
 
-		require.Contains(t, orgNames, "org1")
-		require.Contains(t, orgNames, "org2")
-		require.Contains(t, orgNames, "org3")
+		require.Contains(t, orgNames, "peer-org-0")
+		require.Contains(t, orgNames, "peer-org-1")
+		require.Contains(t, orgNames, "peer-org-2")
 	})
 
 	t.Run("edge cases", func(t *testing.T) {
 		t.Parallel()
 
 		// Non-existent path
-		require.Nil(t, GetMspDirs("/non/existent/path"))
+		require.Empty(t, getMspDirs("/non/existent/path"))
 
 		// Empty directory
 		emptyPath := t.TempDir()
-		require.Empty(t, GetMspDirs(emptyPath))
+		require.Empty(t, getMspDirs(emptyPath))
 
 		// Directory with only files
 		filesOnlyPath := t.TempDir()
 		require.NoError(t, os.WriteFile(filepath.Join(filesOnlyPath, "file1.txt"), []byte("content"), 0o600))
 		require.NoError(t, os.WriteFile(filepath.Join(filesOnlyPath, "file2.txt"), []byte("content"), 0o600))
-		require.Empty(t, GetMspDirs(filesOnlyPath))
+		require.Empty(t, getMspDirs(filesOnlyPath))
 	})
 }
 
