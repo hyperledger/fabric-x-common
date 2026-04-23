@@ -48,15 +48,15 @@ func TestMakeConfig(t *testing.T) {
 		4: "peer-org-4",
 	}
 	orgDirs := map[int]string{
-		1: filepath.Join(GenericOrganizationsDir, orgNames[1]),
-		2: filepath.Join(OrdererOrganizationsDir, orgNames[2]),
-		3: filepath.Join(PeerOrganizationsDir, orgNames[3]),
-		4: filepath.Join(PeerOrganizationsDir, orgNames[4]),
+		1: filepath.Join(GenericOrganizationsDir, orgNames[1]+".com"),
+		2: filepath.Join(OrdererOrganizationsDir, orgNames[2]+".com"),
+		3: filepath.Join(PeerOrganizationsDir, orgNames[3]+".com"),
+		4: filepath.Join(PeerOrganizationsDir, orgNames[4]+".com"),
 	}
 	// Add all users.
 	for orgDir := range maps.Values(orgDirs) {
 		for _, n := range []string{"client", "Admin"} {
-			expectedDirs = append(expectedDirs, filepath.Join(orgDir, "users", n+"@"+path.Base(orgDir)+".com", "msp"))
+			expectedDirs = append(expectedDirs, filepath.Join(orgDir, "users", n+"@"+path.Base(orgDir), "msp"))
 		}
 	}
 	// Add all committer nodes to the peer organizations.
@@ -216,9 +216,9 @@ func TestMakeConfig(t *testing.T) {
 	orgNames[5] = "peer-org-5"
 	orgNames[6] = "peer-org-6"
 	orgNames[7] = "peer-org-7"
-	orgDirs[5] = filepath.Join(PeerOrganizationsDir, orgNames[5])
-	orgDirs[6] = filepath.Join(PeerOrganizationsDir, orgNames[6])
-	orgDirs[7] = filepath.Join(PeerOrganizationsDir, orgNames[7])
+	orgDirs[5] = filepath.Join(PeerOrganizationsDir, orgNames[5]+".com")
+	orgDirs[6] = filepath.Join(PeerOrganizationsDir, orgNames[6]+".com")
+	orgDirs[7] = filepath.Join(PeerOrganizationsDir, orgNames[7]+".com")
 	endorsers = append(endorsers, loadMSPs(t, endorserDir(5), endorserDir(6), endorserDir(7))...)
 
 	requireSign(t, bundle2, "Application/Endorsement", endorsers...)
@@ -240,12 +240,12 @@ func TestCryptoGenTLS(t *testing.T) {
 	testDir := t.TempDir()
 	defaultConfigBlock(t, testDir)
 
-	org2Node := path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2", OrdererNodesDir, "assembler")
-	org3Node := path.Join(testDir, PeerOrganizationsDir, "peer-org-3", PeerNodesDir, "committer")
+	org2Node := path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2.com", OrdererNodesDir, "assembler")
+	org3Node := path.Join(testDir, PeerOrganizationsDir, "peer-org-3.com", PeerNodesDir, "committer")
 
-	org2Ca := buildCertPool(t, path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2",
+	org2Ca := buildCertPool(t, path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2.com",
 		"tlsca", "tlsordering-org-2-CA-cert.pem"))
-	org3Ca := buildCertPool(t, path.Join(testDir, PeerOrganizationsDir, "peer-org-3",
+	org3Ca := buildCertPool(t, path.Join(testDir, PeerOrganizationsDir, "peer-org-3.com",
 		"tlsca", "tlspeer-org-3-CA-cert.pem"))
 
 	address := grpcServer(t, org2Node, org3Ca)
@@ -260,8 +260,8 @@ func TestConfigBlockTLS(t *testing.T) {
 	t.Parallel()
 	testDir := t.TempDir()
 	_, block, _ := defaultConfigBlock(t, testDir)
-	org2Node := path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2", OrdererNodesDir, "assembler")
-	org3Node := path.Join(testDir, PeerOrganizationsDir, "peer-org-3", PeerNodesDir, "committer")
+	org2Node := path.Join(testDir, OrdererOrganizationsDir, "ordering-org-2.com", OrdererNodesDir, "assembler")
+	org3Node := path.Join(testDir, PeerOrganizationsDir, "peer-org-3.com", PeerNodesDir, "committer")
 
 	bundle := readBundle(t, block)
 

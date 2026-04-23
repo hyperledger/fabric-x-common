@@ -18,13 +18,13 @@ import (
 )
 
 // GetPeersIdentities returns the peers' identities from a crypto path.
-func GetPeersIdentities(cryptoPath string) ([]msp.SigningIdentity, error) {
-	return GetSigningIdentities(GetPeersMspDirs(cryptoPath)...)
+func GetPeersIdentities(artifactsPath string) ([]msp.SigningIdentity, error) {
+	return GetSigningIdentities(GetPeersMspDirs(artifactsPath)...)
 }
 
 // GetConsenterIdentities returns the orderer consenters identities from a crypto path.
-func GetConsenterIdentities(cryptoPath string) ([]msp.SigningIdentity, error) {
-	return GetSigningIdentities(GetOrdererMspDirs(cryptoPath)...)
+func GetConsenterIdentities(artifactsPath string) ([]msp.SigningIdentity, error) {
+	return GetSigningIdentities(GetConsenterMspDirs(artifactsPath)...)
 }
 
 // GetSigningIdentities loads signing identities from the given MSP directories.
@@ -46,36 +46,41 @@ func GetSigningIdentities(mspDirs ...*msp.DirLoadParameters) ([]msp.SigningIdent
 // GetPeersMspDirs returns the peers' MSP directory path.
 // It discovers the client user directory by scanning the users/ directory
 // for an entry matching "client@*", rather than assuming a specific domain suffix.
-func GetPeersMspDirs(cryptoPath string) []*msp.DirLoadParameters {
-	peerOrgPath := path.Join(cryptoPath, cryptogen.PeerOrganizationsDir)
-	peerMspDirs := GetMspDirs(peerOrgPath)
-	for _, mspItem := range peerMspDirs {
-		usersDir := path.Join(mspItem.MspDir, "users")
-		entries, _ := os.ReadDir(usersDir)
+func GetPeersMspDirs(artifactsPath string) []*msp.DirLoadParameters {
+	peerOrgPath := path.Join(artifactsPath, cryptogen.PeerOrganizationsDir)
+	return getNodeMspDirs(peerOrgPath, "users", "client@")
+}
+
+// GetConsenterMspDirs returns the orderers' MSP directory path.
+func GetConsenterMspDirs(artifactsPath string) []*msp.DirLoadParameters {
+	ordererOrgPath := path.Join(artifactsPath, cryptogen.OrdererOrganizationsDir)
+	return getNodeMspDirs(ordererOrgPath, "orderers", "consenter")
+}
+
+// getNodeMspDirs returns the MSP directory for the given node type.
+func getNodeMspDirs(orgsPath, nodeSubDir, nodePrefix string) []*msp.DirLoadParameters {
+	orgMspDirs := getMspDirs(orgsPath)
+	nodeMspDirs := make([]*msp.DirLoadParameters, 0, len(orgMspDirs))
+	for _, mspItem := range orgMspDirs {
+		subDir := path.Join(mspItem.MspDir, nodeSubDir)
+		entries, _ := os.ReadDir(subDir)
 		for _, entry := range entries {
-			if entry.IsDir() && strings.HasPrefix(entry.Name(), "client@") {
-				mspItem.MspDir = path.Join(usersDir, entry.Name(), "msp")
-				break
+			if !entry.IsDir() || !strings.HasPrefix(entry.Name(), nodePrefix) {
+				continue
 			}
+			nodeMspDirs = append(nodeMspDirs, &msp.DirLoadParameters{
+				MspName: mspItem.MspName,
+				MspDir:  path.Join(subDir, entry.Name(), "msp"),
+			})
+			break
 		}
 	}
-	return peerMspDirs
+	return nodeMspDirs
 }
 
-// GetOrdererMspDirs returns the orderers' MSP directory path.
-func GetOrdererMspDirs(cryptoPath string) []*msp.DirLoadParameters {
-	ordererOrgPath := path.Join(cryptoPath, cryptogen.OrdererOrganizationsDir)
-	ordererMspDirs := GetMspDirs(ordererOrgPath)
-	for _, mspItem := range ordererMspDirs {
-		nodeName := "consenter-" + mspItem.MspName[len("orderer-"):]
-		mspItem.MspDir = path.Join(mspItem.MspDir, "orderers", nodeName, "msp")
-	}
-	return ordererMspDirs
-}
-
-// GetMspDirs returns the MSP dir parameter per organization in the path.
-func GetMspDirs(targetPath string) []*msp.DirLoadParameters {
-	dir, err := os.ReadDir(targetPath)
+// getMspDirs returns the MSP dir parameter per organization in the path.
+func getMspDirs(orgsPath string) []*msp.DirLoadParameters {
+	dir, err := os.ReadDir(orgsPath)
 	if err != nil {
 		return nil
 	}
@@ -84,10 +89,14 @@ func GetMspDirs(targetPath string) []*msp.DirLoadParameters {
 		if !dirEntry.IsDir() {
 			continue
 		}
-		orgName := dirEntry.Name()
+		dirName := dirEntry.Name()
+		orgName := dirName
+		if strings.HasSuffix(dirName, ".com") {
+			orgName = dirName[:len(dirName)-4]
+		}
 		mspDirs = append(mspDirs, &msp.DirLoadParameters{
 			MspName: orgName,
-			MspDir:  path.Join(targetPath, orgName),
+			MspDir:  path.Join(orgsPath, dirName),
 		})
 	}
 	return mspDirs

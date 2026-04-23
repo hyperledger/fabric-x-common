@@ -129,7 +129,7 @@ func allTrees(c *cryptoTree) []*orgCryptoTree {
 
 // newOrgCryptoTree creates a new organization tree.
 func newOrgCryptoTree(root string, org *OrgSpec) *orgCryptoTree {
-	root = filepath.Join(root, org.Name)
+	root = filepath.Join(root, org.Domain)
 	return &orgCryptoTree{
 		mspTree:       newMspTree(root),
 		OrgSpec:       org,
