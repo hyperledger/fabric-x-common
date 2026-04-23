@@ -9,6 +9,7 @@ package protoutil_test
 import (
 	"crypto/sha256"
 	"encoding/asn1"
+	"fmt"
 	"math"
 	"testing"
 
@@ -17,9 +18,14 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/msppb"
+	"github.com/hyperledger/fabric-x-common/api/types"
+	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	configtxtest "github.com/hyperledger/fabric-x-common/common/configtx/test"
+	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/protoutil/mocks"
+	"github.com/hyperledger/fabric-x-common/utils/testcrypto"
 )
 
 var testChannelID = "myuniquetestchainid"
@@ -506,6 +512,134 @@ func TestBlockSignatureVerifierByIdentifier(t *testing.T) {
 	require.Len(t, signatureSet, 2)
 	require.Equal(t, msppb.NewIdentity("msp1", []byte("identity1")), signatureSet[0].Identity)
 	require.Equal(t, msppb.NewIdentity("msp3", []byte("identity3")), signatureSet[1].Identity)
+}
+
+func TestBlockSignatureVerifierWithRealPolicy(t *testing.T) {
+	t.Parallel()
+
+	// We create a signer with a valid ID that produce invalid signatures.
+	_, _, fakeConsenterIDs, fakeSigners := makePolicyTestEnv(t, 1)
+	fakeSigner := fakeSigners[0]
+	fakeSignerID := fakeConsenterIDs[0]
+
+	for _, size := range []int{4, 7} {
+		t.Run(fmt.Sprintf("size=%d", size), func(t *testing.T) {
+			policy, consenters, consenterIDs, signers := makePolicyTestEnv(t, size)
+			signers = append(signers, fakeSigner)
+			consenterIDs = append(consenterIDs, fakeSignerID)
+
+			for _, tc := range []struct {
+				name                string
+				useIdentifierHeader bool
+			}{
+				{name: "with SignatureHeader", useIdentifierHeader: false},
+				{name: "with IdentifierHeader", useIdentifierHeader: true},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					t.Parallel()
+
+					// Create the verifier with the loaded policy.
+					v := protoutil.BlockSigVerifier{
+						Policy:     policy,
+						Consenters: consenters,
+						BFT:        tc.useIdentifierHeader,
+					}
+
+					p := testcrypto.BlockPrepareParameters{
+						UseIdentifierHeader: tc.useIdentifierHeader,
+					}
+
+					testBlock := &cb.Block{Data: &cb.BlockData{Data: [][]byte{[]byte("tx-1"), []byte("tx-2")}}}
+
+					t.Logf("[V] Verifying block with %d/%d valid signatures", size, size)
+					p.ConsenterSigners = signers[:size]
+					p.ConsenterIDs = consenterIDs[:size]
+					signedBlock := testcrypto.PrepareBlockHeaderAndMetadata(testBlock, p)
+					require.NoError(t, v.Verify(signedBlock.Header, signedBlock.Metadata))
+
+					t.Logf("[V] Verifying block with %d/%d valid signatures", size-1, size)
+					p.ConsenterSigners = signers[:size-1]
+					p.ConsenterIDs = consenterIDs[:size-1]
+					signedBlock = testcrypto.PrepareBlockHeaderAndMetadata(testBlock, p)
+					require.NoError(t, v.Verify(signedBlock.Header, signedBlock.Metadata))
+
+					t.Logf("[V] Verifying block with %d/%d valid signatures and 1 bad signature", size-1, size)
+					p.ConsenterSigners = signers[1:]
+					p.ConsenterIDs = consenterIDs[1:]
+					signedBlock = testcrypto.PrepareBlockHeaderAndMetadata(testBlock, p)
+					require.NoError(t, v.Verify(signedBlock.Header, signedBlock.Metadata))
+
+					t.Logf("[X] Verifying block with %d/%d valid signatures", size/2, size)
+					p.ConsenterSigners = signers[:size/2]
+					p.ConsenterIDs = consenterIDs[:size/2]
+					signedBlock = testcrypto.PrepareBlockHeaderAndMetadata(testBlock, p)
+					require.Error(t, v.Verify(signedBlock.Header, signedBlock.Metadata))
+
+					t.Logf("[X] Verifying block with %d/%d valid signatures and 1 bad signature", size/2, size)
+					p.ConsenterSigners = signers[size-size/2:]
+					p.ConsenterIDs = consenterIDs[size-size/2:]
+					signedBlock = testcrypto.PrepareBlockHeaderAndMetadata(testBlock, p)
+					require.Error(t, v.Verify(signedBlock.Header, signedBlock.Metadata))
+				})
+			}
+		})
+	}
+}
+
+//nolint:ireturn,revive
+func makePolicyTestEnv(t *testing.T, size int) (policies.Policy, []*cb.Consenter, []uint32, []msp.SigningIdentity) {
+	t.Helper()
+	endpoints := make([]*types.OrdererEndpoint, size)
+	for i := range size {
+		id := uint32(i + 1) //nolint:gosec // int -> uint32.
+		endpoints[i] = &types.OrdererEndpoint{ID: id, Host: fmt.Sprintf("org-%d", id), Port: 7050}
+	}
+
+	targetPath := t.TempDir()
+	genesisBlock, err := testcrypto.CreateOrExtendConfigBlockWithCrypto(targetPath, &testcrypto.ConfigBlock{
+		OrdererEndpoints: endpoints,
+	})
+	require.NoError(t, err)
+
+	configMaterial, err := channelconfig.LoadConfigBlockMaterial(genesisBlock)
+	require.NoError(t, err)
+	require.NotNil(t, configMaterial)
+
+	policy, exists := configMaterial.Bundle.PolicyManager().GetPolicy(policies.BlockValidation)
+	require.True(t, exists)
+
+	oc, ok := configMaterial.Bundle.OrdererConfig()
+	require.True(t, ok)
+
+	bftEnabled := configMaterial.Bundle.ChannelConfig().Capabilities().ConsensusTypeBFT()
+	require.True(t, bftEnabled)
+	consenters := oc.Consenters()
+	require.Len(t, consenters, size)
+
+	allSigners, err := testcrypto.GetConsenterIdentities(targetPath)
+	require.NoError(t, err)
+	require.Len(t, allSigners, size)
+
+	// Order the consenters IDs and signers.
+	signers := make([]msp.SigningIdentity, size)
+	consenterIDs := make([]uint32, size)
+	for _, c := range consenters {
+		idx := int(c.Id - 1)
+		consenterIDs[idx] = c.Id
+		for _, s := range allSigners {
+			if s.GetIdentifier().Mspid == c.MspId {
+				signers[idx] = s
+				break
+			}
+		}
+	}
+	for _, s := range signers {
+		require.NotNil(t, s)
+	}
+	for _, id := range consenterIDs {
+		require.NotZero(t, id)
+	}
+	return policy, consenters, consenterIDs, signers
 }
 
 func TestBlockSignatureVerifierByCreator(t *testing.T) {
