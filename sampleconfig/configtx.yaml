@@ -453,7 +453,7 @@ Orderer: &OrdererDefaults
             Rule: MAJORITY Admins
         # BlockValidation specifies what signatures must be included in the block
         # from the orderer for the peer to validate it.
-        # For BFT-based orderers, BlockValidation is defined by the consenter set.
+        # For BFT-based orderers, BlockValidation is defined automatically by the consenter set.
         BlockValidation:
             Type: ImplicitMeta
             Rule: ANY Writers
@@ -747,8 +747,7 @@ Profiles:
         Orderer: &FabricXOrdererDefaults
             <<: *OrdererDefaults
             OrdererType: arma
-            Policies:
-                <<: *DefaultOrdererPolicies
+            Policies: *DefaultOrdererPolicies
             Organizations:
                 - <<: *SampleOrg
                   OrdererEndpoints:
