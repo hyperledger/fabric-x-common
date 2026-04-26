@@ -453,6 +453,7 @@ Orderer: &OrdererDefaults
             Rule: MAJORITY Admins
         # BlockValidation specifies what signatures must be included in the block
         # from the orderer for the peer to validate it.
+        # For BFT-based orderers, BlockValidation is defined automatically by the consenter set.
         BlockValidation:
             Type: ImplicitMeta
             Rule: ANY Writers
@@ -746,12 +747,7 @@ Profiles:
         Orderer: &FabricXOrdererDefaults
             <<: *OrdererDefaults
             OrdererType: arma
-            Policies:
-                <<: *DefaultOrdererPolicies
-                # We require MAJORITY for BFT.
-                BlockValidation:
-                    Type: ImplicitMeta
-                    Rule: MAJORITY Writers
+            Policies: *DefaultOrdererPolicies
             Organizations:
                 - <<: *SampleOrg
                   OrdererEndpoints:
@@ -762,7 +758,7 @@ Profiles:
                       #
                       # For this end, an orderer endpoints may contain the following fields:
                       # - host     (required) the party's host.
-                      # - port     (required) the party's post.
+                      # - port     (required) the party's port.
                       # - id       (optional) the orderer party ID (default: 0).
                       # - api      (optional) a list of supported APIs (default: ["broadcast", "deliver"]).
                       #
