@@ -72,15 +72,18 @@ func PrepareBlockHeaderAndMetadata(block *common.Block, p BlockPrepareParameters
 	blockHeaderBytes := protoutil.BlockHeaderBytes(block.Header)
 
 	// 2. The value to be signed includes the OrdererBlockMetadata bytes and the Block Header
-	// Fabric 3.0 signs the concatenation of (MetadataValue + Header + BlockHeader)
-	// where Header is either SignatureHeader (non-BFT) or IdentifierHeader (BFT).
+	// and a Header that is either SignatureHeader (non-BFT) or IdentifierHeader (BFT).
 	sigs := make([]*common.MetadataSignature, 0, len(p.ConsenterSigners))
 	for i, signer := range p.ConsenterSigners {
 		var sig common.MetadataSignature
-
+		messageToSign := &protoutil.MessageToSign{
+			BlockHeader:          blockHeaderBytes,
+			OrdererBlockMetadata: ordererMetadataBytes,
+		}
 		if p.UseIdentifierHeader {
 			// BFT mode: use IdentifierHeader
 			sig.IdentifierHeader = protoutil.MarshalOrPanic(&common.IdentifierHeader{Identifier: p.ConsenterIDs[i]})
+			messageToSign.IdentifierHeader = sig.IdentifierHeader
 		} else {
 			// Non-BFT mode: use SignatureHeader
 			creator, err := signer.Serialize()
@@ -89,14 +92,11 @@ func PrepareBlockHeaderAndMetadata(block *common.Block, p BlockPrepareParameters
 				continue
 			}
 			sig.SignatureHeader = protoutil.MarshalOrPanic(&common.SignatureHeader{Creator: creator})
+			messageToSign.IdentifierHeader = sig.SignatureHeader
 		}
 
-		// Concat: MetadataValue + IdentifierHeader/SignatureHeader + BlockHeader
-		signingPayload := slices.Concat(
-			ordererMetadataBytes, sig.IdentifierHeader, sig.SignatureHeader, blockHeaderBytes,
-		)
 		var err error
-		sig.Signature, err = signer.Sign(signingPayload)
+		sig.Signature, err = signer.Sign(messageToSign.ASN1MarshalOrPanic())
 		if err != nil {
 			logger.Warnf("failed to sign orderer: %v", err)
 			continue
