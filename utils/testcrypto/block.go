@@ -82,7 +82,8 @@ func PrepareBlockHeaderAndMetadata(block *common.Block, p BlockPrepareParameters
 		}
 		if p.UseIdentifierHeader {
 			// BFT mode: use IdentifierHeader
-			sig.IdentifierHeader = protoutil.MarshalOrPanic(&common.IdentifierHeader{Identifier: p.ConsenterIDs[i]})
+			identifierHeader := protoutil.NewIdentifierHeaderOrPanic(p.ConsenterIDs[i])
+			sig.IdentifierHeader = protoutil.MarshalOrPanic(identifierHeader)
 			messageToSign.IdentifierHeader = sig.IdentifierHeader
 		} else {
 			// Non-BFT mode: use SignatureHeader
