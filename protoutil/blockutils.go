@@ -22,6 +22,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/msppb"
+	"github.com/hyperledger/fabric-x-common/common/crypto"
 )
 
 var logger = flogging.MustGetLogger("protoutil")
@@ -411,4 +412,22 @@ func (m MessageToSign) ASN1MarshalOrPanic() []byte {
 		panic(err)
 	}
 	return mBytes
+}
+
+// ASN1Unmarshal unmarshals the message to sign.
+func (m *MessageToSign) ASN1Unmarshal(b []byte) error {
+	_, err := asn1.Unmarshal(b, m)
+	return err
+}
+
+// NewIdentifierHeaderOrPanic creates an IdentifierHeader with the given id and a nonce or panics on error.
+func NewIdentifierHeaderOrPanic(id uint32) *cb.IdentifierHeader {
+	nonce, err := crypto.GetRandomNonce()
+	if err != nil {
+		panic(err)
+	}
+	return &cb.IdentifierHeader{
+		Identifier: id,
+		Nonce:      nonce,
+	}
 }

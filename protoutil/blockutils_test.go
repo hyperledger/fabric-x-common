@@ -818,3 +818,56 @@ func TestVerifyTransactionsAreWellFormed(t *testing.T) {
 		})
 	}
 }
+
+func TestMessageToSignASN1MarshalUnmarshal(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		name string
+		msg  protoutil.MessageToSign
+	}{
+		{
+			name: "valid message with all fields",
+			msg: protoutil.MessageToSign{
+				IdentifierHeader:     []byte("identifier-header"),
+				BlockHeader:          []byte("block-header-data"),
+				OrdererBlockMetadata: []byte("orderer-metadata"),
+			},
+		},
+		{
+			name: "valid message with empty fields",
+			msg: protoutil.MessageToSign{
+				IdentifierHeader:     []byte{},
+				BlockHeader:          []byte{},
+				OrdererBlockMetadata: []byte{},
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Test ASN1MarshalOrPanic
+			marshaled := tt.msg.ASN1MarshalOrPanic()
+			require.NotNil(t, marshaled)
+			require.NotEmpty(t, marshaled)
+
+			// Test ASN1Unmarshal
+			var unmarshaled protoutil.MessageToSign
+			err := unmarshaled.ASN1Unmarshal(marshaled)
+			require.NoError(t, err)
+
+			// Verify the unmarshaled data matches the original
+			require.Equal(t, tt.msg.IdentifierHeader, unmarshaled.IdentifierHeader)
+			require.Equal(t, tt.msg.BlockHeader, unmarshaled.BlockHeader)
+			require.Equal(t, tt.msg.OrdererBlockMetadata, unmarshaled.OrdererBlockMetadata)
+		})
+	}
+
+	t.Run("unmarshal invalid data", func(t *testing.T) {
+		t.Parallel()
+
+		var msg protoutil.MessageToSign
+		err := msg.ASN1Unmarshal([]byte("invalid asn1 data"))
+		require.Error(t, err)
+	})
+}
