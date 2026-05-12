@@ -586,7 +586,7 @@ func TestBlockSignatureVerifierWithRealPolicy(t *testing.T) {
 	}
 }
 
-//nolint:ireturn,revive
+//nolint:ireturn,revive // interface return needed for test
 func makePolicyTestEnv(t *testing.T, size int) (policies.Policy, []*cb.Consenter, []uint32, []msp.SigningIdentity) {
 	t.Helper()
 	endpoints := make([]*types.OrdererEndpoint, size)
@@ -611,8 +611,7 @@ func makePolicyTestEnv(t *testing.T, size int) (policies.Policy, []*cb.Consenter
 	oc, ok := configMaterial.Bundle.OrdererConfig()
 	require.True(t, ok)
 
-	bftEnabled := configMaterial.Bundle.ChannelConfig().Capabilities().ConsensusTypeBFT()
-	require.True(t, bftEnabled)
+	require.Equal(t, "arma", oc.ConsensusType())
 	consenters := oc.Consenters()
 	require.Len(t, consenters, size)
 

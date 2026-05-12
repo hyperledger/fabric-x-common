@@ -488,14 +488,6 @@ var _ = ginkgo.Describe("Encoder", func() {
 				gomega.Expect(consenter2.Id).To(gomega.Equal(uint32(2)))
 				gomega.Expect(consenter2.ClientTlsCert).ToNot(gomega.BeNil())
 			})
-
-			ginkgo.It("requires V3_0", func() {
-				delete(channelCapabilities, "V3_0")
-				channelCapabilities["V2_0"] = true
-				_, err := NewOrdererGroup(conf, channelCapabilities)
-				gomega.Expect(err).To(gomega.MatchError("orderer type BFT must be used with V3_0 channel " +
-					"capability: map[V2_0:true]"))
-			})
 		})
 
 		ginkgo.Context("when the consensus type is unknown", func() {

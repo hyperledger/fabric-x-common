@@ -185,9 +185,6 @@ func NewChannelGroup(conf *Profile) (*cb.ConfigGroup, error) {
 //
 //nolint:gocognit // cognitive complexity 23.
 func NewOrdererGroup(conf *Orderer, channelCapabilities map[string]bool) (*cb.ConfigGroup, error) {
-	if conf.OrdererType == "BFT" && !channelCapabilities["V3_0"] {
-		return nil, errors.Errorf("orderer type BFT must be used with V3_0 channel capability: %v", channelCapabilities)
-	}
 	if len(conf.Addresses) > 0 && channelCapabilities["V3_0"] {
 		return nil, errors.Errorf("global orderer endpoints exist, but can not be used with V3_0 capability: %v", conf.Addresses)
 	}

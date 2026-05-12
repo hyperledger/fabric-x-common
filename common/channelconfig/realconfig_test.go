@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package channelconfig_test
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
@@ -34,8 +35,11 @@ func TestWithRealConfigTX(t *testing.T) {
 }
 
 func TestOrgSpecificOrdererEndpoints(t *testing.T) {
-	t.Run("could not create channel orderer config with empty organization endpoints", func(t *testing.T) {
-		conf := configtxgen.Load(configtxgen.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
+	t.Parallel()
+	t.Run("could not create arma orderer config with empty organization endpoints", func(t *testing.T) {
+		t.Parallel()
+		conf := configtxgen.Load(configtxgen.SampleFabricX, configtest.GetDevConfigDir())
+		conf.Orderer.Arma.Path = filepath.Join(configtest.GetDevConfigDir(), "arma_shared_config.pbbin")
 
 		cg, err := configtxgen.NewChannelGroup(conf)
 		require.NoError(t, err)
@@ -49,6 +53,7 @@ func TestOrgSpecificOrdererEndpoints(t *testing.T) {
 	})
 
 	t.Run("could not create channelgroup with empty organization endpoints", func(t *testing.T) {
+		t.Parallel()
 		conf := configtxgen.Load(configtxgen.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
 		conf.Capabilities = map[string]bool{"V3_0": true}
 		conf.Orderer.Organizations[0].OrdererEndpoints = nil
@@ -69,6 +74,7 @@ func TestOrgSpecificOrdererEndpoints(t *testing.T) {
 	})
 
 	t.Run("With V2_0 Capability", func(t *testing.T) {
+		t.Parallel()
 		conf := configtxgen.Load(configtxgen.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
 		conf.Capabilities = map[string]bool{"V2_0": true}
 		require.NotEmpty(t, conf.Orderer.Organizations[0].OrdererEndpoints)
@@ -88,6 +94,7 @@ func TestOrgSpecificOrdererEndpoints(t *testing.T) {
 	})
 
 	t.Run("no global address With V3_0 Capability", func(t *testing.T) {
+		t.Parallel()
 		conf := configtxgen.Load(configtxgen.SampleDevModeSoloProfile, configtest.GetDevConfigDir())
 		conf.Orderer.Addresses = []string{"globalAddress"}
 		conf.Capabilities = map[string]bool{"V3_0": true}

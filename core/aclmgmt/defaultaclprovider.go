@@ -13,7 +13,6 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 
 	"github.com/hyperledger/fabric-x-common/common/policies"
-	"github.com/hyperledger/fabric-x-common/core/aclmgmt/resources"
 	"github.com/hyperledger/fabric-x-common/core/policy"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
@@ -46,73 +45,6 @@ func newDefaultACLProvider(policyChecker policy.PolicyChecker) defaultACLProvide
 		pResourcePolicyMap: map[string]string{},
 		cResourcePolicyMap: map[string]string{},
 	}
-
-	// -------------- _lifecycle --------------
-	d.pResourcePolicyMap[resources.Lifecycle_InstallChaincode] = policy.Admins
-	d.pResourcePolicyMap[resources.Lifecycle_QueryInstalledChaincode] = policy.Admins
-	d.pResourcePolicyMap[resources.Lifecycle_GetInstalledChaincodePackage] = policy.Admins
-	d.pResourcePolicyMap[resources.Lifecycle_QueryInstalledChaincodes] = policy.Admins
-	d.pResourcePolicyMap[resources.Lifecycle_ApproveChaincodeDefinitionForMyOrg] = policy.Admins
-	d.pResourcePolicyMap[resources.Lifecycle_QueryApprovedChaincodeDefinition] = policy.Admins
-	d.pResourcePolicyMap[resources.Lifecycle_QueryApprovedChaincodeDefinitions] = policy.Admins
-
-	d.cResourcePolicyMap[resources.Lifecycle_CommitChaincodeDefinition] = CHANNELWRITERS
-	d.cResourcePolicyMap[resources.Lifecycle_QueryChaincodeDefinition] = CHANNELWRITERS
-	d.cResourcePolicyMap[resources.Lifecycle_QueryChaincodeDefinitions] = CHANNELWRITERS
-	d.cResourcePolicyMap[resources.Lifecycle_CheckCommitReadiness] = CHANNELWRITERS
-
-	// -------------- snapshot ---------------
-	d.pResourcePolicyMap[resources.Snapshot_submitrequest] = policy.Admins
-	d.pResourcePolicyMap[resources.Snapshot_cancelrequest] = policy.Admins
-	d.pResourcePolicyMap[resources.Snapshot_listpending] = policy.Admins
-
-	// -------------- LSCC --------------
-	// p resources (implemented by the chaincode currently)
-	d.pResourcePolicyMap[resources.Lscc_Install] = policy.Admins
-	d.pResourcePolicyMap[resources.Lscc_GetInstalledChaincodes] = policy.Admins
-
-	// c resources
-	d.cResourcePolicyMap[resources.Lscc_Deploy] = ""  // ACL check covered by PROPOSAL
-	d.cResourcePolicyMap[resources.Lscc_Upgrade] = "" // ACL check covered by PROPOSAL
-	d.cResourcePolicyMap[resources.Lscc_ChaincodeExists] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Lscc_GetDeploymentSpec] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Lscc_GetChaincodeData] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Lscc_GetInstantiatedChaincodes] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Lscc_GetCollectionsConfig] = CHANNELREADERS
-
-	// -------------- QSCC --------------
-	// p resources (none)
-
-	// c resources
-	d.cResourcePolicyMap[resources.Qscc_GetChainInfo] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Qscc_GetBlockByNumber] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Qscc_GetBlockByHash] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Qscc_GetTransactionByID] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Qscc_GetBlockByTxID] = CHANNELREADERS
-
-	// --------------- CSCC resources -----------
-	// p resources (implemented by the chaincode currently)
-	d.pResourcePolicyMap[resources.Cscc_JoinChain] = policy.Admins
-	d.pResourcePolicyMap[resources.Cscc_JoinChainBySnapshot] = policy.Admins
-	d.pResourcePolicyMap[resources.Cscc_JoinBySnapshotStatus] = policy.Admins
-	d.pResourcePolicyMap[resources.Cscc_GetChannels] = policy.Members
-
-	// c resources
-	d.cResourcePolicyMap[resources.Cscc_GetConfigBlock] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Cscc_GetChannelConfig] = CHANNELREADERS
-
-	// ---------------- non-scc resources ------------
-	// Peer resources
-	d.cResourcePolicyMap[resources.Peer_Propose] = CHANNELWRITERS
-	d.cResourcePolicyMap[resources.Peer_ChaincodeToChaincode] = CHANNELWRITERS
-
-	// Event resources
-	d.cResourcePolicyMap[resources.Event_Block] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Event_FilteredBlock] = CHANNELREADERS
-
-	// Gateway resources
-	d.cResourcePolicyMap[resources.Gateway_CommitStatus] = CHANNELREADERS
-	d.cResourcePolicyMap[resources.Gateway_ChaincodeEvents] = CHANNELREADERS
 
 	return d
 }

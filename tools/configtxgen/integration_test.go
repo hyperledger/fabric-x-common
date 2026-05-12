@@ -48,7 +48,6 @@ var _ = ginkgo.Describe("Integration", func() {
 	ginkgo.DescribeTable("successfully parses the profile",
 		func(profile string) {
 			config := Load(profile, configtest.GetDevConfigDir())
-			config.Capabilities = map[string]bool{"V2_0": true}
 			group, err := NewChannelGroup(config)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
