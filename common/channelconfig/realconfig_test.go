@@ -61,7 +61,9 @@ func TestOrgSpecificOrdererEndpoints(t *testing.T) {
 
 		cg, err := configtxgen.NewChannelGroup(conf)
 		require.Nil(t, cg)
-		require.EqualError(t, err, "could not create orderer group: failed to create orderer org: orderer endpoints for organization SampleOrg are missing and must be configured when capability V3_0 is enabled")
+		require.EqualError(t, err, "could not create orderer group: "+
+			"failed to create orderer org: "+
+			"orderer endpoints for organization SampleOrg are missing and must be configured")
 
 		conf.Orderer.Organizations[0].OrdererEndpoints = []*types.OrdererEndpoint{{Host: "127.0.0.1", Port: 7050}}
 		cg, err = configtxgen.NewChannelGroup(conf)
@@ -102,6 +104,7 @@ func TestOrgSpecificOrdererEndpoints(t *testing.T) {
 		require.NotEmpty(t, conf.Orderer.Addresses)
 
 		_, err := configtxgen.NewChannelGroup(conf)
-		require.EqualError(t, err, "could not create orderer group: global orderer endpoints exist, but can not be used with V3_0 capability: [globalAddress]")
+		require.EqualError(t, err, "could not create orderer group: "+
+			"global orderer endpoints exist, but are not supported: [globalAddress]")
 	})
 }
