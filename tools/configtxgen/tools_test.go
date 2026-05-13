@@ -152,29 +152,11 @@ func createBftOrdererConfig() *Profile {
 	return Load(SampleAppChannelSmartBftProfile, configtest.GetDevConfigDir())
 }
 
-func TestBftOrdererTypeWithoutV3CapabilitiesShouldRaiseAnError(t *testing.T) {
+func TestBftOrdererTypeWithoutCapabilitiesShouldNotRaiseAnError(t *testing.T) {
 	t.Parallel()
 	// ### Arrange
 	blockDest := filepath.Join(t.TempDir(), "block")
 	config := createBftOrdererConfig()
-	config.Capabilities["V3_0"] = false
-
-	// ### Act & Assert
-	require.EqualError(
-		t,
-		DoOutputBlock(config, "testChannelId", blockDest),
-		"could not create bootstrapper: could not create channel group: "+
-			"could not create orderer group: "+
-			"orderer type BFT must be used with V3_0 channel capability: map[V3_0:false]",
-	)
-}
-
-func TestBftOrdererTypeWithV3CapabilitiesShouldNotRaiseAnError(t *testing.T) {
-	t.Parallel()
-	// ### Arrange
-	blockDest := filepath.Join(t.TempDir(), "block")
-	config := createBftOrdererConfig()
-	config.Capabilities["V3_0"] = true
 
 	// ### Act & Assert
 	require.NoError(t, DoOutputBlock(config, "testChannelId", blockDest))

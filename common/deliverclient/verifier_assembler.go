@@ -42,15 +42,16 @@ func (bva *BlockVerifierAssembler) VerifierFromConfig(configuration *common.Conf
 		return createErrorFunc(err), err
 	}
 
-	bftEnabled := bundle.ChannelConfig().Capabilities().ConsensusTypeBFT()
+	cfg, ok := bundle.OrdererConfig()
+	if !ok {
+		err := errors.New("no orderer section in config block")
+		return createErrorFunc(err), err
+	}
+
+	bftEnabled := cfg.ConsensusType() == "BFT" || cfg.ConsensusType() == "arma"
 
 	var consenters []*common.Consenter
 	if bftEnabled {
-		cfg, ok := bundle.OrdererConfig()
-		if !ok {
-			err := errors.New("no orderer section in config block")
-			return createErrorFunc(err), err
-		}
 		consenters = cfg.Consenters()
 	}
 

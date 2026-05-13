@@ -488,14 +488,6 @@ var _ = ginkgo.Describe("Encoder", func() {
 				gomega.Expect(consenter2.Id).To(gomega.Equal(uint32(2)))
 				gomega.Expect(consenter2.ClientTlsCert).ToNot(gomega.BeNil())
 			})
-
-			ginkgo.It("requires V3_0", func() {
-				delete(channelCapabilities, "V3_0")
-				channelCapabilities["V2_0"] = true
-				_, err := NewOrdererGroup(conf, channelCapabilities)
-				gomega.Expect(err).To(gomega.MatchError("orderer type BFT must be used with V3_0 channel " +
-					"capability: map[V2_0:true]"))
-			})
 		})
 
 		ginkgo.Context("when the consensus type is unknown", func() {
@@ -529,14 +521,7 @@ var _ = ginkgo.Describe("Encoder", func() {
 			ginkgo.It("wraps and returns the error", func() {
 				_, err := NewOrdererGroup(conf, channelCapabilities)
 				gomega.Expect(err).To(gomega.MatchError("global orderer endpoints exist, " +
-					"but can not be used with V3_0 capability: [addr1 addr2]"))
-			})
-
-			ginkgo.It("is permitted when V3_0 is false", func() {
-				delete(channelCapabilities, "V3_0")
-				channelCapabilities["V2_0"] = true
-				_, err := NewOrdererGroup(conf, channelCapabilities)
-				gomega.Expect(err).ToNot(gomega.HaveOccurred())
+					"but are not supported: [addr1 addr2]"))
 			})
 		})
 	})
@@ -735,17 +720,11 @@ var _ = ginkgo.Describe("Encoder", func() {
 				conf.OrdererEndpoints = []*types.OrdererEndpoint{}
 			})
 
-			ginkgo.It("does not include the endpoints in the config group with v2_0", func() {
-				channelCapabilities := map[string]bool{"V2_0": true}
-				cg, err := NewOrdererOrgGroup(conf, channelCapabilities)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				gomega.Expect(cg.Values["Endpoints"]).To(gomega.BeNil())
-			})
-
-			ginkgo.It("emits an error with v3_0", func() {
-				channelCapabilities := map[string]bool{"V3_0": true}
-				cg, err := NewOrdererOrgGroup(conf, channelCapabilities)
+			ginkgo.It("emits an error when endpoints are missing", func() {
+				cg, err := NewOrdererOrgGroup(conf, nil)
 				gomega.Expect(err).To(gomega.HaveOccurred())
+				gomega.Expect(err).To(gomega.MatchError("orderer endpoints for organization SampleOrg " +
+					"are missing and must be configured"))
 				gomega.Expect(cg).To(gomega.BeNil())
 			})
 		})
