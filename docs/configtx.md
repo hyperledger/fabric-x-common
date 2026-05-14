@@ -1,3 +1,8 @@
+<!--
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+-->
 # Network Governance with the Configuration Block
 
 ## Table of Contents
@@ -16,6 +21,7 @@
 6. [Arma Consensus: The Fabric-X Ordering Architecture](#6-arma-consensus-the-fabric-x-ordering-architecture)
 7. [Orderer Endpoints with Party IDs and Separated APIs](#7-orderer-endpoints-with-party-ids-and-separated-apis)
 8. [Policies Deep Dive](#8-policies-deep-dive)
+   - [ACLs (Future)](#85-acls-future)
 9. [How configtxgen Generates the Genesis Block](#9-how-configtxgen-generates-the-genesis-block)
 10. [Genesis Block Internal Structure](#10-genesis-block-internal-structure)
 11. [The Network Configuration Hierarchy](#11-the-network-configuration-hierarchy)
@@ -1072,6 +1078,16 @@ the policy path that governs it. A failed config update usually points at an
 /Channel/Orderer/<OrgName>/Readers      Per-org orderer policies
 /Channel/Application/<OrgName>/Readers  Per-org application policies
 ```
+
+### 8.5 ACLs (Future)
+
+Access Control Lists (ACLs) will be added in a future Fabric-X release. Today,
+Fabric-X relies on the policy paths above for channel, orderer, application,
+and organization-level authorization decisions.
+
+Future ACL support will let operators map specific resources or APIs to policy
+paths in `configtx.yaml`, following the Fabric configuration model while
+preserving Fabric-X's single-network governance model.
 
 ---
 
