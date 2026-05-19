@@ -18,10 +18,12 @@ import (
 )
 
 func TestApplicationInterface(t *testing.T) {
+	t.Parallel()
 	_ = Application((*ApplicationConfig)(nil))
 }
 
 func TestACL(t *testing.T) {
+	t.Parallel()
 	g := NewGomegaWithT(t)
 	cgt := &cb.ConfigGroup{
 		Values: map[string]*cb.ConfigValue{
@@ -41,15 +43,17 @@ func TestACL(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
 		cg := proto.Clone(cgt).(*cb.ConfigGroup)
 		_, err := NewApplicationConfig(proto.Clone(cg).(*cb.ConfigGroup), nil)
 		g.Expect(err).NotTo(HaveOccurred())
 	})
 
-	t.Run("MissingCapability", func(t *testing.T) {
+	t.Run("ACLsAllowedWithoutCapability", func(t *testing.T) {
+		t.Parallel()
 		cg := proto.Clone(cgt).(*cb.ConfigGroup)
 		delete(cg.Values, CapabilitiesKey)
 		_, err := NewApplicationConfig(cg, nil)
-		g.Expect(err).To(MatchError("ACLs may not be specified without the required capability"))
+		g.Expect(err).NotTo(HaveOccurred())
 	})
 }

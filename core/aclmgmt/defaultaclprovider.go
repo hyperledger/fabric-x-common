@@ -13,6 +13,7 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 
 	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/core/aclmgmt/resources"
 	"github.com/hyperledger/fabric-x-common/core/policy"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
@@ -45,6 +46,9 @@ func newDefaultACLProvider(policyChecker policy.PolicyChecker) defaultACLProvide
 		pResourcePolicyMap: map[string]string{},
 		cResourcePolicyMap: map[string]string{},
 	}
+
+	// Peer resources
+	d.cResourcePolicyMap[resources.Peer_Propose] = CHANNELWRITERS
 
 	return d
 }
