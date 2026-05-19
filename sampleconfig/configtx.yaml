@@ -155,6 +155,13 @@ Capabilities:
 #
 ################################################################################
 Application: &ApplicationDefaults
+    ACLs:
+        # This section provides defaults for policies for various resources
+        # in the system. This section does NOT specify the resource's
+        # definition or API, but just the ACL policy for it.
+        # Users can override these defaults using the ACLs section in their channel definition
+        peer/Propose: /Channel/Application/Writers
+
     # Organizations lists the orgs participating on the application side of the
     # network.
     Organizations:
