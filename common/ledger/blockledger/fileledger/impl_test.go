@@ -63,6 +63,7 @@ type mockBlockStore struct {
 	defaultError               error
 	getBlockchainInfoError     error
 	retrieveBlockByNumberError error
+	retrieveBlocksStart        uint64
 }
 
 func (mbs *mockBlockStore) AddBlock(block *cb.Block) error {
@@ -81,7 +82,8 @@ func (mbs *mockBlockStore) GetBlockchainInfo() (*cb.BlockchainInfo, error) {
 	return mbs.blockchainInfo, mbs.getBlockchainInfoError
 }
 
-func (mbs *mockBlockStore) RetrieveBlocks(_ uint64) (cl.ResultsIterator, error) {
+func (mbs *mockBlockStore) RetrieveBlocks(startBlockNumber uint64) (cl.ResultsIterator, error) {
+	mbs.retrieveBlocksStart = startBlockNumber
 	return mbs.resultsIterator, mbs.defaultError
 }
 
@@ -322,6 +324,27 @@ func TestBlockRetrievalWithSnapshot(t *testing.T) {
 	blk, status = it3.Next(t.Context())
 	require.Equal(t, cb.Status_SUCCESS, status)
 	require.Equal(t, nextBlk, blk)
+}
+
+func TestNewestIteratorOnEmptyLedgerStartsAtBlockZero(t *testing.T) {
+	t.Parallel()
+
+	resultsIterator := &mockBlockStoreIterator{}
+	resultsIterator.On("Close").Return()
+	blockStore := &mockBlockStore{
+		blockchainInfo:  &cb.BlockchainInfo{Height: 0},
+		resultsIterator: resultsIterator,
+	}
+	fl := &FileLedger{
+		blockStore: blockStore,
+		signal:     make(chan struct{}),
+	}
+
+	it, startingNum := fl.Iterator(&ab.SeekPosition{Type: &ab.SeekPosition_Newest{}})
+	defer it.Close()
+
+	require.Zero(t, startingNum)
+	require.Zero(t, blockStore.retrieveBlocksStart)
 }
 
 func TestBlockstoreError(t *testing.T) {
