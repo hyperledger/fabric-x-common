@@ -14,10 +14,15 @@ import "google/protobuf/duration.proto";
 
 import "api/committerpb/ref.proto";
 import "api/committerpb/status.proto";
+import "api/applicationpb/block_tx.proto";
 
 // The notifier service provides API to subscribe to ledger events and receive asynchronous notifications.
 service Notifier {
     rpc OpenNotificationStream (stream NotificationRequest) returns (stream NotificationResponse);
+
+    // StreamAllTransactions allows clients to subscribe to all committed transactions
+    // with optional filtering by namespace and status.
+    rpc StreamAllTransactions (StreamAllRequest) returns (stream TxEventBatch);
 }
 
 // NotificationRequest is sent by the clients to subscribe to events.
@@ -44,4 +49,50 @@ message NotificationResponse {
 message RejectedTxIds {
     repeated string tx_ids = 1; // List of rejected transaction IDs.
     string reason = 2;          // The reason for rejection.
+}
+
+// StreamAllRequest is sent by clients to subscribe to all committed transactions.
+message StreamAllRequest {
+    // Filter by namespace IDs (OR logic: transaction touches ANY of these namespaces).
+    // Empty list means no namespace filtering (all namespaces included).
+    repeated string filter_namespaces = 1;
+
+    // Filter by transaction status (multiple statuses can be specified).
+    // Empty list means no status filtering (all statuses included).
+    repeated Status filter_status = 2;
+
+    // Include transaction content (read/write sets) in the response.
+    // Default: false (only transaction reference and status).
+    bool include_read_write_sets = 3;
+
+    // Include endorsements in the response.
+    // Default: false (only transaction reference and status).
+    bool include_endorsements = 4;
+}
+
+// TxEventBatch contains a batch of transaction events from a single block.
+message TxEventBatch {
+    // The block number from which these transactions originated.
+    uint64 block_number = 1;
+
+    // List of transaction events (may be filtered based on request).
+    repeated TxEvent events = 2;
+}
+
+// TxEvent represents a single transaction event.
+message TxEvent {
+    // Transaction reference (ID, block number, transaction index).
+    TxRef ref = 1;
+
+    // Transaction commit status.
+    Status status = 2;
+
+    // Transaction namespaces (included only if include_read_write_sets is true).
+    // If namespace filtering is active, only matching namespaces are included.
+    // Empty if not requested or if transaction has no namespaces.
+    repeated applicationpb.TxNamespace namespaces = 3;
+
+    // Transaction endorsements (included only if include_endorsements is true).
+    // Empty if not requested or if transaction has no endorsements.
+    repeated applicationpb.Endorsements endorsements = 4;
 }

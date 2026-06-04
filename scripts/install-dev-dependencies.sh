@@ -7,7 +7,8 @@
 set -e
 
 # Versions
-protoc_bin_version="33.4"
+protoc_bin_version="34.1"
+golangci_lint_version="v2.12.2"
 
 # Install protoc binary (C++ based, not available via go install)
 download_dir=$(mktemp -d -t "fx_dev_depedencies.XXXX")
@@ -55,7 +56,6 @@ go install tool
 
 # golangci-lint is installed separately (not via go.mod tool directive)
 # to avoid pulling GPL-licensed dependencies into the module graph.
-golangci_lint_version="v2.8.0"
 echo
 echo "Installing golangci-lint ${golangci_lint_version}"
 go install "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${golangci_lint_version}"
