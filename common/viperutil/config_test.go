@@ -287,6 +287,26 @@ func TestStringFromFileEnv(t *testing.T) {
 	}
 }
 
+func TestEnvVarHyphenatedKey(t *testing.T) {
+	// section.hyphen-key maps to VIPERUTIL_SECTION_HYPHEN_KEY (dots and hyphens both become underscores)
+	t.Setenv(testEnvPrefix+"_SECTION_HYPHEN_KEY", "env_value")
+
+	config := New()
+	config.SetConfigName(testConfigName)
+	err := config.ReadConfig(strings.NewReader("---\nsection:\n  hyphen-key: yaml_value\n"))
+	require.NoError(t, err, "error reading config")
+
+	type hyphenSection struct {
+		HyphenKey string `mapstructure:"hyphen-key"`
+	}
+	var conf struct {
+		Section hyphenSection
+	}
+	err = config.EnhancedExactUnmarshal(&conf)
+	require.NoError(t, err, "failed to unmarshal")
+	require.Equal(t, "env_value", conf.Section.HyphenKey)
+}
+
 func TestDecodeOpaqueField(t *testing.T) {
 	t.Parallel()
 	yaml := "---\nFoo: bar\nHello:\n  World: 42\n"

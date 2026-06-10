@@ -144,6 +144,7 @@ func (c *ConfigParser) getFromEnv(key string) string {
 	}
 	envKey = strings.ToUpper(envKey)
 	envKey = strings.ReplaceAll(envKey, ".", "_")
+	envKey = strings.ReplaceAll(envKey, "-", "_")
 	return os.Getenv(envKey)
 }
 
