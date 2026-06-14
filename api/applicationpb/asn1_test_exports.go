@@ -18,6 +18,7 @@ import (
 // TestTx represents a test transaction for ASN1 marshalling tests.
 type TestTx struct {
 	ID         string
+	Metadata   []byte
 	Namespaces []*TxNamespace
 }
 
@@ -31,7 +32,7 @@ func CommonTestAsnMarshal(t *testing.T, txs []*TestTx) {
 			for _, ns := range tx.Namespaces {
 				t.Run(ns.NsId, func(t *testing.T) {
 					t.Parallel()
-					requireASN1Marshal(t, tx.ID, ns)
+					requireASN1Marshal(t, tx.ID, tx.Metadata, ns)
 				})
 			}
 
@@ -42,20 +43,21 @@ func CommonTestAsnMarshal(t *testing.T, txs []*TestTx) {
 				translatedNamespace := make([][]byte, len(tx.Namespaces))
 				for i, ns := range tx.Namespaces {
 					var err error
-					translatedNamespace[i], err = ns.ASN1Marshal(tx.ID)
+					translatedNamespace[i], err = ns.ASN1Marshal(tx.ID, tx.Metadata)
 					require.NoError(t, err)
 				}
-				txID, actualTxNs := reconstructTX(t, translatedNamespace)
+				txID, txMetadata, actualTxNs := reconstructTX(t, translatedNamespace)
 				require.Equal(t, tx.ID, txID)
+				require.Equal(t, tx.Metadata, txMetadata)
 				test.RequireProtoElementsMatch(t, tx.Namespaces, actualTxNs)
 			})
 		})
 	}
 }
 
-func requireASN1Marshal(t *testing.T, txID string, ns *TxNamespace) []byte {
+func requireASN1Marshal(t *testing.T, txID string, metadata []byte, ns *TxNamespace) []byte {
 	t.Helper()
-	translated := ns.translate(txID)
+	translated := ns.translate(txID, metadata)
 
 	// The marshalled object cannot distinguish between empty and nil slice.
 	// So, we convert all nils to empty slices to allow comparison with the unmarshalled object.
@@ -72,7 +74,7 @@ func requireASN1Marshal(t *testing.T, txID string, ns *TxNamespace) []byte {
 		}
 	}
 
-	derBytes, err := ns.ASN1Marshal(txID)
+	derBytes, err := ns.ASN1Marshal(txID, metadata)
 	require.NoError(t, err)
 
 	actual := &asn1Namespace{}
@@ -84,7 +86,7 @@ func requireASN1Marshal(t *testing.T, txID string, ns *TxNamespace) []byte {
 
 // reconstructTX unmarshal the given namespaces and reconstruct a TX.
 // Any change to [*applicationpb.Tx] requires a change to this method.
-func reconstructTX(t *testing.T, namespaces [][]byte) (txID string, txNs []*TxNamespace) {
+func reconstructTX(t *testing.T, namespaces [][]byte) (txID string, txMetadata []byte, txNs []*TxNamespace) {
 	t.Helper()
 	txNs = make([]*TxNamespace, len(namespaces))
 
@@ -95,8 +97,10 @@ func reconstructTX(t *testing.T, namespaces [][]byte) (txID string, txNs []*TxNa
 
 		if i == 0 {
 			txID = translated.TxID
+			txMetadata = translated.Metadata
 		} else {
 			require.Equal(t, txID, translated.TxID)
+			require.Equal(t, txMetadata, translated.Metadata)
 		}
 
 		nsVer := asnToProtoVersion(translated.NamespaceVersion)
@@ -131,5 +135,5 @@ func reconstructTX(t *testing.T, namespaces [][]byte) (txID string, txNs []*TxNa
 		}
 	}
 
-	return txID, txNs
+	return txID, txMetadata, txNs
 }

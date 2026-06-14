@@ -35,7 +35,12 @@ type Tx struct {
 	// A list of endorsements.
 	// IMPORTANT: This list MUST be the same size as the namespaces list.
 	// The Endorsement at index i corresponds to the namespace at index i.
-	Endorsements  []*Endorsements `protobuf:"bytes,2,rep,name=endorsements,proto3" json:"endorsements,omitempty"`
+	Endorsements []*Endorsements `protobuf:"bytes,2,rep,name=endorsements,proto3" json:"endorsements,omitempty"`
+	// The metadata field contains additional transaction execution information.
+	// It does not affect the world state and is only visible when inspecting the transaction.
+	// The metadata is included in namespace endorsements, ensuring that endorsers validate both
+	// the transaction results and the associated execution metadata.
+	Metadata      [][]byte `protobuf:"bytes,3,rep,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -80,6 +85,13 @@ func (x *Tx) GetNamespaces() []*TxNamespace {
 func (x *Tx) GetEndorsements() []*Endorsements {
 	if x != nil {
 		return x.Endorsements
+	}
+	return nil
+}
+
+func (x *Tx) GetMetadata() [][]byte {
+	if x != nil {
+		return x.Metadata
 	}
 	return nil
 }
@@ -434,12 +446,13 @@ var File_api_applicationpb_block_tx_proto protoreflect.FileDescriptor
 
 const file_api_applicationpb_block_tx_proto_rawDesc = "" +
 	"\n" +
-	" api/applicationpb/block_tx.proto\x12\rapplicationpb\x1a\x13api/msppb/msp.proto\"\x81\x01\n" +
+	" api/applicationpb/block_tx.proto\x12\rapplicationpb\x1a\x13api/msppb/msp.proto\"\x9d\x01\n" +
 	"\x02Tx\x12:\n" +
 	"\n" +
 	"namespaces\x18\x01 \x03(\v2\x1a.applicationpb.TxNamespaceR\n" +
 	"namespaces\x12?\n" +
-	"\fendorsements\x18\x02 \x03(\v2\x1b.applicationpb.EndorsementsR\fendorsements\"\xe9\x01\n" +
+	"\fendorsements\x18\x02 \x03(\v2\x1b.applicationpb.EndorsementsR\fendorsements\x12\x1a\n" +
+	"\bmetadata\x18\x03 \x03(\fR\bmetadata\"\xe9\x01\n" +
 	"\vTxNamespace\x12\x13\n" +
 	"\x05ns_id\x18\x01 \x01(\tR\x04nsId\x12\x1d\n" +
 	"\n" +

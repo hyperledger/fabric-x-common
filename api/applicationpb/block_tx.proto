@@ -21,6 +21,12 @@ message Tx {
     // IMPORTANT: This list MUST be the same size as the namespaces list.
     // The Endorsement at index i corresponds to the namespace at index i.
     repeated Endorsements endorsements = 2;
+
+    // The metadata field contains additional transaction execution information.
+    // It does not affect the world state and is only visible when inspecting the transaction.
+    // The metadata is included in namespace endorsements, ensuring that endorsers validate both
+    // the transaction results and the associated execution metadata.
+    repeated bytes metadata = 3;
 }
 
 // Represents a namespace within a transaction.

@@ -30,7 +30,7 @@ func FuzzASN1MarshalTxNamespace(f *testing.F) {
 		//nolint:gosec // false positive; safe integer conversion.
 		for _, r := range ns.ReadsOnly {
 			f.Add(
-				"some-tx-id", ns.NsId, ns.NsVersion, protoToAsnVersion(r.Version),
+				"some-tx-id", []byte("some-metadata"), ns.NsId, ns.NsVersion, protoToAsnVersion(r.Version),
 				uint32(len(ns.ReadsOnly)), uint32(len(ns.ReadWrites)), uint32(len(ns.BlindWrites)),
 				i, int64(1234+i),
 			)
@@ -39,7 +39,7 @@ func FuzzASN1MarshalTxNamespace(f *testing.F) {
 		//nolint:gosec // false positive; safe integer conversion.
 		for _, r := range ns.ReadWrites {
 			f.Add(
-				"another-tx-id", ns.NsId, ns.NsVersion, protoToAsnVersion(r.Version),
+				"another-tx-id", []byte("another-metadata"), ns.NsId, ns.NsVersion, protoToAsnVersion(r.Version),
 				uint32(len(ns.ReadsOnly)), uint32(len(ns.ReadWrites)), uint32(len(ns.BlindWrites)),
 				i, int64(1234+i),
 			)
@@ -48,14 +48,15 @@ func FuzzASN1MarshalTxNamespace(f *testing.F) {
 	}
 	f.Fuzz(func(
 		t *testing.T,
-		id, nsID string, nsVersion uint64, readVersion int64,
+		id string, metadata []byte, nsID string, nsVersion uint64, readVersion int64,
 		rCount, rwCount, wCount uint32,
 		maxSize uint32, seed int64,
 	) {
-		txID, txNs := generateTxNs(t, id, nsID, nsVersion, readVersion, rCount, rwCount, wCount, maxSize, seed)
-		derBytes := requireASN1Marshal(t, txID, txNs)
-		actualTxID, actualTxNs := reconstructTX(t, [][]byte{derBytes})
-		require.Equal(t, txID, actualTxID)
+		txNs := generateTxNs(t, id, nsID, nsVersion, readVersion, rCount, rwCount, wCount, maxSize, seed)
+		derBytes := requireASN1Marshal(t, id, metadata, txNs)
+		actualTxID, actualTxMetadata, actualTxNs := reconstructTX(t, [][]byte{derBytes})
+		require.Equal(t, id, actualTxID)
+		require.Equal(t, metadata, actualTxMetadata)
 		test.RequireProtoElementsMatch(t, []*TxNamespace{txNs}, actualTxNs)
 	})
 }
@@ -66,12 +67,12 @@ func generateTxNs( //nolint:revive // required parameters.
 	id, nsID string, nsVersion uint64, readVersion int64,
 	rCount, rwCount, wCount uint32,
 	maxSize uint32, seed int64,
-) (txID string, tx *TxNamespace) {
+) *TxNamespace {
 	t.Helper()
 	if !utf8.ValidString(id) || !utf8.ValidString(nsID) {
 		t.Skip("invalid UTF8")
 	}
-	tx = &TxNamespace{
+	tx := &TxNamespace{
 		NsId:        nsID,
 		NsVersion:   nsVersion,
 		ReadsOnly:   make([]*Read, rCount),
@@ -98,7 +99,7 @@ func generateTxNs( //nolint:revive // required parameters.
 			Value: mustRead(t, rnd, maxSize),
 		}
 	}
-	return id, tx
+	return tx
 }
 
 var txTestCases = []*TxNamespace{
@@ -112,11 +113,11 @@ var txTestCases = []*TxNamespace{
 		ReadsOnly: []*Read{
 			{
 				Key:     []byte{1},
-				Version: NewVersion(2),
+				Version: new(uint64(2)),
 			},
 			{
 				Key:     []byte{3, 4, 5},
-				Version: NewVersion(0),
+				Version: new(uint64(0)),
 			},
 		},
 	},
@@ -126,11 +127,11 @@ var txTestCases = []*TxNamespace{
 		ReadsOnly: []*Read{
 			{
 				Key:     []byte{1},
-				Version: NewVersion(2),
+				Version: new(uint64(2)),
 			},
 			{
 				Key:     []byte{3, 4, 5},
-				Version: NewVersion(0),
+				Version: new(uint64(0)),
 			},
 			{
 				Key:     []byte{7, 8, 9},
@@ -144,12 +145,12 @@ var txTestCases = []*TxNamespace{
 		ReadWrites: []*ReadWrite{
 			{
 				Key:     []byte{1},
-				Version: NewVersion(2),
+				Version: new(uint64(2)),
 				Value:   []byte{3},
 			},
 			{
 				Key:     []byte{5},
-				Version: NewVersion(0),
+				Version: new(uint64(0)),
 				Value:   []byte{6},
 			},
 		},
@@ -160,7 +161,7 @@ var txTestCases = []*TxNamespace{
 		ReadWrites: []*ReadWrite{
 			{
 				Key:     []byte{1},
-				Version: NewVersion(2),
+				Version: new(uint64(2)),
 				Value:   []byte{3},
 			},
 			{
@@ -170,7 +171,7 @@ var txTestCases = []*TxNamespace{
 			},
 			{
 				Key:     []byte{9},
-				Version: NewVersion(3),
+				Version: new(uint64(3)),
 				Value:   nil,
 			},
 			{
@@ -218,22 +219,22 @@ var txTestCases = []*TxNamespace{
 		ReadsOnly: []*Read{
 			{
 				Key:     []byte{6},
-				Version: NewVersion(7),
+				Version: new(uint64(7)),
 			},
 			{
 				Key:     []byte{9, 10, 11},
-				Version: NewVersion(12),
+				Version: new(uint64(1)),
 			},
 		},
 		ReadWrites: []*ReadWrite{
 			{
 				Key:     []byte{100},
-				Version: NewVersion(1),
+				Version: new(uint64(1)),
 				Value:   []byte{2},
 			},
 			{
 				Key:     []byte{5},
-				Version: NewVersion(10),
+				Version: new(uint64(1)),
 				Value:   []byte{13},
 			},
 		},
@@ -254,23 +255,23 @@ var txTestCases = []*TxNamespace{
 		ReadsOnly: []*Read{
 			{
 				Key:     []byte{1, 2},
-				Version: NewVersion(3),
+				Version: new(uint64(1)),
 			},
 		},
 		ReadWrites: []*ReadWrite{
 			{
 				Key:     []byte{1},
-				Version: NewVersion(2),
+				Version: new(uint64(1)),
 				Value:   []byte{3},
 			},
 			{
 				Key:     []byte{4},
-				Version: NewVersion(5),
+				Version: new(uint64(1)),
 				Value:   []byte{6},
 			},
 			{
 				Key:     []byte{7},
-				Version: NewVersion(8),
+				Version: new(uint64(1)),
 				Value:   []byte{9},
 			},
 		},

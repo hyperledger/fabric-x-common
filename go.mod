@@ -4,7 +4,7 @@
 //
 module github.com/hyperledger/fabric-x-common
 
-go 1.25.10
+go 1.26.3
 
 require (
 	github.com/IBM/idemix v0.0.2-0.20240913182345-72941a5f41cd
