@@ -8,7 +8,7 @@ FabricXTxSchema DEFINITIONS AUTOMATIC TAGS ::= BEGIN
 
 TxWithNamespace ::= SEQUENCE {
     txID             UTF8String,
-    metadata         OCTET STRING,
+    metadata         SEQUENCE OF OCTET STRING,
     namespaceID      UTF8String,
     namespaceVersion INTEGER,
     reads            SEQUENCE OF SEQUENCE {
