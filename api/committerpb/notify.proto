@@ -68,6 +68,10 @@ message StreamAllRequest {
     // Include endorsements in the response.
     // Default: false (only transaction reference and status).
     bool include_endorsements = 4;
+
+    // Include metadata in the response.
+    // Default: false (only transaction reference and status).
+    bool include_metadata = 5;
 }
 
 // TxEventBatch contains a batch of transaction events from a single block.
@@ -95,4 +99,8 @@ message TxEvent {
     // Transaction endorsements (included only if include_endorsements is true).
     // Empty if not requested or if transaction has no endorsements.
     repeated applicationpb.Endorsements endorsements = 4;
+
+    // Transaction metadata (included only if include_metadata is true).
+    // Empty if not requested or if transaction has no metadata.
+    repeated bytes metadata = 5;
 }

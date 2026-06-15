@@ -216,8 +216,11 @@ type StreamAllRequest struct {
 	// Include endorsements in the response.
 	// Default: false (only transaction reference and status).
 	IncludeEndorsements bool `protobuf:"varint,4,opt,name=include_endorsements,json=includeEndorsements,proto3" json:"include_endorsements,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// Include metadata in the response.
+	// Default: false (only transaction reference and status).
+	IncludeMetadata bool `protobuf:"varint,5,opt,name=include_metadata,json=includeMetadata,proto3" json:"include_metadata,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *StreamAllRequest) Reset() {
@@ -274,6 +277,13 @@ func (x *StreamAllRequest) GetIncludeReadWriteSets() bool {
 func (x *StreamAllRequest) GetIncludeEndorsements() bool {
 	if x != nil {
 		return x.IncludeEndorsements
+	}
+	return false
+}
+
+func (x *StreamAllRequest) GetIncludeMetadata() bool {
+	if x != nil {
+		return x.IncludeMetadata
 	}
 	return false
 }
@@ -346,7 +356,10 @@ type TxEvent struct {
 	Namespaces []*applicationpb.TxNamespace `protobuf:"bytes,3,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 	// Transaction endorsements (included only if include_endorsements is true).
 	// Empty if not requested or if transaction has no endorsements.
-	Endorsements  []*applicationpb.Endorsements `protobuf:"bytes,4,rep,name=endorsements,proto3" json:"endorsements,omitempty"`
+	Endorsements []*applicationpb.Endorsements `protobuf:"bytes,4,rep,name=endorsements,proto3" json:"endorsements,omitempty"`
+	// Transaction metadata (included only if include_metadata is true).
+	// Empty if not requested or if transaction has no metadata.
+	Metadata      [][]byte `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -409,6 +422,13 @@ func (x *TxEvent) GetEndorsements() []*applicationpb.Endorsements {
 	return nil
 }
 
+func (x *TxEvent) GetMetadata() [][]byte {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 var File_api_committerpb_notify_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_notify_proto_rawDesc = "" +
@@ -424,22 +444,24 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\x0frejected_tx_ids\x18\x03 \x01(\v2\x1a.committerpb.RejectedTxIdsR\rrejectedTxIds\">\n" +
 	"\rRejectedTxIds\x12\x15\n" +
 	"\x06tx_ids\x18\x01 \x03(\tR\x05txIds\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"\xe3\x01\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"\x8e\x02\n" +
 	"\x10StreamAllRequest\x12+\n" +
 	"\x11filter_namespaces\x18\x01 \x03(\tR\x10filterNamespaces\x128\n" +
 	"\rfilter_status\x18\x02 \x03(\x0e2\x13.committerpb.StatusR\ffilterStatus\x125\n" +
 	"\x17include_read_write_sets\x18\x03 \x01(\bR\x14includeReadWriteSets\x121\n" +
-	"\x14include_endorsements\x18\x04 \x01(\bR\x13includeEndorsements\"_\n" +
+	"\x14include_endorsements\x18\x04 \x01(\bR\x13includeEndorsements\x12)\n" +
+	"\x10include_metadata\x18\x05 \x01(\bR\x0fincludeMetadata\"_\n" +
 	"\fTxEventBatch\x12!\n" +
 	"\fblock_number\x18\x01 \x01(\x04R\vblockNumber\x12,\n" +
-	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\"\xd9\x01\n" +
+	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\"\xf5\x01\n" +
 	"\aTxEvent\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status\x12:\n" +
 	"\n" +
 	"namespaces\x18\x03 \x03(\v2\x1a.applicationpb.TxNamespaceR\n" +
 	"namespaces\x12?\n" +
-	"\fendorsements\x18\x04 \x03(\v2\x1b.applicationpb.EndorsementsR\fendorsements2\xc2\x01\n" +
+	"\fendorsements\x18\x04 \x03(\v2\x1b.applicationpb.EndorsementsR\fendorsements\x12\x1a\n" +
+	"\bmetadata\x18\x05 \x03(\fR\bmetadata2\xc2\x01\n" +
 	"\bNotifier\x12a\n" +
 	"\x16OpenNotificationStream\x12 .committerpb.NotificationRequest\x1a!.committerpb.NotificationResponse(\x010\x01\x12S\n" +
 	"\x15StreamAllTransactions\x12\x1d.committerpb.StreamAllRequest\x1a\x19.committerpb.TxEventBatch0\x01B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
