@@ -4,9 +4,8 @@ package mocks
 
 import (
 	fabric_protos_go_apiv2msp "github.com/hyperledger/fabric-protos-go-apiv2/msp"
-	mock "github.com/stretchr/testify/mock"
-
 	msp "github.com/hyperledger/fabric-x-common/msp"
+	mock "github.com/stretchr/testify/mock"
 
 	time "time"
 )
