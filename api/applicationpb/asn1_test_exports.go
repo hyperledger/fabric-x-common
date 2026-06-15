@@ -18,7 +18,7 @@ import (
 // TestTx represents a test transaction for ASN1 marshalling tests.
 type TestTx struct {
 	ID         string
-	Metadata   []byte
+	Metadata   [][]byte
 	Namespaces []*TxNamespace
 }
 
@@ -55,7 +55,7 @@ func CommonTestAsnMarshal(t *testing.T, txs []*TestTx) {
 	}
 }
 
-func requireASN1Marshal(t *testing.T, txID string, metadata []byte, ns *TxNamespace) []byte {
+func requireASN1Marshal(t *testing.T, txID string, metadata [][]byte, ns *TxNamespace) []byte {
 	t.Helper()
 	translated := ns.translate(txID, metadata)
 
@@ -86,7 +86,7 @@ func requireASN1Marshal(t *testing.T, txID string, metadata []byte, ns *TxNamesp
 
 // reconstructTX unmarshal the given namespaces and reconstruct a TX.
 // Any change to [*applicationpb.Tx] requires a change to this method.
-func reconstructTX(t *testing.T, namespaces [][]byte) (txID string, txMetadata []byte, txNs []*TxNamespace) {
+func reconstructTX(t *testing.T, namespaces [][]byte) (txID string, txMetadata [][]byte, txNs []*TxNamespace) {
 	t.Helper()
 	txNs = make([]*TxNamespace, len(namespaces))
 

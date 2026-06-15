@@ -14,14 +14,14 @@ import (
 
 // ASN1Marshal marshals a transactions for a given namespace index.
 // It uses the schema described in asn1_tx_schema.asn.
-func (ns *TxNamespace) ASN1Marshal(txID string, metadata []byte) ([]byte, error) {
+func (ns *TxNamespace) ASN1Marshal(txID string, metadata [][]byte) ([]byte, error) {
 	ret, err := asn1.Marshal(*ns.translate(txID, metadata))
 	return ret, errors.Wrap(err, "failed to marshal tx namespace")
 }
 
 // translate translates a [TxNamespace] to a stab struct for asn1_tx_schema.asn.
 // Any change to [TxNamespace] requires a change to this method.
-func (ns *TxNamespace) translate(txID string, metadata []byte) *asn1Namespace {
+func (ns *TxNamespace) translate(txID string, metadata [][]byte) *asn1Namespace {
 	n := asn1Namespace{
 		TxID:             txID,
 		Metadata:         metadata,
@@ -80,9 +80,9 @@ type (
 	// If not specified, the library choose to use ASCII (PrintableString) for simple strings,
 	// and UTF8 otherwise.
 	asn1Namespace struct {
-		TxID             string `asn1:"utf8"`
-		Metadata         []byte `asn1:"optional"`
-		NamespaceID      string `asn1:"utf8"`
+		TxID             string   `asn1:"utf8"`
+		Metadata         [][]byte `asn1:"optional"`
+		NamespaceID      string   `asn1:"utf8"`
 		NamespaceVersion int64
 		ReadsOnly        []asn1Read
 		ReadWrites       []asn1ReadWrite

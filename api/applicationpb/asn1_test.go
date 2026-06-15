@@ -30,7 +30,8 @@ func FuzzASN1MarshalTxNamespace(f *testing.F) {
 		//nolint:gosec // false positive; safe integer conversion.
 		for _, r := range ns.ReadsOnly {
 			f.Add(
-				"some-tx-id", []byte("some-metadata"), ns.NsId, ns.NsVersion, protoToAsnVersion(r.Version),
+				"some-tx-id", []byte("some-metadata-1"), []byte("some-metadata-2"),
+				ns.NsId, ns.NsVersion, protoToAsnVersion(r.Version),
 				uint32(len(ns.ReadsOnly)), uint32(len(ns.ReadWrites)), uint32(len(ns.BlindWrites)),
 				i, int64(1234+i),
 			)
@@ -39,7 +40,8 @@ func FuzzASN1MarshalTxNamespace(f *testing.F) {
 		//nolint:gosec // false positive; safe integer conversion.
 		for _, r := range ns.ReadWrites {
 			f.Add(
-				"another-tx-id", []byte("another-metadata"), ns.NsId, ns.NsVersion, protoToAsnVersion(r.Version),
+				"another-tx-id", []byte("another-metadata-1"), []byte("another-metadata-2"),
+				ns.NsId, ns.NsVersion, protoToAsnVersion(r.Version),
 				uint32(len(ns.ReadsOnly)), uint32(len(ns.ReadWrites)), uint32(len(ns.BlindWrites)),
 				i, int64(1234+i),
 			)
@@ -48,11 +50,12 @@ func FuzzASN1MarshalTxNamespace(f *testing.F) {
 	}
 	f.Fuzz(func(
 		t *testing.T,
-		id string, metadata []byte, nsID string, nsVersion uint64, readVersion int64,
+		id string, metadata1, metadata2 []byte, nsID string, nsVersion uint64, readVersion int64,
 		rCount, rwCount, wCount uint32,
 		maxSize uint32, seed int64,
 	) {
 		txNs := generateTxNs(t, id, nsID, nsVersion, readVersion, rCount, rwCount, wCount, maxSize, seed)
+		metadata := [][]byte{metadata1, metadata2}
 		derBytes := requireASN1Marshal(t, id, metadata, txNs)
 		actualTxID, actualTxMetadata, actualTxNs := reconstructTX(t, [][]byte{derBytes})
 		require.Equal(t, id, actualTxID)
