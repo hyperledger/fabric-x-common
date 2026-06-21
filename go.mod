@@ -8,9 +8,9 @@ go 1.26.3
 
 require (
 	github.com/IBM/idemix v0.1.1
-	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/cockroachdb/errors v1.12.0
+	github.com/expr-lang/expr v1.17.8
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0

@@ -202,8 +202,9 @@ var _ = ginkgo.Describe("Encoder", func() {
 
 			ginkgo.It("wraps and returns the error", func() {
 				err := addPolicies(cg, policies, "Readers")
-				gomega.Expect(err).To(gomega.MatchError("invalid signature policy rule 'garbage': " +
-					"unrecognized token 'garbage' in policy string"))
+				gomega.Expect(err).To(gomega.MatchError(gomega.ContainSubstring(
+					"invalid signature policy rule 'garbage'",
+				)))
 			})
 		})
 
