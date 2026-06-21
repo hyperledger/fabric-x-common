@@ -13,7 +13,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/pkg/errors"
@@ -111,7 +110,7 @@ func newBlockfileMgr(id string, conf *Conf, indexConfig *IndexConfig, indexStore
 		if blockfilesInfo, err = constructBlockfilesInfo(rootDir); err != nil {
 			panic(fmt.Sprintf("Could not build blockfilesInfo info from block files: %s", err))
 		}
-		logger.Debugf("Info constructed by scanning the blocks dir = %s", spew.Sdump(blockfilesInfo))
+		logger.Debugf("Info constructed by scanning the blocks dir = %v", blockfilesInfo)
 	} else {
 		logger.Debug(`Syncing block information from block storage (if needed)`)
 		syncBlockfilesInfoFromFS(rootDir, blockfilesInfo)
@@ -637,7 +636,7 @@ func (mgr *blockfileMgr) retrieveTransactionByID(txID string) (*common.Envelope,
 	return mgr.fetchTransactionEnvelope(loc)
 }
 
-func (mgr *blockfileMgr) retrieveTransactionByBlockNumTranNum(blockNum uint64, tranNum uint64) (*common.Envelope, error) {
+func (mgr *blockfileMgr) retrieveTransactionByBlockNumTranNum(blockNum, tranNum uint64) (*common.Envelope, error) {
 	logger.Debugf("retrieveTransactionByBlockNumTranNum() - blockNum = [%d], tranNum = [%d]", blockNum, tranNum)
 	if blockNum < mgr.firstPossibleBlockNumberInBlockFiles() {
 		return nil, errors.Errorf(
