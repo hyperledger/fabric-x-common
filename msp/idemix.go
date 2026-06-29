@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package msp
 
 import (
-	"github.com/IBM/idemix"
+	idemixmsp "github.com/IBM/idemix/msp"
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"google.golang.org/protobuf/proto"
@@ -15,11 +15,11 @@ import (
 )
 
 type idemixSigningIdentityWrapper struct {
-	*idemix.IdemixSigningIdentity
+	*idemixmsp.IdemixSigningIdentity
 }
 
 func (i *idemixSigningIdentityWrapper) GetPublicVersion() Identity {
-	return &idemixIdentityWrapper{Idemixidentity: i.IdemixSigningIdentity.GetPublicVersion().(*idemix.Idemixidentity)}
+	return &idemixIdentityWrapper{Idemixidentity: i.IdemixSigningIdentity.GetPublicVersion().(*idemixmsp.Idemixidentity)}
 }
 
 func (i *idemixSigningIdentityWrapper) GetIdentifier() *IdentityIdentifier {
@@ -43,7 +43,7 @@ func (*idemixSigningIdentityWrapper) GetCertificatePEM() ([]byte, error) {
 }
 
 type idemixIdentityWrapper struct {
-	*idemix.Idemixidentity
+	*idemixmsp.Idemixidentity
 }
 
 func (i *idemixIdentityWrapper) GetIdentifier() *IdentityIdentifier {
@@ -82,7 +82,7 @@ func (i *idemixIdentityWrapper) GetOrganizationalUnits() []*OUIdentifier {
 }
 
 type idemixMSPWrapper struct {
-	*idemix.Idemixmsp
+	*idemixmsp.Idemixmsp
 }
 
 func (i *idemixMSPWrapper) deserializeIdentityInternal(serializedIdentity []byte) (Identity, error) {
@@ -91,7 +91,7 @@ func (i *idemixMSPWrapper) deserializeIdentityInternal(serializedIdentity []byte
 		return nil, err
 	}
 
-	return &idemixIdentityWrapper{id.(*idemix.Idemixidentity)}, nil
+	return &idemixIdentityWrapper{id.(*idemixmsp.Idemixidentity)}, nil
 }
 
 func (i *idemixMSPWrapper) DeserializeIdentity(identity *msppb.Identity) (Identity, error) { //nolint:ireturn
@@ -105,7 +105,7 @@ func (i *idemixMSPWrapper) DeserializeIdentity(identity *msppb.Identity) (Identi
 		return nil, err
 	}
 
-	return &idemixIdentityWrapper{id.(*idemix.Idemixidentity)}, nil
+	return &idemixIdentityWrapper{id.(*idemixmsp.Idemixidentity)}, nil
 }
 
 // GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
@@ -137,7 +137,7 @@ func (i *idemixMSPWrapper) GetDefaultSigningIdentity() (SigningIdentity, error) 
 		return nil, err
 	}
 
-	return &idemixSigningIdentityWrapper{id.(*idemix.IdemixSigningIdentity)}, nil
+	return &idemixSigningIdentityWrapper{id.(*idemixmsp.IdemixSigningIdentity)}, nil
 }
 
 func (i *idemixMSPWrapper) Validate(id Identity) error {

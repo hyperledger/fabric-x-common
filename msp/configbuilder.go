@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/IBM/idemix"
+	idemixmsp "github.com/IBM/idemix/msp"
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
@@ -163,7 +163,7 @@ func GetLocalMspConfigWithType(dir string, bccspConfig *factory.FactoryOpts, ID,
 	case ProviderTypeToString(FABRIC):
 		return GetLocalMspConfig(dir, bccspConfig, ID)
 	case ProviderTypeToString(IDEMIX):
-		return idemix.GetIdemixMspConfig(dir, ID)
+		return idemixmsp.GetIdemixMspConfig(dir, ID)
 	default:
 		return nil, errors.Errorf("unknown MSP type '%s'", mspType)
 	}
@@ -203,13 +203,13 @@ func GetVerifyingMspConfig(dir, ID, mspType string) (*msp.MSPConfig, error) {
 	case ProviderTypeToString(FABRIC):
 		return getMspConfig(dir, ID, nil)
 	case ProviderTypeToString(IDEMIX):
-		return idemix.GetIdemixMspConfig(dir, ID)
+		return idemixmsp.GetIdemixMspConfig(dir, ID)
 	default:
 		return nil, errors.Errorf("unknown MSP type '%s'", mspType)
 	}
 }
 
-func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.MSPConfig, error) {
+func getMspConfig(dir, ID string, sigid *msp.SigningIdentityInfo) (*msp.MSPConfig, error) {
 	cacertDir := filepath.Join(dir, cacerts)
 	admincertDir := filepath.Join(dir, admincerts)
 	intermediatecertsDir := filepath.Join(dir, intermediatecerts)
@@ -378,7 +378,7 @@ func getMspConfig(dir string, ID string, sigid *msp.SigningIdentityInfo) (*msp.M
 	return &msp.MSPConfig{Config: fmpsjs, Type: int32(FABRIC)}, nil
 }
 
-func loadCertificateAt(dir, certificatePath string, ouType string) []byte {
+func loadCertificateAt(dir, certificatePath, ouType string) []byte {
 	if certificatePath == "" {
 		mspLogger.Debugf("Specific certificate for %s is not configured", ouType)
 		return nil
