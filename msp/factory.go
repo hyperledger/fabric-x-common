@@ -66,15 +66,23 @@ func New(opts NewOpts, cryptoProvider bccsp.BCCSP) (MSP, error) {
 			if err != nil {
 				return nil, err
 			}
+			idemixMSP, ok := msp.(*idemixmsp.Idemixmsp)
+			if !ok {
+				panic("Invalid idemix msp")
+			}
 
-			return &idemixMSPWrapper{msp.(*idemixmsp.Idemixmsp)}, nil
+			return &idemixMSPWrapper{idemixMSP}, nil
 		case MSPv1_1:
 			msp, err := idemixmsp.NewIdemixMsp(MSPv1_1)
 			if err != nil {
 				return nil, err
 			}
+			idemixMSP, ok := msp.(*idemixmsp.Idemixmsp)
+			if !ok {
+				panic("Invalid idemix msp")
+			}
 
-			return &idemixMSPWrapper{msp.(*idemixmsp.Idemixmsp)}, nil
+			return &idemixMSPWrapper{idemixMSP}, nil
 		default:
 			return nil, errors.Errorf("Invalid *IdemixNewOpts. Version not recognized [%v]", opts.GetVersion())
 		}

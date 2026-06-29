@@ -19,7 +19,11 @@ type idemixSigningIdentityWrapper struct {
 }
 
 func (i *idemixSigningIdentityWrapper) GetPublicVersion() Identity {
-	return &idemixIdentityWrapper{Idemixidentity: i.IdemixSigningIdentity.GetPublicVersion().(*idemixmsp.Idemixidentity)}
+	idemixID, ok := i.IdemixSigningIdentity.GetPublicVersion().(*idemixmsp.Idemixidentity)
+	if !ok {
+		panic("identity is not idemix")
+	}
+	return &idemixIdentityWrapper{Idemixidentity: idemixID}
 }
 
 func (i *idemixSigningIdentityWrapper) GetIdentifier() *IdentityIdentifier {
@@ -90,8 +94,12 @@ func (i *idemixMSPWrapper) deserializeIdentityInternal(serializedIdentity []byte
 	if err != nil {
 		return nil, err
 	}
+	idemixID, ok := id.(*idemixmsp.Idemixidentity)
+	if !ok {
+		panic("identity is not idemix")
+	}
 
-	return &idemixIdentityWrapper{id.(*idemixmsp.Idemixidentity)}, nil
+	return &idemixIdentityWrapper{idemixID}, nil
 }
 
 func (i *idemixMSPWrapper) DeserializeIdentity(identity *msppb.Identity) (Identity, error) { //nolint:ireturn
@@ -104,8 +112,12 @@ func (i *idemixMSPWrapper) DeserializeIdentity(identity *msppb.Identity) (Identi
 	if err != nil {
 		return nil, err
 	}
+	idemixID, ok := id.(*idemixmsp.Idemixidentity)
+	if !ok {
+		panic("identity is not idemix")
+	}
 
-	return &idemixIdentityWrapper{id.(*idemixmsp.Idemixidentity)}, nil
+	return &idemixIdentityWrapper{idemixID}, nil
 }
 
 // GetKnownDeserializedIdentity returns a known identity matching the given IdentityIdentifier.
@@ -136,8 +148,12 @@ func (i *idemixMSPWrapper) GetDefaultSigningIdentity() (SigningIdentity, error) 
 	if err != nil {
 		return nil, err
 	}
+	idemixID, ok := id.(*idemixmsp.IdemixSigningIdentity)
+	if !ok {
+		panic("identity is not idemix")
+	}
 
-	return &idemixSigningIdentityWrapper{id.(*idemixmsp.IdemixSigningIdentity)}, nil
+	return &idemixSigningIdentityWrapper{idemixID}, nil
 }
 
 func (i *idemixMSPWrapper) Validate(id Identity) error {

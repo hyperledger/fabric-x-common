@@ -209,7 +209,8 @@ func GetVerifyingMspConfig(dir, ID, mspType string) (*msp.MSPConfig, error) {
 	}
 }
 
-func getMspConfig(dir, ID string, sigid *msp.SigningIdentityInfo) (*msp.MSPConfig, error) {
+//nolint:gocognit
+func getMspConfig(dir, id string, sigid *msp.SigningIdentityInfo) (*msp.MSPConfig, error) {
 	cacertDir := filepath.Join(dir, cacerts)
 	admincertDir := filepath.Join(dir, admincerts)
 	intermediatecertsDir := filepath.Join(dir, intermediatecerts)
@@ -360,7 +361,7 @@ func getMspConfig(dir, ID string, sigid *msp.SigningIdentityInfo) (*msp.MSPConfi
 		RootCerts:                     cacerts,
 		IntermediateCerts:             intermediatecerts,
 		SigningIdentity:               sigid,
-		Name:                          ID,
+		Name:                          id,
 		OrganizationalUnitIdentifiers: ouis,
 		RevocationList:                crls,
 		CryptoConfig:                  cryptoConfig,
