@@ -9,7 +9,7 @@ package testcrypto
 import (
 	"slices"
 
-	"github.com/IBM/idemix/common/flogging"
+	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 
