@@ -21,7 +21,9 @@ type idemixSigningIdentityWrapper struct {
 func (i *idemixSigningIdentityWrapper) GetPublicVersion() Identity {
 	idemixID, ok := i.IdemixSigningIdentity.GetPublicVersion().(*idemixmsp.Idemixidentity)
 	if !ok {
-		panic("identity is not idemix")
+		// Return nil identity if type assertion fails - caller should handle nil check
+		mspLogger.Error("identity is not idemix: type assertion failed")
+		return nil
 	}
 	return &idemixIdentityWrapper{Idemixidentity: idemixID}
 }
@@ -96,7 +98,7 @@ func (i *idemixMSPWrapper) deserializeIdentityInternal(serializedIdentity []byte
 	}
 	idemixID, ok := id.(*idemixmsp.Idemixidentity)
 	if !ok {
-		panic("identity is not idemix")
+		return nil, errors.New("identity is not idemix: type assertion failed")
 	}
 
 	return &idemixIdentityWrapper{idemixID}, nil
@@ -114,7 +116,7 @@ func (i *idemixMSPWrapper) DeserializeIdentity(identity *msppb.Identity) (Identi
 	}
 	idemixID, ok := id.(*idemixmsp.Idemixidentity)
 	if !ok {
-		panic("identity is not idemix")
+		return nil, errors.New("identity is not idemix: type assertion failed")
 	}
 
 	return &idemixIdentityWrapper{idemixID}, nil
@@ -150,7 +152,7 @@ func (i *idemixMSPWrapper) GetDefaultSigningIdentity() (SigningIdentity, error) 
 	}
 	idemixID, ok := id.(*idemixmsp.IdemixSigningIdentity)
 	if !ok {
-		panic("identity is not idemix")
+		return nil, errors.New("identity is not idemix: type assertion failed")
 	}
 
 	return &idemixSigningIdentityWrapper{idemixID}, nil

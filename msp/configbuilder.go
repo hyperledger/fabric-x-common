@@ -209,7 +209,7 @@ func GetVerifyingMspConfig(dir, ID, mspType string) (*msp.MSPConfig, error) {
 	}
 }
 
-//nolint:gocognit
+//nolint:gocognit // High complexity inherent to sequential directory reading and validation for MSP config
 func getMspConfig(dir, id string, sigid *msp.SigningIdentityInfo) (*msp.MSPConfig, error) {
 	cacertDir := filepath.Join(dir, cacerts)
 	admincertDir := filepath.Join(dir, admincerts)

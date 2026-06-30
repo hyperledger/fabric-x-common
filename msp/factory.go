@@ -68,7 +68,7 @@ func New(opts NewOpts, cryptoProvider bccsp.BCCSP) (MSP, error) {
 			}
 			idemixMSP, ok := msp.(*idemixmsp.Idemixmsp)
 			if !ok {
-				panic("Invalid idemix msp")
+				return nil, errors.New("invalid idemix msp: type assertion failed")
 			}
 
 			return &idemixMSPWrapper{idemixMSP}, nil
@@ -79,7 +79,7 @@ func New(opts NewOpts, cryptoProvider bccsp.BCCSP) (MSP, error) {
 			}
 			idemixMSP, ok := msp.(*idemixmsp.Idemixmsp)
 			if !ok {
-				panic("Invalid idemix msp")
+				return nil, errors.New("invalid idemix msp: type assertion failed")
 			}
 
 			return &idemixMSPWrapper{idemixMSP}, nil

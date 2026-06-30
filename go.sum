@@ -7,8 +7,8 @@ cloud.google.com/go/iam v1.5.3/go.mod h1:MR3v9oLkZCTlaqljW6Eb2d3HGDGK5/bDv93jhfI
 cloud.google.com/go/longrunning v0.8.0 h1:LiKK77J3bx5gDLi4SMViHixjD2ohlkwBi+mKA7EhfW8=
 cloud.google.com/go/longrunning v0.8.0/go.mod h1:UmErU2Onzi+fKDg2gR7dusz11Pe26aknR4kHmJJqIfk=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/IBM/idemix v0.1.0 h1:cRFz4wy7EohGminZbAnorX5dxzZZ8mDHr6Vcqnr2hAA=
-github.com/IBM/idemix v0.1.0/go.mod h1:ZtSPMmSzhK5MGDtd+Yl8IRscc8vze1HGhTXLnsJzOus=
+github.com/IBM/idemix v0.1.1 h1:vU0sx/yZHw5peHdfLhQZ7A4X+H+U4UfZY0vyooBmFlY=
+github.com/IBM/idemix v0.1.1/go.mod h1:ZtSPMmSzhK5MGDtd+Yl8IRscc8vze1HGhTXLnsJzOus=
 github.com/IBM/mathlib v0.2.0 h1:/6KUsbFm04UV9aBV7oN6+jGMfckxmh9+HcLVartRhMQ=
 github.com/IBM/mathlib v0.2.0/go.mod h1:5KCSHHlg4Ec6w5gets9IVIa2H7qe0Cl47v87CCS9BEQ=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible h1:1G1pk05UrOh0NlF1oeaaix1x8XzrfjIDK47TY0Zehcw=
