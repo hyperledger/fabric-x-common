@@ -7,7 +7,7 @@ module github.com/hyperledger/fabric-x-common
 go 1.26.3
 
 require (
-	github.com/IBM/idemix v0.0.3-0.20260629083137-60c302acc8a6
+	github.com/IBM/idemix v0.1.0
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/cockroachdb/errors v1.12.0
