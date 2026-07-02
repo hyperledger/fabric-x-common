@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/ast"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"google.golang.org/protobuf/proto"
@@ -26,23 +26,35 @@ type parser struct {
 
 // Gate values.
 const (
-	GateAnd   = "And"
-	GateOr    = "Or"
-	GateOutOf = "OutOf"
+	GateAnd   = "and"
+	GateOr    = "or"
+	GateOutOf = "outof"
 )
 
-var roleRegex = regexp.MustCompile("^([[:alnum:].-]+)[.](admin|member|client|peer|orderer)$")
+// Pattern matches a role case-insensitively:
+//
+//	^                          - Assert start of string
+//	(?i)                       - Enable case-insensitivity
+//	(                          - Group 1 start: Identifier
+//	  [[:alnum:].-]+           - Alphanumeric, dot, or hyphen (1 or more)
+//	)                          - Group 1 end
+//	[.]                        - Match a literal dot
+//	(                          - Group 2 start: Role
+//	  admin|member|client|...  - Specific system role options
+//	)                          - Group 2 end
+//	$                          - Assert end of string
+var roleRegex = regexp.MustCompile("^(?i)([[:alnum:].-]+)[.](admin|member|client|peer|orderer)$")
 
 // FromString takes a string representation of the policy,
 // parses it and returns a SignaturePolicyEnvelope that
 // implements that policy. The supported language is as follows:
 //
-// GATE(P[, P])
-// OutOf(N, P[, P])
+//	GATE(P[, P])
+//	OutOf(N, P[, P])
 //
 // where:
-//   - GATE is either "And" (also "AND" or "and") or "Or" (also "OR" or "or")
-//   - OutOf also supports "OUTOF" or "outof"
+//   - GATE is either "And" or "Or" (case-insensitive)
+//   - OutOf is case-insensitive
 //   - P is either a principal or another nested call to GATE or OutOf
 //   - N is a positive number up to the number of arguments
 //
@@ -59,15 +71,10 @@ func FromString(policy string) (*cb.SignaturePolicyEnvelope, error) {
 	}
 	program, err := expr.Compile(
 		policy,
+		expr.Patch(&p),
 		expr.Function(GateAnd, p.and),
-		expr.Function(strings.ToLower(GateAnd), p.and),
-		expr.Function(strings.ToUpper(GateAnd), p.and),
 		expr.Function(GateOr, p.or),
-		expr.Function(strings.ToLower(GateOr), p.or),
-		expr.Function(strings.ToUpper(GateOr), p.or),
 		expr.Function(GateOutOf, p.nOutOf),
-		expr.Function(strings.ToLower(GateOutOf), p.nOutOf),
-		expr.Function(strings.ToUpper(GateOutOf), p.nOutOf),
 	)
 	if err != nil {
 		return nil, err
@@ -94,19 +101,8 @@ func (p *parser) nOutOf(args ...any) (any, error) {
 	}
 
 	// How many of the policies we expect to accept.
-	var t int
-	switch arg := args[0].(type) {
-	case int:
-		t = arg
-	case float64:
-		t = int(arg)
-	case string:
-		var err error
-		t, err = strconv.Atoi(arg)
-		if err != nil {
-			return nil, fmt.Errorf("unrecognized type, expected a number, got %s", reflect.TypeOf(args[0]))
-		}
-	default:
+	t, ok := args[0].(int)
+	if !ok {
 		return nil, fmt.Errorf("unrecognized type, expected a number, got %s", reflect.TypeOf(args[0]))
 	}
 
@@ -213,4 +209,15 @@ func newPrinciple(mspID, roleName string) (*mb.MSPPrincipal, error) {
 		PrincipalClassification: mb.MSPPrincipal_ROLE,
 		Principal:               mspRole,
 	}, nil
+}
+
+// Visit implements the expr.Visitor interface.
+// It is used to traverse the AST and enforce lowercase naming conventions.
+func (*parser) Visit(node *ast.Node) {
+	if callNode, isCallNode := (*node).(*ast.CallNode); isCallNode {
+		if identifierNode, isIDNode := callNode.Callee.(*ast.IdentifierNode); isIDNode {
+			// Enforce lowercase naming convention in the AST
+			identifierNode.Value = strings.ToLower(identifierNode.Value)
+		}
+	}
 }
