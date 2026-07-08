@@ -7,7 +7,7 @@
 set -e
 
 # Versions
-protoc_bin_version="34.1"
+protoc_bin_version="35.1"
 golangci_lint_version="v2.12.2"
 mockery_version="v2.53.5"
 
