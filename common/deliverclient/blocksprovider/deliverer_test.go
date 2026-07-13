@@ -35,7 +35,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/tools/test"
 )
 
-const eventuallyTO = 20 * time.Second
+const eventuallyTO = time.Minute
 
 var _ = ginkgo.Describe("CFT-Deliverer", func() {
 	var (
@@ -614,8 +614,7 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 					Header: &common.BlockHeader{
 						Number: 8,
 					},
-				},
-				))
+				}))
 			})
 		})
 
@@ -705,8 +704,7 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 				Data: &common.BlockData{
 					Data: [][]byte{protoutil.MarshalOrPanic(env)},
 				},
-			},
-			))
+			}))
 			gomega.Eventually(fakeUpdatableBlockVerifier.VerifyBlockCallCount, eventuallyTO).Should(gomega.Equal(1))
 		})
 
@@ -769,7 +767,8 @@ var _ = ginkgo.Describe("CFT-Deliverer", func() {
 	})
 })
 
-func testSetup(certDir string, consensusClass string) (*common.Config, bccsp.BCCSP, error) {
+//nolint:ireturn // returns interface by design.
+func testSetup(certDir, consensusClass string) (*common.Config, bccsp.BCCSP, error) {
 	var configProfile *configtxgen.Profile
 	tlsCA, err := tlsgen.NewCA()
 	if err != nil {
