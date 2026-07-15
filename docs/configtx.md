@@ -343,6 +343,12 @@ Application: &ApplicationDefaults
     LifecycleEndorsement:
       Type: ImplicitMeta
       Rule: MAJORITY Endorsement
+    SnapshotEndorsement:
+      Type: ImplicitMeta
+      Rule: MAJORITY Endorsement
+    CheckpointEndorsement:
+      Type: ImplicitMeta
+      Rule: MAJORITY Endorsement
     Endorsement:
       Type: ImplicitMeta
       Rule: MAJORITY Endorsement
@@ -399,8 +405,14 @@ endorsements by default.
 Each namespace has its own policy (`NamespacePolicy`) that governs
 transaction validation within that namespace. A `NamespacePolicy` can use
 either:
+
 - A **ThresholdRule** with a signature scheme and public key, or
 - An **MSP rule** (raw MSP policy bytes)
+
+`SnapshotEndorsement` and `CheckpointEndorsement` follow the same
+`ImplicitMeta` channel-policy pattern as `LifecycleEndorsement`, resolved from
+`/Channel/Application/SnapshotEndorsement` and
+`/Channel/Application/CheckpointEndorsement` respectively.
 
 ```
 NamespacePolicy
@@ -618,6 +630,7 @@ Profiles are the **entry point** for `configtxgen`. A profile composes the
 templates from the top-level sections into a complete network definition.
 
 A Fabric-X genesis block profile must include:
+
 - An `Orderer` section (with organizations, ConsenterMapping, and Arma config)
 - An `Application` section (with organizations and lifecycle endorsement policy)
 - Channel-level policies
@@ -842,6 +855,7 @@ SharedConfig (binary protobuf)
 
 Fabric-X introduces a richer orderer endpoint format compared to legacy Fabric.
 Each endpoint can specify:
+
 - A **party ID** identifying which ordering party it belongs to
 - A specific **API** it supports (`broadcast`, `deliver`, or both)
 
@@ -1063,20 +1077,22 @@ the policy path that governs it. A failed config update usually points at an
 `/Channel/Orderer/BlockValidation`.
 
 ```
-/Channel/Readers                        Network-level read access (Deliver API)
-/Channel/Writers                        Network-level write access (Broadcast API)
-/Channel/Admins                         Network-level admin (config updates)
-/Channel/Orderer/Readers                Orderer read access
-/Channel/Orderer/Writers                Orderer write access
-/Channel/Orderer/Admins                 Orderer admin
-/Channel/Orderer/BlockValidation        Block signature verification
-/Channel/Application/Readers            Application read access
-/Channel/Application/Writers            Application write access
-/Channel/Application/Admins             Application admin
+/Channel/Readers                            Network-level read access (Deliver API)
+/Channel/Writers                            Network-level write access (Broadcast API)
+/Channel/Admins                             Network-level admin (config updates)
+/Channel/Orderer/Readers                    Orderer read access
+/Channel/Orderer/Writers                    Orderer write access
+/Channel/Orderer/Admins                     Orderer admin
+/Channel/Orderer/BlockValidation            Block signature verification
+/Channel/Application/Readers                Application read access
+/Channel/Application/Writers                Application write access
+/Channel/Application/Admins                 Application admin
 /Channel/Application/LifecycleEndorsement   Chaincode lifecycle endorsement
-/Channel/Application/Endorsement        Chaincode execution endorsement
-/Channel/Orderer/<OrgName>/Readers      Per-org orderer policies
-/Channel/Application/<OrgName>/Readers  Per-org application policies
+/Channel/Application/SnapshotEndorsement    Snapshot transaction authorization
+/Channel/Application/CheckpointEndorsement  Checkpoint transaction authorization
+/Channel/Application/Endorsement            Chaincode execution endorsement
+/Channel/Orderer/<OrgName>/Readers          Per-org orderer policies
+/Channel/Application/<OrgName>/Readers      Per-org application policies
 ```
 
 ### 8.5 ACLs (Future)
@@ -1375,11 +1391,13 @@ Channel/                                           (root ConfigGroup)
     |
     +-- Application/
         +-- Policies/
-        |   +-- Readers              ImplicitMeta "ANY Readers"
-        |   +-- Writers              ImplicitMeta "ANY Writers"
-        |   +-- Admins               ImplicitMeta "MAJORITY Admins"
-        |   +-- LifecycleEndorsement ImplicitMeta "MAJORITY Endorsement"
-        |   +-- Endorsement          ImplicitMeta "MAJORITY Endorsement"
+        |   +-- Readers               ImplicitMeta "ANY Readers"
+        |   +-- Writers               ImplicitMeta "ANY Writers"
+        |   +-- Admins                ImplicitMeta "MAJORITY Admins"
+        |   +-- LifecycleEndorsement  ImplicitMeta "MAJORITY Endorsement"
+        |   +-- SnapshotEndorsement   ImplicitMeta "MAJORITY Endorsement"
+        |   +-- CheckpointEndorsement ImplicitMeta "MAJORITY Endorsement"
+        |   +-- Endorsement           ImplicitMeta "MAJORITY Endorsement"
         |
         +-- Values/
         |
@@ -1397,7 +1415,6 @@ Channel/                                           (root ConfigGroup)
 ```
 
 ---
-
 
 ## 12. Step-by-Step Usage Examples
 
@@ -1480,6 +1497,12 @@ Capabilities:
 Application: &ApplicationDefaults
   Policies:
     LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: MAJORITY Endorsement
+    SnapshotEndorsement:
+      Type: ImplicitMeta
+      Rule: MAJORITY Endorsement
+    CheckpointEndorsement:
       Type: ImplicitMeta
       Rule: MAJORITY Endorsement
     Endorsement:
@@ -1734,6 +1757,8 @@ Step 5: Builds ConfigGroup hierarchy:
                 +-- Org1/ (MSP + policies)
                 +-- Org2/ (MSP + policies)
                 +-- LifecycleEndorsement policy (MAJORITY Endorsement)
+                +-- SnapshotEndorsement policy (MAJORITY Endorsement)
+                +-- CheckpointEndorsement policy (MAJORITY Endorsement)
 Step 6: Wraps ConfigGroup in ConfigEnvelope -> Envelope -> Block #0
 Step 7: Writes genesis.block (protobuf binary, permissions 0640)
 ```

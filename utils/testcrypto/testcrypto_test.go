@@ -11,10 +11,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/api/types"
+	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/cryptogen"
 )
 
@@ -597,4 +600,35 @@ func TestIntegrationCryptoWorkflow(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, cert)
 	}
+}
+
+// TestSnapshotCheckpointPoliciesResolve verifies that the generated config block
+// carries the SnapshotEndorsement and CheckpointEndorsement application policies,
+// mirroring how LifecycleEndorsement is emitted today, and that they resolve via
+// the channel PolicyManager (per contracts/snapshot-policy.md).
+func TestSnapshotCheckpointPoliciesResolve(t *testing.T) {
+	t.Parallel()
+	cryptoPath := t.TempDir()
+
+	block, err := CreateOrExtendConfigBlockWithCrypto(cryptoPath, &ConfigBlock{
+		ChannelID:             "test-channel",
+		PeerOrganizationCount: 1,
+		OrdererEndpoints:      []*types.OrdererEndpoint{{ID: 0, Host: "localhost", Port: 7050}},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, block)
+
+	envelope, err := protoutil.ExtractEnvelope(block, 0)
+	require.NoError(t, err)
+
+	bundle, err := channelconfig.NewBundleFromEnvelope(envelope, factory.GetDefault())
+	require.NoError(t, err)
+
+	snapshotPolicy, ok := bundle.PolicyManager().GetPolicy("/Channel/Application/SnapshotEndorsement")
+	require.True(t, ok, "SnapshotEndorsement policy not found")
+	require.NotNil(t, snapshotPolicy)
+
+	checkpointPolicy, ok := bundle.PolicyManager().GetPolicy("/Channel/Application/CheckpointEndorsement")
+	require.True(t, ok, "CheckpointEndorsement policy not found")
+	require.NotNil(t, checkpointPolicy)
 }
