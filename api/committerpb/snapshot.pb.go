@@ -90,12 +90,17 @@ func (SnapshotState_Status) EnumDescriptor() ([]byte, []int) {
 // transaction ID is the row key, encoded as UTF-8 transaction ID bytes, and the
 // row value is the serialized SnapshotState protobuf message.
 type SnapshotState struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TxRef         *TxRef                 `protobuf:"bytes,1,opt,name=tx_ref,json=txRef,proto3" json:"tx_ref,omitempty"`
-	Status        SnapshotState_Status   `protobuf:"varint,2,opt,name=status,proto3,enum=committerpb.SnapshotState_Status" json:"status,omitempty"`
-	Hash          []byte                 `protobuf:"bytes,3,opt,name=hash,proto3" json:"hash,omitempty"`
-	Error         string                 `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
-	CloneDatabase string                 `protobuf:"bytes,5,opt,name=clone_database,json=cloneDatabase,proto3" json:"clone_database,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Reference identifying snapshot transaction and its position in the block.
+	TxRef *TxRef `protobuf:"bytes,1,opt,name=tx_ref,json=txRef,proto3" json:"tx_ref,omitempty"`
+	// Current snapshot lifecycle status.
+	Status SnapshotState_Status `protobuf:"varint,2,opt,name=status,proto3,enum=committerpb.SnapshotState_Status" json:"status,omitempty"`
+	// Deterministic hash computed from snapshot database contents.
+	Hash []byte `protobuf:"bytes,3,opt,name=hash,proto3" json:"hash,omitempty"`
+	// Diagnostic context for a recoverable snapshot failure.
+	Error string `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	// Name of the database clone used to compute the snapshot hash.
+	CloneDatabase string `protobuf:"bytes,5,opt,name=clone_database,json=cloneDatabase,proto3" json:"clone_database,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
