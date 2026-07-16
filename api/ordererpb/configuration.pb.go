@@ -109,14 +109,16 @@ type PartyConfig struct {
 	CACerts [][]byte `protobuf:"bytes,2,rep,name=CACerts,proto3" json:"CACerts,omitempty"`
 	// the certificates of the certificate authorities who generates the party's TLS key-pairs
 	TLSCACerts [][]byte `protobuf:"bytes,3,rep,name=TLSCACerts,proto3" json:"TLSCACerts,omitempty"`
+	// the certificates of the known parties' signing certificates that are used to verify signatures
+	KnownCerts [][]byte `protobuf:"bytes,4,rep,name=KnownCerts,proto3" json:"KnownCerts,omitempty"`
 	// the shared configuration of the router
-	RouterConfig *RouterNodeConfig `protobuf:"bytes,4,opt,name=RouterConfig,proto3" json:"RouterConfig,omitempty"`
+	RouterConfig *RouterNodeConfig `protobuf:"bytes,5,opt,name=RouterConfig,proto3" json:"RouterConfig,omitempty"`
 	// the shared configuration of the batchers
-	BatchersConfig []*BatcherNodeConfig `protobuf:"bytes,5,rep,name=BatchersConfig,proto3" json:"BatchersConfig,omitempty"`
+	BatchersConfig []*BatcherNodeConfig `protobuf:"bytes,6,rep,name=BatchersConfig,proto3" json:"BatchersConfig,omitempty"`
 	// the shared configuration of the consenter
-	ConsenterConfig *ConsenterNodeConfig `protobuf:"bytes,6,opt,name=ConsenterConfig,proto3" json:"ConsenterConfig,omitempty"`
+	ConsenterConfig *ConsenterNodeConfig `protobuf:"bytes,7,opt,name=ConsenterConfig,proto3" json:"ConsenterConfig,omitempty"`
 	// the shared configuration of the assembler
-	AssemblerConfig *AssemblerNodeConfig `protobuf:"bytes,7,opt,name=AssemblerConfig,proto3" json:"AssemblerConfig,omitempty"`
+	AssemblerConfig *AssemblerNodeConfig `protobuf:"bytes,8,opt,name=AssemblerConfig,proto3" json:"AssemblerConfig,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -168,6 +170,13 @@ func (x *PartyConfig) GetCACerts() [][]byte {
 func (x *PartyConfig) GetTLSCACerts() [][]byte {
 	if x != nil {
 		return x.TLSCACerts
+	}
+	return nil
+}
+
+func (x *PartyConfig) GetKnownCerts() [][]byte {
+	if x != nil {
+		return x.KnownCerts
 	}
 	return nil
 }
@@ -981,17 +990,20 @@ const file_api_ordererpb_configuration_proto_rawDesc = "" +
 	"\x0eBatchingConfig\x18\x03 \x01(\v2\x19.ordererpb.BatchingConfigR\x0eBatchingConfig\x12\x1e\n" +
 	"\n" +
 	"MaxPartyID\x18\x04 \x01(\rR\n" +
-	"MaxPartyID\"\xfc\x02\n" +
+	"MaxPartyID\"\x9c\x03\n" +
 	"\vPartyConfig\x12\x18\n" +
 	"\aPartyID\x18\x01 \x01(\rR\aPartyID\x12\x18\n" +
 	"\aCACerts\x18\x02 \x03(\fR\aCACerts\x12\x1e\n" +
 	"\n" +
 	"TLSCACerts\x18\x03 \x03(\fR\n" +
-	"TLSCACerts\x12?\n" +
-	"\fRouterConfig\x18\x04 \x01(\v2\x1b.ordererpb.RouterNodeConfigR\fRouterConfig\x12D\n" +
-	"\x0eBatchersConfig\x18\x05 \x03(\v2\x1c.ordererpb.BatcherNodeConfigR\x0eBatchersConfig\x12H\n" +
-	"\x0fConsenterConfig\x18\x06 \x01(\v2\x1e.ordererpb.ConsenterNodeConfigR\x0fConsenterConfig\x12H\n" +
-	"\x0fAssemblerConfig\x18\a \x01(\v2\x1e.ordererpb.AssemblerNodeConfigR\x0fAssemblerConfig\"U\n" +
+	"TLSCACerts\x12\x1e\n" +
+	"\n" +
+	"KnownCerts\x18\x04 \x03(\fR\n" +
+	"KnownCerts\x12?\n" +
+	"\fRouterConfig\x18\x05 \x01(\v2\x1b.ordererpb.RouterNodeConfigR\fRouterConfig\x12D\n" +
+	"\x0eBatchersConfig\x18\x06 \x03(\v2\x1c.ordererpb.BatcherNodeConfigR\x0eBatchersConfig\x12H\n" +
+	"\x0fConsenterConfig\x18\a \x01(\v2\x1e.ordererpb.ConsenterNodeConfigR\x0fConsenterConfig\x12H\n" +
+	"\x0fAssemblerConfig\x18\b \x01(\v2\x1e.ordererpb.AssemblerNodeConfigR\x0fAssemblerConfig\"U\n" +
 	"\x10RouterNodeConfig\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
 	"\x04port\x18\x02 \x01(\rR\x04port\x12\x19\n" +

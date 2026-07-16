@@ -32,14 +32,16 @@ message PartyConfig {
     repeated bytes CACerts = 2;
     // the certificates of the certificate authorities who generates the party's TLS key-pairs
     repeated bytes TLSCACerts = 3;
+     // the certificates of the known parties' signing certificates that are used to verify signatures
+    repeated bytes KnownCerts = 4;
     // the shared configuration of the router
-    RouterNodeConfig RouterConfig = 4;
+    RouterNodeConfig RouterConfig = 5;
     // the shared configuration of the batchers
-    repeated BatcherNodeConfig BatchersConfig = 5;
+    repeated BatcherNodeConfig BatchersConfig = 6;
     // the shared configuration of the consenter
-    ConsenterNodeConfig ConsenterConfig = 6;
+    ConsenterNodeConfig ConsenterConfig = 7;
     // the shared configuration of the assembler
-    AssemblerNodeConfig AssemblerConfig = 7;
+    AssemblerNodeConfig AssemblerConfig = 8;
 }
 
 message RouterNodeConfig {
