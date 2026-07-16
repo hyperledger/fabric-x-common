@@ -11,6 +11,10 @@ const (
 	MetaNamespaceID = "_meta"
 	// ConfigNamespaceID is the system's namespace ID that holds the config transaction.
 	ConfigNamespaceID = "_config"
+	// SnapshotNamespaceID is the system's namespace ID that holds snapshot data.
+	SnapshotNamespaceID = "_snapshot"
+	// CheckpointNamespaceID is the system's namespace ID that holds checkpoint data.
+	CheckpointNamespaceID = "_checkpoint"
 	// ConfigKey is the key of the config transaction.
 	ConfigKey = "_config"
 )

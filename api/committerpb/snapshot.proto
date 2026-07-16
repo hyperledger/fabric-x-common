@@ -1,0 +1,40 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+option go_package = "github.com/hyperledger/fabric-x-common/api/committerpb";
+
+package committerpb;
+
+import "api/committerpb/ref.proto";
+
+// SnapshotState describes state for a snapshot transaction.
+//
+// Snapshot state is stored in the _snapshot system namespace. The snapshot
+// transaction ID is the row key, encoded as UTF-8 transaction ID bytes, and the
+// row value is the serialized SnapshotState protobuf message.
+message SnapshotState {
+    enum Status {
+        STATUS_UNSPECIFIED = 0;
+        PENDING = 1;
+        IN_PROGRESS = 2;
+        COMPLETED = 3;
+        FAILED = 4;
+        CHECKPOINTED = 5;
+    }
+
+    // Reference identifying snapshot transaction and its position in the block.
+    TxRef tx_ref = 1;
+    // Current snapshot lifecycle status.
+    Status status = 2;
+    // Deterministic hash computed from snapshot database contents.
+    bytes hash = 3;
+    // Diagnostic context for a recoverable snapshot failure.
+    string error = 4;
+    // Name of the database clone used to compute the snapshot hash.
+    string clone_database = 5;
+}
