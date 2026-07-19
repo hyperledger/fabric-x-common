@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const errContextCancelled = "context has been cancelled"
+
 func TestSustain(t *testing.T) {
 	t.Parallel()
 
@@ -36,7 +38,7 @@ func TestSustain(t *testing.T) {
 			},
 			cancelAfter:   50 * time.Millisecond,
 			minCallCount:  2,
-			errorContains: "context has been cancelled",
+			errorContains: errContextCancelled,
 		},
 		{
 			name: "operation recovers from backoff errors and continues running",
@@ -52,7 +54,7 @@ func TestSustain(t *testing.T) {
 			},
 			cancelAfter:   200 * time.Millisecond,
 			minCallCount:  4,
-			errorContains: "context has been cancelled",
+			errorContains: errContextCancelled,
 		},
 		{
 			name: "operation recovers from backoff errors and continues running and than back offs again",
@@ -68,7 +70,7 @@ func TestSustain(t *testing.T) {
 			},
 			cancelAfter:   200 * time.Millisecond,
 			minCallCount:  4,
-			errorContains: "context has been cancelled",
+			errorContains: errContextCancelled,
 		},
 		{
 			name: "other errors retry immediately without backoff",
@@ -84,7 +86,7 @@ func TestSustain(t *testing.T) {
 			},
 			cancelAfter:   400 * time.Millisecond,
 			minCallCount:  4,
-			errorContains: "context has been cancelled",
+			errorContains: errContextCancelled,
 		},
 		{
 			name: "max time elapsed before context cancelled",
@@ -148,7 +150,7 @@ func TestSustain(t *testing.T) {
 				MaxElapsedTime:  5 * time.Second,
 			},
 			timeout:       50 * time.Millisecond,
-			expectedError: "context has been cancelled",
+			expectedError: errContextCancelled,
 		},
 		{
 			name: "nil profile uses defaults",

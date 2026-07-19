@@ -199,7 +199,7 @@ func CloseConnections[T io.Closer](connections ...T) error {
 	errs := make([]error, len(connections))
 	for i, closer := range connections {
 		v := reflect.ValueOf(closer)
-		if !v.IsValid() || (v.Kind() == reflect.Ptr && v.IsNil()) {
+		if !v.IsValid() || (v.Kind() == reflect.Pointer && v.IsNil()) {
 			continue
 		}
 		errs[i] = filterAcceptableCloseErr(closer.Close())
