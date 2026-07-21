@@ -34,7 +34,7 @@ func TestSustain(t *testing.T) {
 			operation: func(uint64) error { return nil },
 			profile: &Profile{
 				InitialInterval: 10 * time.Millisecond,
-				MaxElapsedTime:  100 * time.Millisecond,
+				MaxElapsedTime:  new(100 * time.Millisecond),
 			},
 			cancelAfter:   50 * time.Millisecond,
 			minCallCount:  2,
@@ -50,7 +50,7 @@ func TestSustain(t *testing.T) {
 			},
 			profile: &Profile{
 				InitialInterval: 10 * time.Millisecond,
-				MaxElapsedTime:  500 * time.Millisecond,
+				MaxElapsedTime:  new(500 * time.Millisecond),
 			},
 			cancelAfter:   200 * time.Millisecond,
 			minCallCount:  4,
@@ -66,7 +66,7 @@ func TestSustain(t *testing.T) {
 			},
 			profile: &Profile{
 				InitialInterval: 10 * time.Millisecond,
-				MaxElapsedTime:  500 * time.Millisecond,
+				MaxElapsedTime:  new(500 * time.Millisecond),
 			},
 			cancelAfter:   200 * time.Millisecond,
 			minCallCount:  4,
@@ -82,7 +82,7 @@ func TestSustain(t *testing.T) {
 			},
 			profile: &Profile{
 				InitialInterval: 10 * time.Millisecond,
-				MaxElapsedTime:  500 * time.Millisecond,
+				MaxElapsedTime:  new(500 * time.Millisecond),
 			},
 			cancelAfter:   400 * time.Millisecond,
 			minCallCount:  4,
@@ -95,11 +95,27 @@ func TestSustain(t *testing.T) {
 			},
 			profile: &Profile{
 				InitialInterval: 10 * time.Millisecond,
-				MaxElapsedTime:  100 * time.Millisecond,
+				MaxElapsedTime:  new(100 * time.Millisecond),
 			},
 			cancelAfter:   time.Second,
 			minCallCount:  2,
 			errorContains: "transient error",
+		},
+		{
+			// An unlimited budget (MaxElapsedTime == 0) must never time out on elapsed time;
+			// unlike the case above (finite budget elapses before the context), it keeps
+			// backing off until the context is cancelled.
+			name: "unlimited budget never times out on elapsed time",
+			operation: func(uint64) error {
+				return errors.Wrap(ErrBackOff, "transient error")
+			},
+			profile: &Profile{
+				InitialInterval: 10 * time.Millisecond,
+				MaxElapsedTime:  new(time.Duration(0)),
+			},
+			cancelAfter:   200 * time.Millisecond,
+			minCallCount:  2,
+			errorContains: errContextCancelled,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -135,7 +151,7 @@ func TestSustain(t *testing.T) {
 			},
 			profile: &Profile{
 				InitialInterval: 10 * time.Millisecond,
-				MaxElapsedTime:  100 * time.Millisecond,
+				MaxElapsedTime:  new(100 * time.Millisecond),
 			},
 			timeout:       200 * time.Millisecond,
 			expectedError: "cannot recover from error",
@@ -147,7 +163,7 @@ func TestSustain(t *testing.T) {
 			},
 			profile: &Profile{
 				InitialInterval: 10 * time.Millisecond,
-				MaxElapsedTime:  5 * time.Second,
+				MaxElapsedTime:  new(5 * time.Second),
 			},
 			timeout:       50 * time.Millisecond,
 			expectedError: errContextCancelled,
