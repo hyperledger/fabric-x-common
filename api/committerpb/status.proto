@@ -57,4 +57,5 @@ enum Status {
     MALFORMED_CONFIG_TX_INVALID = 115;                  // Invalid configuration transaction.
     MALFORMED_SNAPSHOT_NOT_MARKER_ONLY = 116;           // _snapshot TX has a non-empty read-write set; only a marker-only _snapshot (entirely empty read-write set) is valid.
     MALFORMED_CHECKPOINT_INVALID_KEY = 117;             // _checkpoint TX read-write key does not decode as a valid TxHeight.
+    MALFORMED_SYSTEM_TX_NOT_STANDALONE = 118;           // System TX must be standalone and cannot be mixed with other namespaces.
 }
