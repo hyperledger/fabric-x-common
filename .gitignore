@@ -26,4 +26,5 @@ TESTS*.xml
 .vagrant/
 .vscode
 .bob
+.worktrees/
 *coverage.profile
