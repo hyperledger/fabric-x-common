@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 
 package committerpb
 
+import "slices"
+
 const (
 	// MetaNamespaceID is the system's namespace ID that holds information about application's namespaces.
 	MetaNamespaceID = "_meta"
@@ -18,6 +20,23 @@ const (
 	// ConfigKey is the key of the config transaction.
 	ConfigKey = "_config"
 )
+
+var systemNamespaces = [...]string{
+	MetaNamespaceID,
+	ConfigNamespaceID,
+	SnapshotNamespaceID,
+	CheckpointNamespaceID,
+}
+
+// SystemNamespaces returns all reserved system namespace IDs.
+func SystemNamespaces() []string {
+	return slices.Clone(systemNamespaces[:])
+}
+
+// IsSystemNamespace returns true if nsID is a reserved system namespace ID.
+func IsSystemNamespace(nsID string) bool {
+	return slices.Contains(systemNamespaces[:], nsID)
+}
 
 // NewTxRef is a convenient method to create a full TX reference in a single line.
 func NewTxRef(txID string, blockNum uint64, txNum uint32) *TxRef {
