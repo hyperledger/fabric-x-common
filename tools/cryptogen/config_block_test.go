@@ -422,6 +422,11 @@ func requireSign(t *testing.T, bundle *channelconfig.Bundle, policyName string, 
 	require.NoError(t, err)
 }
 
+const (
+	ordererOrgName = "orderer-org"
+	genericOrgName = "generic-org"
+)
+
 var (
 	sans      = []string{"127.0.0.1"}
 	peerNodes = []Node{
@@ -513,4 +518,246 @@ func createBlock(t *testing.T, p ConfigBlockParameters) *common.Block {
 		t.Logf("Actual tree: %s", actualTree)
 	})
 	return block
+}
+
+func TestCreateOrExtendProfileWithCrypto_Defaults(t *testing.T) {
+	// When BaseProfile and ChannelID are empty, initConfigDefault fills them in.
+	t.Parallel()
+	target := t.TempDir()
+	conf := &ConfigBlockParameters{
+		TargetPath: target,
+		// BaseProfile and ChannelID intentionally left empty → defaults applied.
+		Organizations: []OrganizationParameters{
+			{
+				Name:   ordererOrgName,
+				Domain: ordererOrgName + ".com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 1, Host: "localhost", Port: 7050, API: []string{types.Broadcast}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "localhost", SANS: sans},
+				},
+				OrdererNodes: []Node{
+					{CommonName: "router", Hostname: "localhost", SANS: sans},
+				},
+			},
+		},
+		ArmaMetaBytes: []byte("arma"),
+	}
+
+	profile, err := CreateOrExtendProfileWithCrypto(conf)
+	require.NoError(t, err)
+	require.NotNil(t, profile)
+
+	// Defaults should have been applied.
+	require.Equal(t, "chan", conf.ChannelID)
+	require.NotEmpty(t, conf.BaseProfile)
+}
+
+func TestCreateOrExtendProfileWithCrypto_ExplicitChannelAndProfile(t *testing.T) {
+	// An explicit BaseProfile and ChannelID are preserved unchanged.
+	t.Parallel()
+	target := t.TempDir()
+	conf := &ConfigBlockParameters{
+		TargetPath:  target,
+		BaseProfile: "SampleFabricX",
+		ChannelID:   "explicit-chan",
+		Organizations: []OrganizationParameters{
+			{
+				Name:   ordererOrgName,
+				Domain: ordererOrgName + ".com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 1, Host: "localhost", Port: 7050, API: []string{types.Broadcast}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "localhost", SANS: sans},
+				},
+				OrdererNodes: []Node{
+					{CommonName: "router", Hostname: "localhost", SANS: sans},
+				},
+			},
+		},
+		ArmaMetaBytes: []byte("explicit-arma"),
+	}
+
+	profile, err := CreateOrExtendProfileWithCrypto(conf)
+	require.NoError(t, err)
+	require.NotNil(t, profile)
+	require.Equal(t, "explicit-chan", conf.ChannelID)
+	require.Equal(t, "SampleFabricX", conf.BaseProfile)
+}
+
+func TestCreateOrExtendProfileWithCrypto_InvalidBaseProfile(t *testing.T) {
+	// A non-existent profile name must return an error.
+	t.Parallel()
+	target := t.TempDir()
+	conf := &ConfigBlockParameters{
+		TargetPath:  target,
+		BaseProfile: "NonExistentProfile",
+		Organizations: []OrganizationParameters{
+			{
+				Name:   ordererOrgName,
+				Domain: ordererOrgName + ".com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 1, Host: "localhost", Port: 7050, API: []string{types.Broadcast}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "localhost", SANS: sans},
+				},
+			},
+		},
+	}
+
+	_, err := CreateOrExtendProfileWithCrypto(conf)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "NonExistentProfile")
+}
+
+func TestCreateOrExtendProfileWithCrypto_DuplicatePartyID(t *testing.T) {
+	// Two organizations that share the same party ID must be rejected.
+	t.Parallel()
+	target := t.TempDir()
+	conf := &ConfigBlockParameters{
+		TargetPath: target,
+		Organizations: []OrganizationParameters{
+			{
+				Name:   "orderer-org-a",
+				Domain: "orderer-org-a.com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 1, Host: "localhost", Port: 7050, API: []string{types.Broadcast}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "localhost", SANS: sans},
+				},
+				OrdererNodes: []Node{
+					{CommonName: "router", Hostname: "localhost", SANS: sans},
+				},
+			},
+			{
+				Name:   "orderer-org-b",
+				Domain: "orderer-org-b.com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					// Same party ID 1 — must trigger a duplicate error.
+					{ID: 1, Host: "localhost", Port: 7051, API: []string{types.Broadcast}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "localhost", SANS: sans},
+				},
+				OrdererNodes: []Node{
+					{CommonName: "router", Hostname: "localhost", SANS: sans},
+				},
+			},
+		},
+		ArmaMetaBytes: []byte("arma"),
+	}
+
+	_, err := CreateOrExtendProfileWithCrypto(conf)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "duplicate party id")
+}
+
+func TestCreateOrExtendProfileWithCrypto_OrgRouting(t *testing.T) {
+	// Verify that organizations are routed to the correct profile lists:
+	//   - orderer-only  → profile.Orderer.Organizations
+	//   - peer-only     → profile.Application.Organizations
+	//   - both          → both lists (generic)
+	t.Parallel()
+	target := t.TempDir()
+	conf := &ConfigBlockParameters{
+		TargetPath: target,
+		Organizations: []OrganizationParameters{
+			{ // orderer-only
+				Name:   ordererOrgName,
+				Domain: ordererOrgName + ".com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 1, Host: "localhost", Port: 7050, API: []string{types.Broadcast}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "localhost", SANS: sans},
+				},
+				OrdererNodes: []Node{
+					{CommonName: "router", Hostname: "localhost", SANS: sans},
+				},
+			},
+			{ // peer-only
+				Name:      "peer-org",
+				Domain:    "peer-org.com",
+				PeerNodes: peerNodes,
+			},
+			{ // generic (both orderer and peer nodes)
+				Name:   genericOrgName,
+				Domain: genericOrgName + ".com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 2, Host: "localhost", Port: 7051, API: []string{types.Broadcast}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "localhost", SANS: sans},
+				},
+				OrdererNodes: []Node{
+					{CommonName: "router", Hostname: "localhost", SANS: sans},
+				},
+				PeerNodes: peerNodes,
+			},
+		},
+		ArmaMetaBytes: []byte("arma"),
+	}
+
+	profile, err := CreateOrExtendProfileWithCrypto(conf)
+	require.NoError(t, err)
+	require.NotNil(t, profile)
+
+	// orderer-org + generic-org appear in orderer organizations.
+	ordererOrgNames := make([]string, 0, len(profile.Orderer.Organizations))
+	for _, o := range profile.Orderer.Organizations {
+		ordererOrgNames = append(ordererOrgNames, o.Name)
+	}
+	require.ElementsMatch(t, []string{ordererOrgName, genericOrgName}, ordererOrgNames)
+
+	// peer-org + generic-org appear in application organizations.
+	appOrgNames := make([]string, 0, len(profile.Application.Organizations))
+	for _, o := range profile.Application.Organizations {
+		appOrgNames = append(appOrgNames, o.Name)
+	}
+	require.ElementsMatch(t, []string{"peer-org", genericOrgName}, appOrgNames)
+
+	// Consenter mapping holds one entry per ConsenterNode across all orgs.
+	require.Len(t, profile.Orderer.ConsenterMapping, 2)
+
+	// Consortiums must be cleared.
+	require.Nil(t, profile.Consortiums)
+}
+
+func TestCreateOrExtendProfileWithCrypto_ConsenterMappingFields(t *testing.T) {
+	// Verify the consenter entries have the expected host, port, and MSPID.
+	t.Parallel()
+	target := t.TempDir()
+	conf := &ConfigBlockParameters{
+		TargetPath: target,
+		Organizations: []OrganizationParameters{
+			{
+				Name:   "my-orderer-org",
+				Domain: "my-orderer-org.com",
+				OrdererEndpoints: []*types.OrdererEndpoint{
+					{ID: 7, Host: "node.example.com", Port: 5000, API: []string{types.Broadcast}},
+				},
+				ConsenterNodes: []Node{
+					{CommonName: "consenter", Hostname: "node.example.com:5000", SANS: sans},
+				},
+				OrdererNodes: []Node{
+					{CommonName: "router", Hostname: "node.example.com", SANS: sans},
+				},
+			},
+		},
+		ArmaMetaBytes: []byte("arma"),
+	}
+
+	profile, err := CreateOrExtendProfileWithCrypto(conf)
+	require.NoError(t, err)
+	require.Len(t, profile.Orderer.ConsenterMapping, 1)
+
+	c := profile.Orderer.ConsenterMapping[0]
+	require.Equal(t, uint32(7), c.ID)
+	require.Equal(t, "node.example.com", c.Host)
+	require.Equal(t, uint32(5000), c.Port)
+	require.Equal(t, "my-orderer-org", c.MSPID)
 }

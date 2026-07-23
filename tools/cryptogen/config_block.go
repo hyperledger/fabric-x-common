@@ -9,9 +9,11 @@ package cryptogen
 import (
 	"fmt"
 	"maps"
+	"net"
 	"os"
 	"path"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/cockroachdb/errors"
@@ -19,6 +21,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
+	"github.com/hyperledger/fabric-x-common/core/config"
 	"github.com/hyperledger/fabric-x-common/sampleconfig"
 	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 )
@@ -64,8 +67,8 @@ type Node struct {
 
 // file names.
 const (
-	ConfigBlockFileName = "config-block.pb.bin"
-	armaDataFile        = "arma.pb.bin"
+	ConfigBlockFileName  = "config-block.pb.bin"
+	ArmaSharedConfigFile = "arma.pb.bin"
 )
 
 // LoadSampleConfig returns the orderer/application config combination that corresponds to
@@ -94,7 +97,32 @@ func LoadSampleConfig(profile string) (*configtxgen.Profile, error) {
 // It uses the first orderer organization as a template and creates the given organizations.
 // It uses the same organizations for the orderer and the application.
 func CreateOrExtendConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Block, error) {
-	initConfigDefault(&conf)
+	profile, err := CreateOrExtendProfileWithCrypto(&conf)
+	if err != nil {
+		return nil, err
+	}
+
+	profile.Orderer.Arma.Path = ArmaSharedConfigFile
+	config.TranslatePathInPlace(conf.TargetPath, &profile.Orderer.Arma.Path)
+
+	err = os.WriteFile(profile.Orderer.Arma.Path, conf.ArmaMetaBytes, 0o644)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to write ARMA data file")
+	}
+
+	block, err := configtxgen.GetOutputBlock(profile, conf.ChannelID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get output block")
+	}
+	err = configtxgen.WriteOutputBlock(block, path.Join(conf.TargetPath, ConfigBlockFileName))
+	return block, errors.Wrap(err, "failed to write block")
+}
+
+// CreateOrExtendProfileWithCrypto creates a profile with default values and a crypto material.
+// It uses the first orderer organization as a template and creates the given organizations.
+// It uses the same organizations for the orderer and the application.
+func CreateOrExtendProfileWithCrypto(conf *ConfigBlockParameters) (*configtxgen.Profile, error) {
+	initConfigDefault(conf)
 	profile, loadErr := LoadSampleConfig(conf.BaseProfile)
 	if loadErr != nil {
 		return nil, loadErr
@@ -142,25 +170,9 @@ func CreateOrExtendConfigBlockWithCrypto(conf ConfigBlockParameters) (*common.Bl
 		}
 	}
 
-	err := os.WriteFile(path.Join(conf.TargetPath, armaDataFile), conf.ArmaMetaBytes, 0o644)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to write ARMA data file")
-	}
-	profile.Orderer.Arma.Path = armaDataFile
-
-	err = Extend(conf.TargetPath, cryptoConf)
-	if err != nil {
-		return nil, err
-	}
-
 	profile.CompleteInitialization(conf.TargetPath)
 
-	block, err := configtxgen.GetOutputBlock(profile, conf.ChannelID)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get output block")
-	}
-	err = configtxgen.WriteOutputBlock(block, path.Join(conf.TargetPath, ConfigBlockFileName))
-	return block, errors.Wrap(err, "failed to write block")
+	return profile, Extend(conf.TargetPath, cryptoConf)
 }
 
 func initConfigDefault(conf *ConfigBlockParameters) {
@@ -269,19 +281,48 @@ func createConsenter(o *OrganizationParameters, ids []uint32) ([]*configtxgen.Co
 		if len(n.PartyName) == 0 && len(ids) > 1 {
 			n.PartyName = fmt.Sprintf("party-%d", id)
 		}
-		identity := path.Join(getOrgPath(o), OrdererNodesDir, n.PartyName, n.CommonName, MSPDir,
-			SignCertsDir, n.CommonName+CertSuffix)
+		host, port, err := parseEndpoint(n.Hostname)
+		if err != nil {
+			return nil, err
+		}
+		identity := path.Join(getOrgPath(o), OrdererNodesDir, n.PartyName, n.CommonName,
+			MSPDir, SignCertsDir, n.CommonName+CertSuffix)
+		tlsIdentity := path.Join(getOrgPath(o), OrdererNodesDir, n.PartyName, n.CommonName,
+			TLSDir, ServerPrefix+".crt")
 		consenter[i] = &configtxgen.Consenter{
 			ID:            id,
-			Host:          n.Hostname,
-			Port:          8080,
+			Host:          host,
+			Port:          port,
 			MSPID:         o.Name,
 			Identity:      identity,
-			ClientTLSCert: identity,
-			ServerTLSCert: identity,
+			ClientTLSCert: tlsIdentity,
+			ServerTLSCert: tlsIdentity,
 		}
 	}
 	return consenter, nil
+}
+
+const defaultEndpointPort = 8080
+
+func parseEndpoint(endpoint string) (string, uint32, error) {
+	if !strings.Contains(endpoint, ":") {
+		return endpoint, defaultEndpointPort, nil
+	}
+	host, portS, err := net.SplitHostPort(endpoint)
+	if err != nil {
+		return "", 0, errors.Errorf("endpoint %q is invalid: %w", endpoint, err)
+	}
+	if host == "" {
+		return "", 0, errors.Errorf("endpoint %q must include a host", endpoint)
+	}
+	port, err := strconv.ParseUint(portS, 10, 16) // bit-size 16 rejects ports > 65535
+	if err != nil {
+		return "", 0, errors.Errorf("endpoint %q has an invalid port %q: %w", endpoint, portS, err)
+	}
+	if port == 0 {
+		return "", 0, errors.Errorf("endpoint %q: port must be greater than 0", endpoint)
+	}
+	return host, uint32(port), nil
 }
 
 func getOrgPath(o *OrganizationParameters) string {
