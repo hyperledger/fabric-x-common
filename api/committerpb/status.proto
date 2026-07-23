@@ -58,4 +58,7 @@ enum Status {
     MALFORMED_SNAPSHOT_NOT_MARKER_ONLY = 116;           // _snapshot TX has a non-empty read-write set; only a marker-only _snapshot (entirely empty read-write set) is valid.
     MALFORMED_CHECKPOINT_INVALID_KEY = 117;             // _checkpoint TX read-write key does not decode as a valid TxHeight.
     MALFORMED_SYSTEM_TX_NOT_STANDALONE = 118;           // System TX must be standalone and cannot be mixed with other namespaces.
+    REJECTED_SNAPSHOT_IN_PROGRESS = 119;                // Another snapshot is still being hashed / awaiting its checkpoint (a prior _snapshot row is not yet CHECKPOINTED).
+    REJECTED_SNAPSHOT_NO_CHECKPOINT = 120;              // A prior snapshot exists that was never checkpointed, so a new snapshot cannot be accepted.
+    REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK = 121;         // More than one snapshot TX appeared in the same block; only the first is processed and the rest are rejected regardless of the first's outcome.
 }
