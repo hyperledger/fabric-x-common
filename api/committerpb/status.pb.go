@@ -26,9 +26,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Status represents the result of transaction validation.
-// Except for STATUS_UNSPECIFIED, all statuses are recorded in the ledger.
-// Some statuses are also stored in the state database which prevent resubmission of the same transaction ID.
 type Status int32
 
 const (
@@ -60,6 +57,9 @@ const (
 	Status_MALFORMED_SNAPSHOT_NOT_MARKER_ONLY        Status = 116 // _snapshot TX has a non-empty read-write set; only a marker-only _snapshot (entirely empty read-write set) is valid.
 	Status_MALFORMED_CHECKPOINT_INVALID_KEY          Status = 117 // _checkpoint TX read-write key does not decode as a valid TxHeight.
 	Status_MALFORMED_SYSTEM_TX_NOT_STANDALONE        Status = 118 // System TX must be standalone and cannot be mixed with other namespaces.
+	Status_REJECTED_SNAPSHOT_IN_PROGRESS             Status = 119 // Another snapshot is still being hashed / awaiting its checkpoint (a prior _snapshot row is not yet CHECKPOINTED).
+	Status_REJECTED_SNAPSHOT_NO_CHECKPOINT           Status = 120 // A prior snapshot exists that was never checkpointed, so a new snapshot cannot be accepted.
+	Status_REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK      Status = 121 // More than one snapshot TX appeared in the same block; only the first is processed and the rest are rejected regardless of the first's outcome.
 )
 
 // Enum value maps for Status.
@@ -88,6 +88,9 @@ var (
 		116: "MALFORMED_SNAPSHOT_NOT_MARKER_ONLY",
 		117: "MALFORMED_CHECKPOINT_INVALID_KEY",
 		118: "MALFORMED_SYSTEM_TX_NOT_STANDALONE",
+		119: "REJECTED_SNAPSHOT_IN_PROGRESS",
+		120: "REJECTED_SNAPSHOT_NO_CHECKPOINT",
+		121: "REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK",
 	}
 	Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED":                        0,
@@ -113,6 +116,9 @@ var (
 		"MALFORMED_SNAPSHOT_NOT_MARKER_ONLY":        116,
 		"MALFORMED_CHECKPOINT_INVALID_KEY":          117,
 		"MALFORMED_SYSTEM_TX_NOT_STANDALONE":        118,
+		"REJECTED_SNAPSHOT_IN_PROGRESS":             119,
+		"REJECTED_SNAPSHOT_NO_CHECKPOINT":           120,
+		"REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK":      121,
 	}
 )
 
@@ -250,7 +256,7 @@ const file_api_committerpb_status_proto_rawDesc = "" +
 	"\x06status\x18\x01 \x03(\v2\x15.committerpb.TxStatusR\x06status\"]\n" +
 	"\bTxStatus\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status*\xfe\x05\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status*\xf0\x06\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tCOMMITTED\x10\x01\x12\x1d\n" +
@@ -274,7 +280,10 @@ const file_api_committerpb_status_proto_rawDesc = "" +
 	"\x1bMALFORMED_CONFIG_TX_INVALID\x10s\x12&\n" +
 	"\"MALFORMED_SNAPSHOT_NOT_MARKER_ONLY\x10t\x12$\n" +
 	" MALFORMED_CHECKPOINT_INVALID_KEY\x10u\x12&\n" +
-	"\"MALFORMED_SYSTEM_TX_NOT_STANDALONE\x10vB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"\"MALFORMED_SYSTEM_TX_NOT_STANDALONE\x10v\x12!\n" +
+	"\x1dREJECTED_SNAPSHOT_IN_PROGRESS\x10w\x12#\n" +
+	"\x1fREJECTED_SNAPSHOT_NO_CHECKPOINT\x10x\x12(\n" +
+	"$REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK\x10yB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_status_proto_rawDescOnce sync.Once
