@@ -25,6 +25,11 @@ TESTS*.xml
 .tox/
 .vagrant/
 .vscode
-.bob
+# Track the shared Bob/agent skills and rules, ignore everything else under .bob
+.bob/*
+!.bob/rules/
+!.bob/skills/
+# Per-user local Claude settings are not shared
+.claude/settings.local.json
 .worktrees/
 *coverage.profile
