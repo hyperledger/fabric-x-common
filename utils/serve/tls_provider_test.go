@@ -8,8 +8,6 @@ package serve
 
 import (
 	"crypto/x509"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -102,16 +100,7 @@ func TestDynamicTLS(t *testing.T) {
 // for both server credentials and client CA trust.
 func newTestDynamicTLS(t *testing.T, ca tlsgen.CA) (*TLSProvider, *DynamicTLSUpdater) {
 	t.Helper()
-	keyPair, err := ca.NewServerCertKeyPair(localHost)
-	require.NoError(t, err)
-
-	dir := t.TempDir()
-	certPath := filepath.Join(dir, "cert.pem")
-	keyPath := filepath.Join(dir, "key.pem")
-	caPath := filepath.Join(dir, "ca.pem")
-	require.NoError(t, os.WriteFile(certPath, keyPair.Cert, 0o600))
-	require.NoError(t, os.WriteFile(keyPath, keyPair.Key, 0o600))
-	require.NoError(t, os.WriteFile(caPath, ca.CertBytes(), 0o600))
+	certPath, keyPath, caPath := writeServerCerts(t, ca)
 
 	dtls, err := NewTLSProvider(connection.TLSConfig{
 		Mode:        connection.MutualTLSMode,
