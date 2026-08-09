@@ -17,6 +17,25 @@ import (
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/cli"
 )
 
+// Repeated command names, flags, and argument tokens used across the tables.
+const (
+	cmdLedger = "ledger"
+	cmdFollow = "follow"
+	subHeight = "height"
+
+	flagConfig       = "--config"
+	flagCurrentBlock = "--current-block"
+	flagOutput       = "--output"
+
+	refLatest = "latest"
+
+	fileConfigUpdate = "config_update.pb"
+	fileEndorsement1 = "endorsed_config_update1.pb"
+	fileEndorsement2 = "endorsed_config_update2.pb"
+	fileEndorsed     = "endorsed_config_update.pb"
+	fileConfigTx     = "config_tx.pb"
+)
+
 // call records the handler that was invoked and the values it received, so a
 // test can assert that parsing routed the right command with the right inputs
 // without performing any file or network I/O.
@@ -111,13 +130,13 @@ func TestRunRoutesToHandler(t *testing.T) {
 
 	admin := writeTempFile(t, "admin.yaml")
 	currBlock := writeTempFile(t, "current_block.pb")
-	currentJson := writeTempFile(t, "current.json")
-	modifiedJson := writeTempFile(t, "modified.json")
-	configUpdate := writeTempFile(t, "config_update.pb")
-	endorsedConfigUpdate1 := writeTempFile(t, "endorsed_config_update1.pb")
-	endorsedConfigUpdate2 := writeTempFile(t, "endorsed_config_update2.pb")
-	endorsedConfigUpdate := writeTempFile(t, "endorsed_config_update.pb")
-	configTX := writeTempFile(t, "config_tx.pb")
+	currentJSON := writeTempFile(t, "current.json")
+	modifiedJSON := writeTempFile(t, "modified.json")
+	configUpdate := writeTempFile(t, fileConfigUpdate)
+	endorsement1 := writeTempFile(t, fileEndorsement1)
+	endorsement2 := writeTempFile(t, fileEndorsement2)
+	endorsed := writeTempFile(t, fileEndorsed)
+	configTx := writeTempFile(t, fileConfigTx)
 
 	for _, tc := range []struct {
 		name        string
@@ -128,67 +147,87 @@ func TestRunRoutesToHandler(t *testing.T) {
 	}{
 		{
 			name:        "ledger height",
-			args:        []string{"ledger", "--config", admin, "--current-block", currBlock, "height"},
+			args:        []string{cmdLedger, flagConfig, admin, flagCurrentBlock, currBlock, subHeight},
 			wantHandler: "LedgerHeight",
 			wantArgs:    []string{admin, currBlock},
 		},
 		{
-			name:        "ledger block latest",
-			args:        []string{"ledger", "--config", admin, "--current-block", currBlock, "block", "latest", "--output", "last_block.pb"},
+			name: "ledger block latest",
+			args: []string{
+				cmdLedger,
+				flagConfig,
+				admin,
+				flagCurrentBlock,
+				currBlock,
+				"block",
+				refLatest,
+				flagOutput,
+				"last_block.pb",
+			},
 			wantHandler: "LedgerBlock",
-			wantArgs:    []string{admin, currBlock, "latest", "last_block.pb"},
+			wantArgs:    []string{admin, currBlock, refLatest, "last_block.pb"},
 		},
 		{
-			name:        "ledger config latest",
-			args:        []string{"ledger", "--config", admin, "--current-block", currBlock, "config", "latest", "--output", "last_config.pb"},
+			name: "ledger config latest",
+			args: []string{
+				cmdLedger,
+				flagConfig,
+				admin,
+				flagCurrentBlock,
+				currBlock,
+				"config",
+				refLatest,
+				flagOutput,
+				"last_config.pb",
+			},
 			wantHandler: "LedgerConfig",
-			wantArgs:    []string{admin, currBlock, "latest", "last_config.pb"},
+			wantArgs:    []string{admin, currBlock, refLatest, "last_config.pb"},
 		},
 		{
 			name:        "decode",
-			args:        []string{"decode", "--block", currBlock, "--output", "current_config.json"},
+			args:        []string{"decode", "--block", currBlock, flagOutput, "current_config.json"},
 			wantHandler: "Decode",
 			wantArgs:    []string{currBlock, "current_config.json"},
 		},
 		{
 			name:        "compute-update",
-			args:        []string{"compute-update", currentJson, modifiedJson, "--output", "config_update.pb"},
+			args:        []string{"compute-update", currentJSON, modifiedJSON, flagOutput, fileConfigUpdate},
 			wantHandler: "ComputeUpdate",
-			wantArgs:    []string{currentJson, modifiedJson, "config_update.pb"},
+			wantArgs:    []string{currentJSON, modifiedJSON, fileConfigUpdate},
 		},
 		{
 			name:        "tx endorse",
-			args:        []string{"tx", "endorse", configUpdate, "--config", admin, "--output", "endorsed_config_update1.pb"},
+			args:        []string{"tx", "endorse", configUpdate, flagConfig, admin, flagOutput, fileEndorsement1},
 			wantHandler: "TxEndorse",
-			wantArgs:    []string{configUpdate, admin, "endorsed_config_update1.pb"},
+			wantArgs:    []string{configUpdate, admin, fileEndorsement1},
 		},
 		{
 			name:        "tx merge multiple",
-			args:        []string{"tx", "merge", endorsedConfigUpdate1, endorsedConfigUpdate2, "--output", "endorsed_config_update.pb"},
+			args:        []string{"tx", "merge", endorsement1, endorsement2, flagOutput, fileEndorsed},
 			wantHandler: "TxMerge",
-			wantArgs:    []string{endorsedConfigUpdate1, endorsedConfigUpdate2, "endorsed_config_update.pb"},
+			wantArgs:    []string{endorsement1, endorsement2, fileEndorsed},
 		},
 		{
 			name:        "tx prepare",
-			args:        []string{"tx", "prepare", endorsedConfigUpdate, "--config", admin, "--output", "config_tx.pb"},
+			args:        []string{"tx", "prepare", endorsed, flagConfig, admin, flagOutput, fileConfigTx},
 			wantHandler: "TxPrepare",
-			wantArgs:    []string{endorsedConfigUpdate, admin, "config_tx.pb"},
+			wantArgs:    []string{endorsed, admin, fileConfigTx},
 		},
 		{
 			name:        "tx submit",
-			args:        []string{"tx", "submit", configTX, "--config", admin, "--current-block", currBlock},
+			args:        []string{"tx", "submit", configTx, flagConfig, admin, flagCurrentBlock, currBlock},
 			wantHandler: "TxSubmit",
-			wantArgs:    []string{configTX, admin, currBlock},
+			wantArgs:    []string{configTx, admin, currBlock},
 		},
 		{
 			name:        "tx send",
-			args:        []string{"tx", "send", endorsedConfigUpdate, "--config", admin, "--current-block", currBlock},
+			args:        []string{"tx", "send", endorsed, flagConfig, admin, flagCurrentBlock, currBlock},
 			wantHandler: "TxSend",
-			wantArgs:    []string{endorsedConfigUpdate, admin, currBlock},
+			wantArgs:    []string{endorsed, admin, currBlock},
 		},
 		{
 			name:        "follow",
-			args:        []string{"follow", "--config", admin, "--current-block", currBlock, "--timeout", "30s"},
+			args:        []string{cmdFollow, flagConfig, admin, flagCurrentBlock, currBlock, "--timeout", "30s"},
 			wantHandler: "Follow",
 			wantArgs:    []string{admin, currBlock},
 			wantTimeout: 30 * time.Second,
@@ -224,12 +263,12 @@ func TestParseErrors(t *testing.T) {
 	}{
 		{
 			name:    "missing required current-block",
-			args:    []string{"ledger", "--config", admin, "height"},
+			args:    []string{cmdLedger, flagConfig, admin, subHeight},
 			wantErr: "current-block",
 		},
 		{
 			name:    "missing required subcommand",
-			args:    []string{"ledger", "--config", admin, "--current-block", currBlock},
+			args:    []string{cmdLedger, flagConfig, admin, flagCurrentBlock, currBlock},
 			wantErr: "command",
 		},
 		{
@@ -239,12 +278,12 @@ func TestParseErrors(t *testing.T) {
 		},
 		{
 			name:    "nonexistent admin config file",
-			args:    []string{"ledger", "--config", "/no/such/file.yaml", "--current-block", currBlock, "height"},
+			args:    []string{cmdLedger, flagConfig, "/no/such/file.yaml", flagCurrentBlock, currBlock, subHeight},
 			wantErr: "file",
 		},
 		{
 			name:    "bad duration for follow",
-			args:    []string{"follow", "--config", admin, "--current-block", currBlock, "--timeout", "notaduration"},
+			args:    []string{cmdFollow, flagConfig, admin, flagCurrentBlock, currBlock, "--timeout", "notaduration"},
 			wantErr: "invalid duration",
 		},
 	} {

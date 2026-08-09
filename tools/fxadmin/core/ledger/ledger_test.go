@@ -14,34 +14,29 @@ import (
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/ledger"
 )
 
+const (
+	notImplemented = "not implemented"
+	adminYAML      = "admin.yaml"
+	currentPB      = "current.pb"
+)
+
 // TestHandlerNotImplemented asserts every ledger subcommand is a skeleton that
-// reports "not implemented" without panicking. Replace each case with a
+// reports "not implemented" without panicking. Replace each subtest with a
 // behavioral test as the command is implemented.
 func TestHandlerNotImplemented(t *testing.T) {
 	t.Parallel()
+	h := ledger.New()
 
-	for _, tc := range []struct {
-		name string
-		op   string
-	}{
-		{name: "height", op: "height"},
-		{name: "block", op: "block"},
-		{name: "config", op: "config"},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			h := ledger.New()
-
-			var err error
-			switch tc.op {
-			case "height":
-				err = h.Height("admin.yaml", "current.pb")
-			case "block":
-				err = h.Block("admin.yaml", "current.pb", "latest", "out.pb")
-			case "config":
-				err = h.Config("admin.yaml", "current.pb", "latest", "out.pb")
-			}
-			require.ErrorContains(t, err, "not implemented")
-		})
-	}
+	t.Run("height", func(t *testing.T) {
+		t.Parallel()
+		require.ErrorContains(t, h.Height(adminYAML, currentPB), notImplemented)
+	})
+	t.Run("block", func(t *testing.T) {
+		t.Parallel()
+		require.ErrorContains(t, h.Block(adminYAML, currentPB, "latest", "out.pb"), notImplemented)
+	})
+	t.Run("config", func(t *testing.T) {
+		t.Parallel()
+		require.ErrorContains(t, h.Config(adminYAML, currentPB, "latest", "out.pb"), notImplemented)
+	})
 }

@@ -90,8 +90,15 @@ func (c *CLI) register(cmd *kingpin.CmdClause, run func() error) {
 // subcommands. --config and --current-block are common to all of them.
 func (c *CLI) addLedgerCommands() {
 	ledger := c.app.Command("ledger", "Query the assembler ledger.")
-	config := ledger.Flag(flagConfig, "Path to the admin configuration YAML file (identity, TLS).").Required().ExistingFile()
-	currentBlock := ledger.Flag(flagCurrentBlock, "Path to the current config block containing the assembler endpoints.").Required().ExistingFile()
+	config := ledger.Flag(flagConfig, "Path to the admin configuration YAML file (identity, TLS).").
+		Required().ExistingFile()
+	currentBlock := ledger.
+		Flag(
+			flagCurrentBlock,
+			"Path to the current config block containing the assembler endpoints.",
+		).
+		Required().
+		ExistingFile()
 
 	height := ledger.Command("height", "Print the height of the ledger.")
 	c.register(height, func() error {
@@ -150,8 +157,10 @@ func (c *CLI) addTxCommands() {
 // addTxEndorseCommand wires `fxadmin tx endorse`.
 func (c *CLI) addTxEndorseCommand(tx *kingpin.CmdClause) {
 	endorse := tx.Command("endorse", "Sign a ConfigUpdate with the admin identity.")
-	input := endorse.Arg("config_update.pb", "Path to the ConfigUpdate protobuf file to endorse.").Required().ExistingFile()
-	config := endorse.Flag(flagConfig, "Path to the admin configuration YAML file (signing identity).").Required().ExistingFile()
+	input := endorse.Arg("config_update.pb", "Path to the ConfigUpdate protobuf file to endorse.").
+		Required().ExistingFile()
+	config := endorse.Flag(flagConfig, "Path to the admin configuration YAML file (signing identity).").
+		Required().ExistingFile()
 	output := endorse.Flag(flagOutput, "Path to the generated endorsement protobuf file.").Required().String()
 	c.register(endorse, func() error {
 		return c.handlers.Tx.Endorse(*input, *config, *output)
@@ -161,7 +170,8 @@ func (c *CLI) addTxEndorseCommand(tx *kingpin.CmdClause) {
 // addTxMergeCommand wires `fxadmin tx merge`.
 func (c *CLI) addTxMergeCommand(tx *kingpin.CmdClause) {
 	merge := tx.Command("merge", "Merge endorsements into a single endorsed ConfigUpdateEnvelope.")
-	inputs := merge.Arg("endorsement.pb", "Paths to one or more endorsement protobuf files to merge.").Required().Strings()
+	inputs := merge.Arg("endorsement.pb", "Paths to one or more endorsement protobuf files to merge.").
+		Required().Strings()
 	output := merge.Flag(flagOutput, "Path to the merged configuration update envelope.").Required().String()
 	c.register(merge, func() error {
 		return c.handlers.Tx.Merge(*inputs, *output)
@@ -171,9 +181,12 @@ func (c *CLI) addTxMergeCommand(tx *kingpin.CmdClause) {
 // addTxPrepareCommand wires `fxadmin tx prepare`.
 func (c *CLI) addTxPrepareCommand(tx *kingpin.CmdClause) {
 	prepare := tx.Command("prepare", "Wrap an endorsed config update into a signed configuration transaction.")
-	input := prepare.Arg("endorsed_config_update.pb", "Path to the endorsed config update protobuf file.").Required().ExistingFile()
-	config := prepare.Flag(flagConfig, "Path to the admin configuration YAML file (submitting client identity).").Required().ExistingFile()
-	output := prepare.Flag(flagOutput, "Path to the generated configuration transaction protobuf file.").Required().String()
+	input := prepare.Arg("endorsed_config_update.pb", "Path to the endorsed config update protobuf file.").
+		Required().ExistingFile()
+	config := prepare.Flag(flagConfig, "Path to the admin configuration YAML file (submitting client identity).").
+		Required().ExistingFile()
+	output := prepare.Flag(flagOutput, "Path to the generated configuration transaction protobuf file.").
+		Required().String()
 	c.register(prepare, func() error {
 		return c.handlers.Tx.Prepare(*input, *config, *output)
 	})
@@ -182,9 +195,11 @@ func (c *CLI) addTxPrepareCommand(tx *kingpin.CmdClause) {
 // addTxSubmitCommand wires `fxadmin tx submit`.
 func (c *CLI) addTxSubmitCommand(tx *kingpin.CmdClause) {
 	submit := tx.Command("submit", "Submit a prepared configuration transaction to all routers.")
-	input := submit.Arg("config_tx.pb", "Path to the prepared configuration transaction protobuf file.").Required().ExistingFile()
+	input := submit.Arg("config_tx.pb", "Path to the prepared configuration transaction protobuf file.").
+		Required().ExistingFile()
 	config := submit.Flag(flagConfig, "Path to the admin configuration YAML file.").Required().ExistingFile()
-	currentBlock := submit.Flag(flagCurrentBlock, "Path to the current config block containing the router endpoints.").Required().ExistingFile()
+	currentBlock := submit.Flag(flagCurrentBlock, "Path to the current config block containing the router endpoints.").
+		Required().ExistingFile()
 	c.register(submit, func() error {
 		return c.handlers.Tx.Submit(*input, *config, *currentBlock)
 	})
@@ -193,9 +208,11 @@ func (c *CLI) addTxSubmitCommand(tx *kingpin.CmdClause) {
 // addTxSendCommand wires `fxadmin tx send`, equivalent to prepare + submit.
 func (c *CLI) addTxSendCommand(tx *kingpin.CmdClause) {
 	send := tx.Command("send", "Prepare and submit an endorsed config update in one step.")
-	input := send.Arg("endorsed_config_update.pb", "Path to the endorsed config update protobuf file.").Required().ExistingFile()
+	input := send.Arg("endorsed_config_update.pb", "Path to the endorsed config update protobuf file.").
+		Required().ExistingFile()
 	config := send.Flag(flagConfig, "Path to the admin configuration YAML file.").Required().ExistingFile()
-	currentBlock := send.Flag(flagCurrentBlock, "Path to the current config block containing the router endpoints.").Required().ExistingFile()
+	currentBlock := send.Flag(flagCurrentBlock, "Path to the current config block containing the router endpoints.").
+		Required().ExistingFile()
 	c.register(send, func() error {
 		return c.handlers.Tx.Send(*input, *config, *currentBlock)
 	})
@@ -206,8 +223,15 @@ func (c *CLI) addTxSendCommand(tx *kingpin.CmdClause) {
 func (c *CLI) addFollowCommand() {
 	follow := c.app.Command("follow", "Follow the assembler ledgers until the timeout expires.")
 	config := follow.Flag(flagConfig, "Path to the admin configuration YAML file.").Required().ExistingFile()
-	currentBlock := follow.Flag(flagCurrentBlock, "Path to the current config block containing the assembler endpoints.").Required().ExistingFile()
-	timeout := follow.Flag(flagTimeout, "How long to pull blocks from the assemblers before reporting results.").Required().Duration()
+	currentBlock := follow.
+		Flag(
+			flagCurrentBlock,
+			"Path to the current config block containing the assembler endpoints.",
+		).
+		Required().
+		ExistingFile()
+	timeout := follow.Flag(flagTimeout, "How long to pull blocks from the assemblers before reporting results.").
+		Required().Duration()
 	c.register(follow, func() error {
 		return c.handlers.Follow.Run(*config, *currentBlock, *timeout)
 	})

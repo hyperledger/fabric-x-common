@@ -14,40 +14,36 @@ import (
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/tx"
 )
 
+const (
+	notImplemented = "not implemented"
+	adminYAML      = "admin.yaml"
+)
+
 // TestHandlerNotImplemented asserts every tx subcommand is a skeleton that
-// reports "not implemented" without panicking. Replace each case with a
+// reports "not implemented" without panicking. Replace each subtest with a
 // behavioral test as the command is implemented.
 func TestHandlerNotImplemented(t *testing.T) {
 	t.Parallel()
+	h := tx.New()
 
-	for _, tc := range []struct {
-		name string
-		op   string
-	}{
-		{name: "endorse", op: "endorse"},
-		{name: "merge", op: "merge"},
-		{name: "prepare", op: "prepare"},
-		{name: "submit", op: "submit"},
-		{name: "send", op: "send"},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			h := tx.New()
-
-			var err error
-			switch tc.op {
-			case "endorse":
-				err = h.Endorse("update.pb", "admin.yaml", "endorsement.pb")
-			case "merge":
-				err = h.Merge([]string{"e1.pb", "e2.pb"}, "merged.pb")
-			case "prepare":
-				err = h.Prepare("endorsed.pb", "admin.yaml", "tx.pb")
-			case "submit":
-				err = h.Submit("tx.pb", "admin.yaml", "current.pb")
-			case "send":
-				err = h.Send("endorsed.pb", "admin.yaml", "current.pb")
-			}
-			require.ErrorContains(t, err, "not implemented")
-		})
-	}
+	t.Run("endorse", func(t *testing.T) {
+		t.Parallel()
+		require.ErrorContains(t, h.Endorse("update.pb", adminYAML, "endorsement.pb"), notImplemented)
+	})
+	t.Run("merge", func(t *testing.T) {
+		t.Parallel()
+		require.ErrorContains(t, h.Merge([]string{"e1.pb", "e2.pb"}, "merged.pb"), notImplemented)
+	})
+	t.Run("prepare", func(t *testing.T) {
+		t.Parallel()
+		require.ErrorContains(t, h.Prepare("endorsed.pb", adminYAML, "tx.pb"), notImplemented)
+	})
+	t.Run("submit", func(t *testing.T) {
+		t.Parallel()
+		require.ErrorContains(t, h.Submit("tx.pb", adminYAML, "current.pb"), notImplemented)
+	})
+	t.Run("send", func(t *testing.T) {
+		t.Parallel()
+		require.ErrorContains(t, h.Send("endorsed.pb", adminYAML, "current.pb"), notImplemented)
+	})
 }
