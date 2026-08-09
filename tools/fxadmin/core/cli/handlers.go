@@ -6,7 +6,13 @@ SPDX-License-Identifier: Apache-2.0
 
 package cli
 
-import "time"
+import (
+	"slices"
+	"strings"
+	"time"
+
+	"github.com/cockroachdb/errors"
+)
 
 // The CLI is responsible for parsing and validating command-line arguments,
 // then delegates the selected command to the corresponding handler. Each
@@ -51,4 +57,26 @@ type Handlers struct {
 	Update UpdateHandler
 	Tx     TxHandler
 	Follow FollowHandler
+}
+
+// validate reports any command handler that was left nil, so a misconfigured
+// Handlers fails with a clear error.
+func (h Handlers) validate() error {
+	var missing []string
+	for name, set := range map[string]bool{
+		"ledger":         h.Ledger != nil,
+		"decode":         h.Decode != nil,
+		"compute-update": h.Update != nil,
+		"tx":             h.Tx != nil,
+		"follow":         h.Follow != nil,
+	} {
+		if !set {
+			missing = append(missing, name)
+		}
+	}
+	if len(missing) > 0 {
+		slices.Sort(missing)
+		return errors.Newf("missing command handlers: %s", strings.Join(missing, ", "))
+	}
+	return nil
 }
