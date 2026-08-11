@@ -55,7 +55,7 @@ func New(handlers Handlers, version string) *CLI {
 	return c
 }
 
-// Parse resolves args to the selected command and binds flag/argument values.
+// parse resolves args to the selected command and binds flag/argument values.
 func (c *CLI) parse(args []string) (string, error) {
 	cmd, err := c.app.Parse(args)
 	if err != nil {

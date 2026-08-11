@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package cli
 
 import (
+	"reflect"
 	"slices"
 	"strings"
 	"time"
@@ -64,11 +65,11 @@ type Handlers struct {
 func (h Handlers) validate() error {
 	var missing []string
 	for name, set := range map[string]bool{
-		"ledger":         h.Ledger != nil,
-		"decode":         h.Decode != nil,
-		"compute-update": h.Update != nil,
-		"tx":             h.Tx != nil,
-		"follow":         h.Follow != nil,
+		"ledger":         isHandlerNil(h.Ledger),
+		"decode":         isHandlerNil(h.Decode),
+		"compute-update": isHandlerNil(h.Update),
+		"tx":             isHandlerNil(h.Tx),
+		"follow":         isHandlerNil(h.Follow),
 	} {
 		if !set {
 			missing = append(missing, name)
@@ -79,4 +80,21 @@ func (h Handlers) validate() error {
 		return errors.Newf("missing command handlers: %s", strings.Join(missing, ", "))
 	}
 	return nil
+}
+
+// isHandlerNil reports whether a handler interface value is usable. A plain
+// h != nil check misses a typed nil, e.g. a nil *T that satisfies the
+// interface: the interface is non-nil but calling through it panics. Treat
+// such a value, and a pointer/interface that wraps a nil, as missing.
+func isHandlerNil(h any) bool {
+	if h == nil {
+		return false
+	}
+	v := reflect.ValueOf(h)
+	switch v.Kind() {
+	case reflect.Pointer, reflect.Interface:
+		return !v.IsNil()
+	default:
+		return true
+	}
 }
