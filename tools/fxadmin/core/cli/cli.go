@@ -8,17 +8,13 @@ SPDX-License-Identifier: Apache-2.0
 // configuration of Fabric-X: it pulls the current configuration from the
 // running network, decodes it, computes and endorses a configuration update,
 // wraps it into a submittable transaction, submits it, and follows the
-// assembler ledger until the change is committed. fxadmin operates on the
-// single channel "arma".
+// assembler ledger until the change is committed.
 package cli
 
 import (
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/cockroachdb/errors"
 )
-
-// Channel is the single, fixed channel fxadmin operates on.
-const Channel = "arma"
 
 // Flag names shared across commands.
 const (
@@ -59,8 +55,8 @@ func New(handlers Handlers, version string) *CLI {
 	return c
 }
 
-// Parse resolves args to the selected command and binds flag/argument values.
-func (c *CLI) Parse(args []string) (string, error) {
+// parse resolves args to the selected command and binds flag/argument values.
+func (c *CLI) parse(args []string) (string, error) {
 	cmd, err := c.app.Parse(args)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse arguments")
@@ -70,8 +66,11 @@ func (c *CLI) Parse(args []string) (string, error) {
 
 // Run parses args and executes the selected command via its handler.
 func (c *CLI) Run(args []string) error {
-	cmd, err := c.Parse(args)
+	cmd, err := c.parse(args)
 	if err != nil {
+		return err
+	}
+	if err := c.handlers.validate(); err != nil {
 		return err
 	}
 	run, ok := c.dispatch[cmd]
@@ -106,14 +105,14 @@ func (c *CLI) addLedgerCommands() {
 	})
 
 	block := ledger.Command("block", "Fetch a block (\"latest\" or a block number) and write it to a file.")
-	blockRef := block.Arg("block", "Block to fetch: \"latest\" or a block number.").Required().String()
+	blockRef := block.Arg("reference", "Block to fetch: \"latest\" or a block number.").Required().String()
 	blockOut := block.Flag(flagOutput, "Path to the output block protobuf file.").Required().String()
 	c.register(block, func() error {
 		return c.handlers.Ledger.Block(*config, *currentBlock, *blockRef, *blockOut)
 	})
 
 	cfg := ledger.Command("config", "Fetch the last config block (\"latest\") and write it to a file.")
-	cfgRef := cfg.Arg("config", "Config block to fetch: \"latest\".").Required().String()
+	cfgRef := cfg.Arg("reference", "Config block to fetch: \"latest\".").Required().String()
 	cfgOut := cfg.Flag(flagOutput, "Path to the output config block protobuf file.").Required().String()
 	c.register(cfg, func() error {
 		return c.handlers.Ledger.Config(*config, *currentBlock, *cfgRef, *cfgOut)

@@ -299,6 +299,45 @@ func TestParseErrors(t *testing.T) {
 	}
 }
 
+// TestRunMissingHandler verifies that invoking a command whose
+// handler was left nil returns a clear error.
+func TestRunMissingHandler(t *testing.T) {
+	t.Parallel()
+
+	admin := writeTempFile(t, "admin.yaml")
+	currBlock := writeTempFile(t, "current_block.pb")
+
+	// Everything wired except the ledger handler, then a ledger command is run.
+	var invoked call
+	h := newHandlers(&invoked)
+	h.Ledger = nil
+	c := cli.New(h, "test")
+
+	err := c.Run([]string{cmdLedger, flagConfig, admin, flagCurrentBlock, currBlock, subHeight})
+	require.ErrorContains(t, err, "missing command handlers: ledger")
+	require.Empty(t, invoked.handler, "handler should not have been invoked")
+}
+
+// TestRunTypedNilHandler verifies that a typed-nil interface value (a nil
+// concrete pointer stored in a handler field) is treated as missing. A plain
+// != nil check would let it pass and then panic when the command dispatched.
+func TestRunTypedNilHandler(t *testing.T) {
+	t.Parallel()
+
+	admin := writeTempFile(t, "admin.yaml")
+	currBlock := writeTempFile(t, "current_block.pb")
+
+	// Ledger holds a non-nil interface wrapping a nil *fakeLedger
+	var invoked call
+	h := newHandlers(&invoked)
+	h.Ledger = (*fakeLedger)(nil)
+	c := cli.New(h, "test")
+
+	err := c.Run([]string{cmdLedger, flagConfig, admin, flagCurrentBlock, currBlock, subHeight})
+	require.ErrorContains(t, err, "missing command handlers: ledger")
+	require.Empty(t, invoked.handler, "handler should not have been invoked")
+}
+
 // writeTempFile creates a file with the given base name in a per-test temp dir
 // and returns its path, for use where the CLI validates that a flag points at
 // an existing file.
