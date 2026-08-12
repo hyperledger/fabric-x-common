@@ -134,6 +134,18 @@ func TestToString_SignedByOutOfRangeFails(t *testing.T) {
 	require.ErrorContains(t, err, "out of range")
 }
 
+// TestToString_UnknownRuleFails asserts that a SignaturePolicy with neither oneof case set,
+// e.g. an envelope with no Rule at all, has no DSL representation: SignaturePolicy is a oneof
+// of NOutOf and SignedBy, and a zero-value rule matches neither.
+func TestToString_UnknownRuleFails(t *testing.T) {
+	t.Parallel()
+
+	envelope := &common.SignaturePolicyEnvelope{Rule: &common.SignaturePolicy{}}
+
+	_, err := ToString(envelope)
+	require.ErrorContains(t, err, "no DSL representation")
+}
+
 // TestToDisplayString_EmptyNOutOf asserts that, unlike ToString, ToDisplayString never fails on
 // AcceptAllPolicy/RejectAllPolicy: it renders "OutOf(N)" for display purposes even though that
 // text is not actually valid DSL — FromString would reject it (see renderNOutOf).
@@ -163,6 +175,14 @@ func TestToDisplayString_SignedByOutOfRange(t *testing.T) {
 	require.Equal(t, "<principal[0]>", ToDisplayString(envelope))
 }
 
+func TestToDisplayString_UnknownRule(t *testing.T) {
+	t.Parallel()
+
+	envelope := &common.SignaturePolicyEnvelope{Rule: &common.SignaturePolicy{}}
+
+	require.Equal(t, "<unknown-rule>", ToDisplayString(envelope))
+}
+
 // TestToDisplayString_MalformedPrincipalFallsBackToPlaceholder asserts that a ROLE-classified
 // principal whose bytes don't unmarshal into an MSPRole (corrupt data, not a client bug) still
 // renders as a placeholder instead of panicking.
@@ -176,7 +196,7 @@ func TestToDisplayString_MalformedPrincipalFallsBackToPlaceholder(t *testing.T) 
 		},
 	}
 
-	require.Equal(t, "<principal:6e6f7420616e204d>", ToDisplayString(envelope))
+	require.Equal(t, "<principal:bm90IGFuIE0=>", ToDisplayString(envelope))
 }
 
 func TestToDisplayString_OrganizationUnitPrincipal(t *testing.T) {
