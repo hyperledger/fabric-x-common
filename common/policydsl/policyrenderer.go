@@ -74,7 +74,6 @@ func renderRule(rule *cb.SignaturePolicy, identities []*mb.MSPPrincipal, mode re
 
 // renderNOutOf renders an NOutOf node as one of the three DSL gates, picking the gate from N
 // relative to len(Rules):
-//   - no rules, e.g. NOutOf{N: 0, Rules: []} (AcceptAllPolicy) -> "OutOf(0)"
 //   - N == 1, e.g. NOutOf{N: 1, Rules: [SignedBy(0), SignedBy(1)]} -> "OR('A.member', 'B.member')"
 //   - N == len(Rules), e.g. NOutOf{N: 2, Rules: [SignedBy(0), SignedBy(1)]} -> "AND('A.member', 'B.member')"
 //   - otherwise, e.g. NOutOf{N: 2, Rules: [SignedBy(0), SignedBy(1), SignedBy(2)]} ->
@@ -82,11 +81,21 @@ func renderRule(rule *cb.SignaturePolicy, identities []*mb.MSPPrincipal, mode re
 //
 // N == 1 is checked before N == len(Rules) so a single-rule NOutOf renders as "OR(...)" rather
 // than "AND(...)"; both parse back to the identical envelope, so either spelling is faithful.
+//
+// An NOutOf with no rules at all, e.g. NOutOf{N: 0, Rules: []} (AcceptAllPolicy) or
+// NOutOf{N: 1, Rules: []} (RejectAllPolicy), has no DSL representation: FromString's nOutOf
+// rejects any OutOf/And/Or call with fewer than one policy argument (policyparser.go's
+// "expected at least two arguments to NOutOf"), so there is no string of the form "OutOf(N)"
+// that actually parses back to it, even though it renders as exactly that in lenientMode.
+// strictMode errors instead of emitting text FromString would reject.
 func renderNOutOf(nOutOf *cb.SignaturePolicy_NOutOf, identities []*mb.MSPPrincipal, mode renderMode) (string, error) {
 	n := nOutOf.GetN()
 	rules := nOutOf.GetRules()
 
 	if len(rules) == 0 {
+		if mode == strictMode {
+			return "", fmt.Errorf("NOutOf with no rules (n=%d) has no DSL representation", n)
+		}
 		return fmt.Sprintf("%s(%d)", GateOutOfDisplay, n), nil
 	}
 
@@ -137,7 +146,10 @@ func renderSignedBy(index int32, identities []*mb.MSPPrincipal, mode renderMode)
 // renderPrincipal renders an MSPPrincipal, dispatching on its PrincipalClassification:
 //   - ROLE, e.g. {MspIdentifier: "Org1MSP", Role: MEMBER} -> "'Org1MSP.member'" (renderRolePrincipal)
 //   - ORGANIZATION_UNIT, e.g. {MspIdentifier: "Org1MSP", OrganizationalUnitIdentifier: "eng"}
-//     -> "'Org1MSP.eng'" (renderOUPrincipal)
+//     -> "'Org1MSP.eng'" in lenientMode (renderOUPrincipal) or an error in strictMode: unlike
+//     ROLE, FromString's roleRegex only matches the five MSP role suffixes, so there is no DSL
+//     syntax for an organization unit at all, in any spelling, even though the rendered text is
+//     shaped exactly like a valid ROLE principal
 //   - IDENTITY, which carries a full serialized identity with no DSL syntax -> "<identity:N>"
 //     in lenientMode (N is the identities index) or an error in strictMode
 //   - ANONYMITY / COMBINED (no DSL syntax either) -> "<principal:a1b2c3d4>" in lenientMode
@@ -147,7 +159,10 @@ func renderPrincipal(principal *mb.MSPPrincipal, index int32, mode renderMode) (
 	case mb.MSPPrincipal_ROLE:
 		return renderRolePrincipal(principal, mode)
 	case mb.MSPPrincipal_ORGANIZATION_UNIT:
-		return renderOUPrincipal(principal, mode)
+		if mode == strictMode {
+			return "", fmt.Errorf("organization_unit principal at index %d has no DSL representation", index)
+		}
+		return renderOUPrincipal(principal), nil
 	case mb.MSPPrincipal_IDENTITY:
 		if mode == strictMode {
 			return "", fmt.Errorf("identity principal at index %d has no DSL representation", index)
@@ -180,17 +195,16 @@ func renderRolePrincipal(principal *mb.MSPPrincipal, mode renderMode) (string, e
 
 // renderOUPrincipal unmarshals an ORGANIZATION_UNIT principal's bytes into an OrganizationUnit
 // and renders it as 'mspID.ouID', e.g. OrganizationUnit{MspIdentifier: "Org1MSP",
-// OrganizationalUnitIdentifier: "engineering"} -> "'Org1MSP.engineering'". Bytes that fail to
-// unmarshal render as a hex placeholder in lenientMode or error in strictMode.
-func renderOUPrincipal(principal *mb.MSPPrincipal, mode renderMode) (string, error) {
+// OrganizationalUnitIdentifier: "engineering"} -> "'Org1MSP.engineering'". Only called from
+// renderPrincipal's lenientMode branch — ORGANIZATION_UNIT has no DSL representation at all, so
+// this text is display-only and never valid DSL, despite looking exactly like a ROLE principal.
+// Bytes that fail to unmarshal (corrupt data, not a client bug) render as a hex placeholder.
+func renderOUPrincipal(principal *mb.MSPPrincipal) string {
 	ou := &mb.OrganizationUnit{}
 	if err := proto.Unmarshal(principal.GetPrincipal(), ou); err != nil {
-		if mode == strictMode {
-			return "", fmt.Errorf("could not unmarshal OrganizationUnit: %w", err)
-		}
-		return placeholderPrincipal(principal.GetPrincipal()), nil
+		return placeholderPrincipal(principal.GetPrincipal())
 	}
-	return fmt.Sprintf("'%s.%s'", ou.GetMspIdentifier(), ou.GetOrganizationalUnitIdentifier()), nil
+	return fmt.Sprintf("'%s.%s'", ou.GetMspIdentifier(), ou.GetOrganizationalUnitIdentifier())
 }
 
 // placeholderPrincipal renders raw principal bytes as a hex placeholder, truncated to

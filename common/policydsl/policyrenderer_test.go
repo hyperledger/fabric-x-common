@@ -79,20 +79,41 @@ func TestToString_ExactRendering(t *testing.T) {
 	}
 }
 
-func TestToString_AcceptAllPolicy(t *testing.T) {
+// TestToString_EmptyNOutOfFails asserts that AcceptAllPolicy and RejectAllPolicy — both an
+// NOutOf with zero rules — have no DSL representation: FromString's nOutOf rejects any
+// OutOf/And/Or call with fewer than one policy argument, so there is no "OutOf(N)" string that
+// parses back to either. ToString must error rather than emit that unparseable text.
+func TestToString_EmptyNOutOfFails(t *testing.T) {
 	t.Parallel()
 
-	rendered, err := ToString(AcceptAllPolicy)
-	require.NoError(t, err)
-	require.Equal(t, "OutOf(0)", rendered)
+	_, err := ToString(AcceptAllPolicy)
+	require.ErrorContains(t, err, "no DSL representation")
+
+	_, err = ToString(RejectAllPolicy)
+	require.ErrorContains(t, err, "no DSL representation")
 }
 
-func TestToString_RejectAllPolicy(t *testing.T) {
+// TestToString_OrganizationUnitPrincipalFails asserts that an ORGANIZATION_UNIT principal has
+// no DSL representation: FromString's roleRegex only matches the five MSP role suffixes
+// (admin/member/client/peer/orderer), with no syntax for an organization unit at all.
+func TestToString_OrganizationUnitPrincipalFails(t *testing.T) {
 	t.Parallel()
 
-	rendered, err := ToString(RejectAllPolicy)
-	require.NoError(t, err)
-	require.Equal(t, "OutOf(1)", rendered)
+	envelope := &common.SignaturePolicyEnvelope{
+		Rule: SignedBy(0),
+		Identities: []*msp.MSPPrincipal{
+			{
+				PrincipalClassification: msp.MSPPrincipal_ORGANIZATION_UNIT,
+				Principal: protoutil.MarshalOrPanic(&msp.OrganizationUnit{
+					MspIdentifier:                "Org1MSP",
+					OrganizationalUnitIdentifier: "engineering",
+				}),
+			},
+		},
+	}
+
+	_, err := ToString(envelope)
+	require.ErrorContains(t, err, "no DSL representation")
 }
 
 func TestToString_IdentityPrincipalFails(t *testing.T) {
@@ -111,6 +132,16 @@ func TestToString_SignedByOutOfRangeFails(t *testing.T) {
 
 	_, err := ToString(envelope)
 	require.ErrorContains(t, err, "out of range")
+}
+
+// TestToDisplayString_EmptyNOutOf asserts that, unlike ToString, ToDisplayString never fails on
+// AcceptAllPolicy/RejectAllPolicy: it renders "OutOf(N)" for display purposes even though that
+// text is not actually valid DSL — FromString would reject it (see renderNOutOf).
+func TestToDisplayString_EmptyNOutOf(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, "OutOf(0)", ToDisplayString(AcceptAllPolicy))
+	require.Equal(t, "OutOf(1)", ToDisplayString(RejectAllPolicy))
 }
 
 // TestToDisplayString_IdentityPrincipal asserts that, unlike ToString, ToDisplayString never
