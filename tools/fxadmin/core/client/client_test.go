@@ -13,6 +13,7 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
@@ -80,6 +81,21 @@ func TestLoad(t *testing.T) {
 			block, factory.GetDefault())
 		require.ErrorContains(t, err, "failed to load local MSP")
 	})
+}
+
+func TestFetchBlockNoAssemblerEndpoints(t *testing.T) {
+	t.Parallel()
+	c := &Client{ordererConnInfo: &ordererconn.Info{}}
+	block, err := c.FetchBlock(&ab.SeekInfo{})
+	require.Nil(t, block)
+	require.ErrorContains(t, err, "no assembler endpoints configured")
+}
+
+func TestBroadcastToAllRoutersNoRouterEndpoints(t *testing.T) {
+	t.Parallel()
+	c := &Client{ordererConnInfo: &ordererconn.Info{}}
+	err := c.BroadcastToAllRouters(&cb.Envelope{})
+	require.ErrorContains(t, err, "no router endpoints configured")
 }
 
 func TestNewClientConfig(t *testing.T) {

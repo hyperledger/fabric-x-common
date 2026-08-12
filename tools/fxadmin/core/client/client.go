@@ -59,7 +59,7 @@ func Load(config *user.Config, block *cb.Block, csp bccsp.BCCSP) (*Client, error
 	if err != nil {
 		return nil, err
 	}
-	tlsCertHash, err := tlsCertHash(clientConfig)
+	certHash, err := tlsCertHash(clientConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func Load(config *user.Config, block *cb.Block, csp bccsp.BCCSP) (*Client, error
 		ordererConnInfo: ordererConnInfo,
 		clientConfig:    clientConfig,
 		signer:          signingIdentity,
-		tlsCertHash:     tlsCertHash,
+		tlsCertHash:     certHash,
 	}, nil
 }
 
@@ -79,6 +79,10 @@ func (c *Client) ChannelID() string {
 // FetchBlock seeks the block described by seek from the first reachable
 // assembler, failing over to the next assembler on error.
 func (c *Client) FetchBlock(seek *ab.SeekInfo) (*cb.Block, error) {
+	if len(c.ordererConnInfo.AssemblerEndpoints) == 0 {
+		return nil, errors.New("no assembler endpoints configured")
+	}
+
 	envelope, err := c.createSignedDeliverSeekEnvelope(seek)
 	if err != nil {
 		return nil, err
@@ -100,6 +104,10 @@ func (c *Client) FetchBlock(seek *ab.SeekInfo) (*cb.Block, error) {
 // error if any router rejects or is unreachable. The envelope must already be
 // built and signed by the caller (e.g. a prepared configuration transaction).
 func (c *Client) BroadcastToAllRouters(envelope *cb.Envelope) error {
+	if len(c.ordererConnInfo.RouterEndpoints) == 0 {
+		return errors.New("no router endpoints configured")
+	}
+
 	var errs []error
 	for _, endpoint := range c.ordererConnInfo.RouterEndpoints {
 		if err := c.broadcastToRouter(endpoint, envelope); err != nil {
@@ -155,14 +163,18 @@ func (c *Client) fetchBlockFromEndpoint(endpoint string, envelope *cb.Envelope) 
 		return nil, errors.Wrap(err, "failed to receive deliver response")
 	}
 
-	block := resp.GetBlock()
-	if block == nil {
-		return nil, errors.Newf("received a non-block deliver response: %T", resp.GetType())
+	switch t := resp.GetType().(type) {
+	case *ab.DeliverResponse_Block:
+		block := t.Block
+		if block.GetData() == nil || len(block.GetData().GetData()) == 0 {
+			return nil, errors.New("received an empty block")
+		}
+		return block, nil
+	case *ab.DeliverResponse_Status:
+		return nil, errors.Newf("assembler rejected seek request with status %s", t.Status)
+	default:
+		return nil, errors.Newf("received an unexpected deliver response type: %T", resp.GetType())
 	}
-	if block.GetData() == nil || len(block.GetData().GetData()) == 0 {
-		return nil, errors.New("received an empty block")
-	}
-	return block, nil
 }
 
 // broadcastToRouter opens a Broadcast stream to endpoint, sends the envelope, and
