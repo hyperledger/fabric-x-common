@@ -21,6 +21,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 )
 
 // Info holds everything needed to dial the orderer, extracted from a config
@@ -52,8 +53,8 @@ func Load(block *cb.Block, csp bccsp.BCCSP) (*Info, error) {
 		return nil, errors.New("config block has no orderer configuration")
 	}
 
-	if ordererConfig.ConsensusType() != "arma" {
-		return nil, errors.Newf("unsupported consensus type %q: expected %q", ordererConfig.ConsensusType(), "arma")
+	if consensusType := ordererConfig.ConsensusType(); consensusType != configtxgen.Arma {
+		return nil, errors.Newf("unsupported consensus type %q: expected %q", consensusType, configtxgen.Arma)
 	}
 
 	var sharedConfig ordererpb.SharedConfig
