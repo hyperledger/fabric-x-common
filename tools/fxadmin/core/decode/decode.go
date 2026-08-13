@@ -10,9 +10,10 @@ SPDX-License-Identifier: Apache-2.0
 package decode
 
 import (
-	"fmt"
+	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 	"reflect"
 
 	"github.com/cockroachdb/errors"
@@ -37,9 +38,15 @@ func New() *Handler {
 }
 
 // Run implements `fxadmin decode`. It decodes the binary config block at
-// blockPath and writes its JSON rendering to outputPath.
+// blockPath and writes its JSON rendering to outputPath. The output is written
+// only after the block decodes successfully, so a malformed block never
+// clobbers an existing destination.
 func (*Handler) Run(blockPath, outputPath string) error {
 	logger.Debugf("decode: block=%s output=%s", blockPath, outputPath)
+
+	if err := requireDistinctPaths(blockPath, outputPath); err != nil {
+		return err
+	}
 
 	input, err := os.Open(blockPath)
 	if err != nil {
@@ -47,20 +54,33 @@ func (*Handler) Run(blockPath, outputPath string) error {
 	}
 	defer func() { _ = input.Close() }()
 
-	output, err := os.Create(outputPath)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create output %q", outputPath)
-	}
-
-	if err := decodeProto(input, output); err != nil {
-		_ = output.Close()
+	var rendered bytes.Buffer
+	if err := decodeProto(input, &rendered); err != nil {
 		return err
 	}
-	if err := output.Close(); err != nil {
+
+	if err := os.WriteFile(outputPath, rendered.Bytes(), 0o600); err != nil {
 		return errors.Wrapf(err, "failed to write output %q", outputPath)
 	}
 
-	fmt.Printf("decoded %s to %s\n", blockPath, outputPath)
+	logger.Infof("decoded %s to %s\n", blockPath, outputPath)
+	return nil
+}
+
+// requireDistinctPaths rejects a block and output that resolve to the same
+// file, so decoding never overwrites its own source.
+func requireDistinctPaths(blockPath, outputPath string) error {
+	blockAbs, err := filepath.Abs(blockPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to resolve block path %q", blockPath)
+	}
+	outputAbs, err := filepath.Abs(outputPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to resolve output path %q", outputPath)
+	}
+	if blockAbs == outputAbs {
+		return errors.Newf("block and output must be different files, both resolve to %q", blockAbs)
+	}
 	return nil
 }
 

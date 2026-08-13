@@ -79,17 +79,45 @@ func TestRunMissingBlockFile(t *testing.T) {
 }
 
 // TestRunMalformedBlock asserts non-protobuf input is rejected with an
-// unmarshal error rather than producing partial JSON.
+// error and leaves any pre-existing output untouched.
 func TestRunMalformedBlock(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	blockPath := filepath.Join(dir, "block.pb")
 	// Bytes that are not a valid wire-format Block message.
 	require.NoError(t, os.WriteFile(blockPath, []byte{0xff, 0xff, 0xff, 0xff}, 0o600))
+
+	// A prior artifact at the destination must survive a failed decode.
 	outputPath := filepath.Join(dir, "out.json")
+	const priorContent = "prior artifact"
+	require.NoError(t, os.WriteFile(outputPath, []byte(priorContent), 0o600))
 
 	err := decode.New().Run(blockPath, outputPath)
 	require.ErrorContains(t, err, "failed to unmarshal input")
+
+	preserved, err := os.ReadFile(outputPath)
+	require.NoError(t, err)
+	require.Equal(t, priorContent, string(preserved), "failed decode must not affect the destination")
+}
+
+// TestRunRejectsSameBlockAndOutput asserts a block and output that resolve to
+// the same file are rejected before the block is read, so decoding never
+// destroys its own source.
+func TestRunRejectsSameBlockAndOutput(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	blockPath := filepath.Join(dir, "block.pb")
+	require.NoError(t, os.WriteFile(blockPath, protoutil.MarshalOrPanic(protoutil.NewBlock(1, nil)), 0o600))
+
+	// A distinct path string that resolves to the same file.
+	otuputPath := filepath.Join(dir, ".", "block.pb")
+	err := decode.New().Run(blockPath, otuputPath)
+	require.ErrorContains(t, err, "block and output must be different files")
+
+	// The source block must be left byte-for-byte intact.
+	preserved, err := os.ReadFile(blockPath)
+	require.NoError(t, err)
+	require.Equal(t, protoutil.MarshalOrPanic(protoutil.NewBlock(1, nil)), preserved)
 }
 
 // nestedMap walks a chain of object keys through a decoded JSON map, failing
