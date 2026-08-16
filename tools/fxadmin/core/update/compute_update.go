@@ -6,19 +6,25 @@ SPDX-License-Identifier: Apache-2.0
 
 // Package update implements the `fxadmin compute-update` command, which
 // computes the ConfigUpdate delta between the original and modified
-// configuration JSON.
+// configuration JSON. It reproduces the logic of `configtxlator proto_encode
+// --type common.Config` on each input followed by `configtxlator
+// compute_update`: each JSON config is encoded to a common.Config, and the
+// delta between the two is written as a marshaled common.ConfigUpdate.
 package update
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
+	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/hyperledger/fabric-x-common/protolator"
+	"github.com/hyperledger/fabric-x-common/tools/configtxlator/update"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.compute-update")
-
-var errNotImplemented = errors.New("not implemented")
 
 // Handler executes the compute-update command.
 type Handler struct{}
@@ -28,8 +34,51 @@ func New() *Handler {
 	return &Handler{}
 }
 
-// Run implements `fxadmin compute-update`.
+// Run implements `fxadmin compute-update`. It encodes the current and modified
+// configuration JSON at currentPath and modifiedPath to common.Config messages,
+// computes the ConfigUpdate delta between them, and writes the marshaled
+// ConfigUpdate to outputPath.
 func (*Handler) Run(currentPath, modifiedPath, outputPath string) error {
 	logger.Debugf("compute-update: current=%s modified=%s output=%s", currentPath, modifiedPath, outputPath)
-	return fmt.Errorf("compute-update: %w", errNotImplemented)
+
+	current, err := encodeConfig(currentPath)
+	if err != nil {
+		return err
+	}
+	modified, err := encodeConfig(modifiedPath)
+	if err != nil {
+		return err
+	}
+
+	configUpdate, err := update.Compute(current, modified)
+	if err != nil {
+		return errors.Wrap(err, "failed to compute config update")
+	}
+
+	out, err := proto.Marshal(configUpdate)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal config update")
+	}
+	if err := os.WriteFile(outputPath, out, 0o600); err != nil {
+		return errors.Wrapf(err, "failed to write output %q", outputPath)
+	}
+
+	logger.Infof("computed config update from %s and %s to %s", currentPath, modifiedPath, outputPath)
+	return nil
+}
+
+// encodeConfig reads the configuration JSON at path and encodes it to a
+// common.Config, mirroring `configtxlator proto_encode --type common.Config`.
+func encodeConfig(path string) (*cb.Config, error) {
+	input, err := os.Open(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to open config %q", path)
+	}
+	defer func() { _ = input.Close() }()
+
+	config := &cb.Config{}
+	if err := protolator.DeepUnmarshalJSON(input, config); err != nil {
+		return nil, errors.Wrapf(err, "failed to decode config %q", path)
+	}
+	return config, nil
 }
