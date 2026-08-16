@@ -7,11 +7,24 @@ SPDX-License-Identifier: Apache-2.0
 package tx_test
 
 import (
+	"bytes"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
+	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
+	"go.yaml.in/yaml/v3"
+	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/types"
+	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/tools/cryptogen"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/signer"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/tx"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
+	"github.com/hyperledger/fabric-x-common/utils/testcrypto"
 )
 
 const (
@@ -19,21 +32,13 @@ const (
 	adminYAML      = "admin.yaml"
 )
 
-// TestHandlerNotImplemented asserts every tx subcommand is a skeleton that
-// reports "not implemented" without panicking. Replace each subtest with a
-// behavioral test as the command is implemented.
+// TestHandlerNotImplemented asserts every not-yet-implemented tx subcommand is
+// a skeleton that reports "not implemented" without panicking. Replace each
+// subtest with a behavioral test as the command is implemented.
 func TestHandlerNotImplemented(t *testing.T) {
 	t.Parallel()
 	h := tx.New()
 
-	t.Run("endorse", func(t *testing.T) {
-		t.Parallel()
-		require.ErrorContains(t, h.Endorse("update.pb", adminYAML, "endorsement.pb"), notImplemented)
-	})
-	t.Run("merge", func(t *testing.T) {
-		t.Parallel()
-		require.ErrorContains(t, h.Merge([]string{"e1.pb", "e2.pb"}, "merged.pb"), notImplemented)
-	})
 	t.Run("prepare", func(t *testing.T) {
 		t.Parallel()
 		require.ErrorContains(t, h.Prepare("endorsed.pb", adminYAML, "tx.pb"), notImplemented)
@@ -46,4 +51,293 @@ func TestHandlerNotImplemented(t *testing.T) {
 		t.Parallel()
 		require.ErrorContains(t, h.Send("endorsed.pb", adminYAML, "current.pb"), notImplemented)
 	})
+}
+
+// TestEndorse asserts that `tx endorse` wraps the input ConfigUpdate in a
+// ConfigUpdateEnvelope carrying exactly one admin ConfigSignature, that the
+// embedded ConfigUpdate bytes are unchanged (so every endorser signs the same
+// bytes), and that the signature verifies against the admin identity over
+// SignatureHeader||ConfigUpdate.
+func TestEndorse(t *testing.T) {
+	t.Parallel()
+
+	adminConfigPath, mspDir, mspID := newAdminConfig(t)
+	rawConfigUpdate := marshalConfigUpdate(t, "test-channel")
+	rawConfigUpdatePath := writeFile(t, rawConfigUpdate)
+	outputPath := filepath.Join(t.TempDir(), "endorsement.pb")
+
+	require.NoError(t, tx.New().Endorse(rawConfigUpdatePath, adminConfigPath, outputPath))
+
+	out, err := os.ReadFile(outputPath)
+	require.NoError(t, err)
+	env := &cb.ConfigUpdateEnvelope{}
+	require.NoError(t, proto.Unmarshal(out, env))
+
+	require.Equal(t, rawConfigUpdate, env.GetConfigUpdate())
+	require.Len(t, env.GetSignatures(), 1)
+	sig := env.GetSignatures()[0]
+	require.NotEmpty(t, sig.GetSignatureHeader())
+	require.NotEmpty(t, sig.GetSignature())
+
+	admin, err := signer.New(mspID, mspDir)
+	require.NoError(t, err)
+	signed := util.ConcatenateBytes(sig.GetSignatureHeader(), env.GetConfigUpdate())
+	require.NoError(t, admin.Verify(signed, sig.GetSignature()))
+
+	sh := &cb.SignatureHeader{}
+	require.NoError(t, proto.Unmarshal(sig.GetSignatureHeader(), sh))
+	creator, err := admin.Serialize()
+	require.NoError(t, err)
+	require.Equal(t, creator, sh.GetCreator())
+	require.NotEmpty(t, sh.GetNonce())
+}
+
+// TestEndorseErrors asserts that `tx endorse` reports readable errors for a
+// missing input file, a missing admin configuration, and an input that is not
+// a valid ConfigUpdate.
+func TestEndorseErrors(t *testing.T) {
+	t.Parallel()
+
+	adminConfigPath, _, _ := newAdminConfig(t)
+	validConfigUpdate := writeFile(t, marshalConfigUpdate(t, "test-channel"))
+	invalidConfigUpdate := writeFile(t, []byte("not a valid config update"))
+
+	for _, tc := range []struct {
+		name    string
+		input   string
+		config  string
+		wantErr string
+	}{
+		{
+			name:    "missing input file",
+			input:   filepath.Join(t.TempDir(), "absent.pb"),
+			config:  adminConfigPath,
+			wantErr: "failed to read config update",
+		},
+		{
+			name:    "missing config file",
+			input:   validConfigUpdate,
+			config:  filepath.Join(t.TempDir(), "absent.yaml"),
+			wantErr: "failed to read user configuration",
+		},
+		{
+			name:    "input is not a config update",
+			input:   invalidConfigUpdate,
+			config:  adminConfigPath,
+			wantErr: "failed to unmarshal config update",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			outputPath := filepath.Join(t.TempDir(), "endorsement.pb")
+			require.ErrorContains(t, tx.New().Endorse(tc.input, tc.config, outputPath), tc.wantErr)
+		})
+	}
+}
+
+// TestMerge asserts that `tx merge` combines the signatures of several
+// endorsements over the same ConfigUpdate into a single envelope that carries
+// the shared ConfigUpdate bytes and every distinct signer's ConfigSignature,
+// each still verifying against its own admin identity.
+func TestMerge(t *testing.T) {
+	t.Parallel()
+
+	admins := newAdminConfigs(t, 2)
+	rawConfigUpdate := marshalConfigUpdate(t, "test-channel")
+
+	endorsement1 := endorse(t, admins[0], rawConfigUpdate)
+	endorsement2 := endorse(t, admins[1], rawConfigUpdate)
+	outputPath := filepath.Join(t.TempDir(), "merged.pb")
+
+	require.NoError(t, tx.New().Merge([]string{endorsement1, endorsement2}, outputPath))
+
+	merged := readConfigUpdateEnvelope(t, outputPath)
+	require.Equal(t, rawConfigUpdate, merged.GetConfigUpdate())
+	require.Len(t, merged.GetSignatures(), 2)
+	requireSignatureFrom(t, merged, admins[0])
+	requireSignatureFrom(t, merged, admins[1])
+}
+
+// TestMergeDeduplicatesSigners asserts that merging endorsements from the same
+// signer keeps a single ConfigSignature for that signer.
+func TestMergeDeduplicatesSigners(t *testing.T) {
+	t.Parallel()
+
+	admins := newAdminConfigs(t, 1)
+	rawConfigUpdate := marshalConfigUpdate(t, "test-channel")
+
+	endorsement1 := endorse(t, admins[0], rawConfigUpdate)
+	endorsement2 := endorse(t, admins[0], rawConfigUpdate)
+	outputPath := filepath.Join(t.TempDir(), "merged.pb")
+
+	require.NoError(t, tx.New().Merge([]string{endorsement1, endorsement2}, outputPath))
+
+	merged := readConfigUpdateEnvelope(t, outputPath)
+	require.Equal(t, rawConfigUpdate, merged.GetConfigUpdate())
+	require.Len(t, merged.GetSignatures(), 1)
+	requireSignatureFrom(t, merged, admins[0])
+}
+
+// TestMergeErrors asserts that `tx merge` reports readable errors for an
+// unreadable input, an input that is not a ConfigUpdateEnvelope, and
+// endorsements whose ConfigUpdate bytes disagree.
+func TestMergeErrors(t *testing.T) {
+	t.Parallel()
+
+	admins := newAdminConfigs(t, 2)
+	validEndorsement := endorse(t, admins[0], marshalConfigUpdate(t, "test-channel"))
+	otherEndorsement := endorse(t, admins[1], marshalConfigUpdate(t, "other-channel"))
+	// In a case where the first input's ConfigUpdate is empty, it must still be the
+	// reference a later non-empty input is checked against.
+	endorsementOfEmptyUpdate := endorse(t, admins[0], marshalConfigUpdate(t, ""))
+	notConfigUpdateEnvelope := writeFile(t, []byte("not a config update envelope"))
+
+	for _, tc := range []struct {
+		name    string
+		inputs  []string
+		wantErr string
+	}{
+		{
+			name:    "missing input file",
+			inputs:  []string{validEndorsement, filepath.Join(t.TempDir(), "absent.pb")},
+			wantErr: "failed to read endorsement",
+		},
+		{
+			name:    "input is not an envelope",
+			inputs:  []string{validEndorsement, notConfigUpdateEnvelope},
+			wantErr: "failed to unmarshal endorsement",
+		},
+		{
+			name:    "config updates disagree",
+			inputs:  []string{validEndorsement, otherEndorsement},
+			wantErr: "config update mismatch",
+		},
+		{
+			name:    "empty first config update still anchors the comparison",
+			inputs:  []string{endorsementOfEmptyUpdate, validEndorsement},
+			wantErr: "config update mismatch",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			outputPath := filepath.Join(t.TempDir(), "merged.pb")
+			require.ErrorContains(t, tx.New().Merge(tc.inputs, outputPath), tc.wantErr)
+		})
+	}
+}
+
+// adminConfig is a generated admin identity: the path to its admin
+// configuration YAML plus the MSP directory and ID for independent verification.
+type adminConfig struct {
+	configPath, mspDir, mspID string
+}
+
+// newAdminConfig generates a single orderer org and returns its admin user's
+// configuration YAML, MSP directory, and MSP ID.
+func newAdminConfig(t *testing.T) (configPath, mspDir, mspID string) {
+	t.Helper()
+	admin := newAdminConfigs(t, 1)[0]
+	return admin.configPath, admin.mspDir, admin.mspID
+}
+
+// newAdminConfigs generates count orderer organizations from one crypto tree,
+// each with a broadcast and a deliver endpoint, and writes an admin
+// configuration YAML for each org's admin user (users/Admin@<org>/msp).
+func newAdminConfigs(t *testing.T, count int) []adminConfig {
+	t.Helper()
+	targetPath := t.TempDir()
+	endpoints := make([]*types.OrdererEndpoint, 0, 2*count)
+	for i := range count {
+		partyID := uint32(i + 1)
+		endpoints = append(endpoints,
+			&types.OrdererEndpoint{ID: partyID, Host: "localhost", Port: 7050 + 2*i, API: []string{types.Broadcast}},
+			&types.OrdererEndpoint{ID: partyID, Host: "localhost", Port: 7051 + 2*i, API: []string{types.Deliver}},
+		)
+	}
+	_, err := testcrypto.CreateOrExtendConfigBlockWithCrypto(targetPath, &testcrypto.ConfigBlock{
+		ChannelID:        "test-channel",
+		OrdererEndpoints: endpoints,
+	})
+	require.NoError(t, err)
+
+	orgsPath := filepath.Join(targetPath, cryptogen.OrdererOrganizationsDir)
+	orgDirs, err := os.ReadDir(orgsPath)
+	require.NoError(t, err)
+	require.Len(t, orgDirs, count)
+
+	admins := make([]adminConfig, count)
+	for i, org := range orgDirs {
+		orgName := org.Name()
+		mspID := strings.TrimSuffix(orgName, ".com")
+		mspDir := filepath.Join(orgsPath, orgName, "users", "Admin@"+orgName, "msp")
+
+		configPath := filepath.Join(t.TempDir(), adminYAML)
+		content, err := yaml.Marshal(user.Config{
+			MSP: user.MSPConfig{LocalMspID: mspID, LocalMspDir: mspDir},
+		})
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(configPath, content, 0o600))
+		admins[i] = adminConfig{configPath: configPath, mspDir: mspDir, mspID: mspID}
+	}
+	return admins
+}
+
+// endorse runs `tx endorse` for the given admin over rawUpdate and returns the
+// path to the resulting endorsement file.
+func endorse(t *testing.T, admin adminConfig, rawUpdate []byte) string {
+	t.Helper()
+	inputPath := writeFile(t, rawUpdate)
+	outputPath := filepath.Join(t.TempDir(), "endorsement.pb")
+	require.NoError(t, tx.New().Endorse(inputPath, admin.configPath, outputPath))
+	return outputPath
+}
+
+// readConfigUpdateEnvelope reads and unmarshals a ConfigUpdateEnvelope from path.
+func readConfigUpdateEnvelope(t *testing.T, path string) *cb.ConfigUpdateEnvelope {
+	t.Helper()
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	env := &cb.ConfigUpdateEnvelope{}
+	require.NoError(t, proto.Unmarshal(content, env))
+	return env
+}
+
+// requireSignatureFrom asserts that env carries exactly one signature from the
+// given admin and that it verifies over SignatureHeader||ConfigUpdate.
+func requireSignatureFrom(t *testing.T, env *cb.ConfigUpdateEnvelope, admin adminConfig) {
+	t.Helper()
+	identity, err := signer.New(admin.mspID, admin.mspDir)
+	require.NoError(t, err)
+	creator, err := identity.Serialize()
+	require.NoError(t, err)
+
+	var found int
+	for _, sig := range env.GetSignatures() {
+		sh := &cb.SignatureHeader{}
+		require.NoError(t, proto.Unmarshal(sig.GetSignatureHeader(), sh))
+		if !bytes.Equal(sh.GetCreator(), creator) {
+			continue
+		}
+		found++
+		signed := util.ConcatenateBytes(sig.GetSignatureHeader(), env.GetConfigUpdate())
+		require.NoError(t, identity.Verify(signed, sig.GetSignature()))
+	}
+	require.Equal(t, 1, found)
+}
+
+// marshalConfigUpdate returns the marshaled bytes of a minimal ConfigUpdate for
+// the given channel.
+func marshalConfigUpdate(t *testing.T, channelID string) []byte {
+	t.Helper()
+	raw, err := proto.Marshal(&cb.ConfigUpdate{ChannelId: channelID})
+	require.NoError(t, err)
+	return raw
+}
+
+// writeFile writes content to a fresh temp file and returns its path.
+func writeFile(t *testing.T, content []byte) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "config_update.pb")
+	require.NoError(t, os.WriteFile(path, content, 0o600))
+	return path
 }

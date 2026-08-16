@@ -9,10 +9,20 @@ SPDX-License-Identifier: Apache-2.0
 package tx
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
+	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/msp"
+	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/signer"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.tx")
@@ -29,16 +39,142 @@ func New() *Handler {
 	return &Handler{}
 }
 
-// Endorse implements `fxadmin tx endorse`.
+// Endorse implements `fxadmin tx endorse`. It reads the marshaled
+// common.ConfigUpdate at inputPath, signs it with the admin identity described
+// by the configuration YAML at configPath, and writes a marshaled
+// common.ConfigUpdateEnvelope carrying that admin's ConfigSignature to
+// outputPath.
 func (*Handler) Endorse(inputPath, configPath, outputPath string) error {
 	logger.Debugf("tx endorse: input=%s config=%s output=%s", inputPath, configPath, outputPath)
-	return fmt.Errorf("tx endorse: %w", errNotImplemented)
+
+	configUpdate, err := os.ReadFile(inputPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read config update %q", inputPath)
+	}
+	if err = proto.Unmarshal(configUpdate, &cb.ConfigUpdate{}); err != nil {
+		return errors.Wrapf(err, "failed to unmarshal config update %q", inputPath)
+	}
+
+	config, err := user.LoadConfig(configPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load user configuration %q", configPath)
+	}
+	admin, err := signer.New(config.MSP.LocalMspID, config.MSP.LocalMspDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load admin signing identity for MSP %q", config.MSP.LocalMspID)
+	}
+
+	signature, err := signConfigUpdate(admin, configUpdate)
+	if err != nil {
+		return errors.Wrapf(err, "failed to endorse config update %q", inputPath)
+	}
+	env := &cb.ConfigUpdateEnvelope{
+		ConfigUpdate: configUpdate,
+		Signatures:   []*cb.ConfigSignature{signature},
+	}
+
+	out, err := proto.Marshal(env)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal endorsed config update")
+	}
+	if err := os.WriteFile(outputPath, out, 0o600); err != nil {
+		return errors.Wrapf(err, "failed to write output %q", outputPath)
+	}
+
+	logger.Infof("endorsed config update %s with %s to %s", inputPath, config.MSP.LocalMspID, outputPath)
+	return nil
 }
 
-// Merge implements `fxadmin tx merge`.
+// signConfigUpdate produces the admin's ConfigSignature over the config update.
+// The signature covers SignatureHeader||ConfigUpdate.
+func signConfigUpdate(admin msp.SigningIdentity, configUpdate []byte) (*cb.ConfigSignature, error) {
+	sigHeader, err := protoutil.NewSignatureHeader(admin)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create signature header")
+	}
+	signatureHeader, err := proto.Marshal(sigHeader)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal signature header")
+	}
+	signature, err := admin.Sign(util.ConcatenateBytes(signatureHeader, configUpdate))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to sign config update")
+	}
+	return &cb.ConfigSignature{
+		SignatureHeader: signatureHeader,
+		Signature:       signature,
+	}, nil
+}
+
+// Merge implements `fxadmin tx merge`. It reads several marshaled
+// common.ConfigUpdateEnvelope files, each endorsing the same ConfigUpdate, and
+// writes a single envelope carrying the shared ConfigUpdate bytes and the union
+// of their signatures. All inputs must endorse identical ConfigUpdate bytes;
+// duplicate signers are de-duplicated, keeping the first occurrence.
+// Signatures are not verified here; their validity is checked against
+// channel policy at submission.
 func (*Handler) Merge(inputPaths []string, outputPath string) error {
 	logger.Debugf("tx merge: inputs=%v output=%s", inputPaths, outputPath)
-	return fmt.Errorf("tx merge: %w", errNotImplemented)
+
+	merged := &cb.ConfigUpdateEnvelope{}
+	seen := make(map[string]struct{})
+	for i, path := range inputPaths {
+		env, err := readConfigUpdateEnvelope(path)
+		if err != nil {
+			return err
+		}
+		if i == 0 {
+			merged.ConfigUpdate = env.GetConfigUpdate()
+		} else if !bytes.Equal(merged.GetConfigUpdate(), env.GetConfigUpdate()) {
+			return errors.Newf("config update mismatch: %q endorses a different config update", path)
+		}
+		if err := appendSignatures(merged, env, seen); err != nil {
+			return errors.Wrapf(err, "invalid endorsement %q", path)
+		}
+	}
+
+	out, err := proto.Marshal(merged)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal merged config update")
+	}
+	if err := os.WriteFile(outputPath, out, 0o600); err != nil {
+		return errors.Wrapf(err, "failed to write output %q", outputPath)
+	}
+
+	logger.Infof("merged %d endorsements into %s (%d signatures)",
+		len(inputPaths), outputPath, len(merged.GetSignatures()))
+	return nil
+}
+
+// readConfigUpdateEnvelope reads and unmarshals a common.ConfigUpdateEnvelope from path.
+func readConfigUpdateEnvelope(path string) (*cb.ConfigUpdateEnvelope, error) {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read endorsement %q", path)
+	}
+	env := &cb.ConfigUpdateEnvelope{}
+	if err := proto.Unmarshal(content, env); err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal endorsement %q", path)
+	}
+	return env, nil
+}
+
+// appendSignatures adds env's signatures to merged, skipping signers already in
+// seen. A signer is identified by its SignatureHeader.Creator bytes.
+func appendSignatures(merged, env *cb.ConfigUpdateEnvelope, seen map[string]struct{}) error {
+	for _, sig := range env.GetSignatures() {
+		sigHeader := &cb.SignatureHeader{}
+		if err := proto.Unmarshal(sig.GetSignatureHeader(), sigHeader); err != nil {
+			return errors.Wrap(err, "failed to unmarshal signature header")
+		}
+		key := string(sigHeader.GetCreator())
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		merged.Signatures = append(merged.Signatures, sig)
+	}
+	return nil
 }
 
 // Prepare implements `fxadmin tx prepare`.
