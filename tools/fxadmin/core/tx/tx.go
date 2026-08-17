@@ -177,10 +177,50 @@ func appendSignatures(merged, env *cb.ConfigUpdateEnvelope, seen map[string]stru
 	return nil
 }
 
-// Prepare implements `fxadmin tx prepare`.
+// Prepare implements `fxadmin tx prepare`. It reads the endorsed
+// common.ConfigUpdateEnvelope at inputPath and wraps it in a common.Envelope
+// whose channel header is of type CONFIG_UPDATE, signed by the submitting
+// client identity described by the configuration YAML at configPath (a channel
+// writer, which may be one of the admins). The marshaled envelope is written to
+// outputPath, ready for submission to the routers.
 func (*Handler) Prepare(inputPath, configPath, outputPath string) error {
 	logger.Debugf("tx prepare: input=%s config=%s output=%s", inputPath, configPath, outputPath)
-	return fmt.Errorf("tx prepare: %w", errNotImplemented)
+
+	env, err := readConfigUpdateEnvelope(inputPath)
+	if err != nil {
+		return err
+	}
+	configUpdate := &cb.ConfigUpdate{}
+	if err = proto.Unmarshal(env.GetConfigUpdate(), configUpdate); err != nil {
+		return errors.Wrapf(err, "failed to unmarshal config update in endorsement %q", inputPath)
+	}
+
+	config, err := user.LoadConfig(configPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load user configuration %q", configPath)
+	}
+	client, err := signer.New(config.MSP.LocalMspID, config.MSP.LocalMspDir)
+	if err != nil {
+		return errors.Wrapf(err, "failed to load submitting client signing identity for MSP %q", config.MSP.LocalMspID)
+	}
+
+	tx, err := protoutil.CreateSignedEnvelope(
+		cb.HeaderType_CONFIG_UPDATE, configUpdate.GetChannelId(), client, env, 0, 0)
+	if err != nil {
+		return errors.Wrap(err, "failed to create configuration transaction")
+	}
+
+	out, err := proto.Marshal(tx)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal configuration transaction")
+	}
+	if err := os.WriteFile(outputPath, out, 0o600); err != nil {
+		return errors.Wrapf(err, "failed to write output %q", outputPath)
+	}
+
+	logger.Infof("prepared configuration transaction from %s signed by %s to %s",
+		inputPath, config.MSP.LocalMspID, outputPath)
+	return nil
 }
 
 // Submit implements `fxadmin tx submit`.
