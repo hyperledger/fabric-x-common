@@ -13,7 +13,6 @@ import (
 	"bytes"
 	"io"
 	"os"
-	"path/filepath"
 	"reflect"
 
 	"github.com/cockroachdb/errors"
@@ -23,6 +22,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	"github.com/hyperledger/fabric-x-common/protolator"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/utils"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.decode")
@@ -44,7 +44,7 @@ func New() *Handler {
 func (*Handler) Run(blockPath, outputPath string) error {
 	logger.Debugf("decode: block=%s output=%s", blockPath, outputPath)
 
-	if err := requireDistinctPaths(blockPath, outputPath); err != nil {
+	if err := utils.RequireDistinctOutput(outputPath, blockPath); err != nil {
 		return err
 	}
 
@@ -64,23 +64,6 @@ func (*Handler) Run(blockPath, outputPath string) error {
 	}
 
 	logger.Infof("decoded %s to %s\n", blockPath, outputPath)
-	return nil
-}
-
-// requireDistinctPaths rejects a block and output that resolve to the same
-// file, so decoding never overwrites its own source.
-func requireDistinctPaths(blockPath, outputPath string) error {
-	blockAbs, err := filepath.Abs(blockPath)
-	if err != nil {
-		return errors.Wrapf(err, "failed to resolve block path %q", blockPath)
-	}
-	outputAbs, err := filepath.Abs(outputPath)
-	if err != nil {
-		return errors.Wrapf(err, "failed to resolve output path %q", outputPath)
-	}
-	if blockAbs == outputAbs {
-		return errors.Newf("block and output must be different files, both resolve to %q", blockAbs)
-	}
 	return nil
 }
 

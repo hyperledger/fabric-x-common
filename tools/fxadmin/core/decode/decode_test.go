@@ -112,7 +112,7 @@ func TestRunRejectsSameBlockAndOutput(t *testing.T) {
 	// A distinct path string that resolves to the same file.
 	otuputPath := filepath.Join(dir, ".", "block.pb")
 	err := decode.New().Run(blockPath, otuputPath)
-	require.ErrorContains(t, err, "block and output must be different files")
+	require.ErrorContains(t, err, "must be a different file from input")
 
 	// The source block must be left byte-for-byte intact.
 	preserved, err := os.ReadFile(blockPath)

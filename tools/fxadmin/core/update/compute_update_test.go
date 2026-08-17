@@ -147,6 +147,30 @@ func TestRunMalformedBlock(t *testing.T) {
 	require.NoFileExists(t, outputPath)
 }
 
+// TestRunRejectsOutputCollidingWithInput asserts an output that resolves to one
+// of the inputs is rejected before any work, so the command never overwrites
+// its own source.
+func TestRunRejectsOutputCollidingWithInput(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+
+	currentPath := writeConfigJSON(t, dir, "current.json", "SHA256")
+	modifiedPath := writeConfigJSON(t, dir, "modified.json", "SHA384")
+	blockPath := writeConfigBlock(t, dir)
+	modifiedContent, err := os.ReadFile(modifiedPath)
+	require.NoError(t, err)
+
+	// A distinct path string that resolves to the modified input.
+	outputPath := filepath.Join(dir, ".", "modified.json")
+	err = update.New().Run(currentPath, modifiedPath, blockPath, outputPath)
+	require.ErrorContains(t, err, "must be a different file from input")
+
+	// The input must be left byte-for-byte intact.
+	preserved, err := os.ReadFile(modifiedPath)
+	require.NoError(t, err)
+	require.Equal(t, modifiedContent, preserved, "collision check must run before any write")
+}
+
 // writeConfigJSON writes a minimal common.Config JSON whose single
 // HashingAlgorithm value carries algo, and returns its path.
 func writeConfigJSON(t *testing.T, dir, name, algo string) string {
