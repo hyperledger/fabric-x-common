@@ -10,6 +10,8 @@ SPDX-License-Identifier: Apache-2.0
 // --type common.Config` on each input followed by `configtxlator
 // compute_update`: each JSON config is encoded to a common.Config, and the
 // delta between the two is written as a marshaled common.ConfigUpdate.
+// The channel ID is not part of common.Config, so it is read
+// from the current config block supplied to Run.
 package update
 
 import (
@@ -21,6 +23,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/protolator"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/configtxlator/update"
 )
 
@@ -36,10 +39,12 @@ func New() *Handler {
 
 // Run implements `fxadmin compute-update`. It encodes the current and modified
 // configuration JSON at currentPath and modifiedPath to common.Config messages,
-// computes the ConfigUpdate delta between them, and writes the marshaled
+// computes the ConfigUpdate delta between them, stamps it with the channel ID
+// read from the config block at currentBlockPath, and writes the marshaled
 // ConfigUpdate to outputPath.
-func (*Handler) Run(currentPath, modifiedPath, outputPath string) error {
-	logger.Debugf("compute-update: current=%s modified=%s output=%s", currentPath, modifiedPath, outputPath)
+func (*Handler) Run(currentPath, modifiedPath, currentBlockPath, outputPath string) error {
+	logger.Debugf("compute-update: current=%s modified=%s current-block=%s output=%s",
+		currentPath, modifiedPath, currentBlockPath, outputPath)
 
 	current, err := encodeConfig(currentPath)
 	if err != nil {
@@ -50,10 +55,16 @@ func (*Handler) Run(currentPath, modifiedPath, outputPath string) error {
 		return err
 	}
 
+	channelID, err := channelIDFromBlock(currentBlockPath)
+	if err != nil {
+		return err
+	}
+
 	configUpdate, err := update.Compute(current, modified)
 	if err != nil {
 		return errors.Wrap(err, "failed to compute config update")
 	}
+	configUpdate.ChannelId = channelID
 
 	out, err := proto.Marshal(configUpdate)
 	if err != nil {
@@ -63,8 +74,23 @@ func (*Handler) Run(currentPath, modifiedPath, outputPath string) error {
 		return errors.Wrapf(err, "failed to write output %q", outputPath)
 	}
 
-	logger.Infof("computed config update from %s and %s to %s", currentPath, modifiedPath, outputPath)
+	logger.Infof("computed config update for channel %s from %s and %s to %s",
+		channelID, currentPath, modifiedPath, outputPath)
 	return nil
+}
+
+// channelIDFromBlock reads the config block at path and returns the channel ID
+// from its channel header, which is the channel the ConfigUpdate targets.
+func channelIDFromBlock(path string) (string, error) {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to read config block %q", path)
+	}
+	channelID, err := protoutil.GetChannelIDFromBlockBytes(content)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to read channel id from config block %q", path)
+	}
+	return channelID, nil
 }
 
 // encodeConfig reads the configuration JSON at path and encodes it to a

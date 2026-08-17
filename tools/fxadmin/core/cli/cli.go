@@ -131,14 +131,19 @@ func (c *CLI) addDecodeCommand() {
 }
 
 // addComputeUpdateCommand wires `fxadmin compute-update`, which computes the
-// ConfigUpdate delta between the original and modified configuration JSON.
+// ConfigUpdate delta between the original and modified configuration JSON. The
+// channel ID the update targets is read from the current config block supplied with --current-block.
 func (c *CLI) addComputeUpdateCommand() {
 	cmd := c.app.Command("compute-update", "Compute the ConfigUpdate delta between two config JSON files.")
 	current := cmd.Arg("current.json", "Original configuration JSON.").Required().ExistingFile()
 	modified := cmd.Arg("modified.json", "Modified configuration JSON.").Required().ExistingFile()
+	currentBlock := cmd.
+		Flag(flagCurrentBlock, "Path to the current config block whose channel ID the update targets.").
+		Required().
+		ExistingFile()
 	output := cmd.Flag(flagOutput, "Path to the output ConfigUpdate protobuf file.").Required().String()
 	c.register(cmd, func() error {
-		return c.handlers.Update.Run(*current, *modified, *output)
+		return c.handlers.Update.Run(*current, *modified, *currentBlock, *output)
 	})
 }
 
