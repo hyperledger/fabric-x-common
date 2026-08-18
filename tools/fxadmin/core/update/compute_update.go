@@ -43,6 +43,14 @@ func New() *Handler {
 // computes the ConfigUpdate delta between them, stamps it with the channel ID
 // read from the config block at currentBlockPath, and writes the marshaled
 // ConfigUpdate to outputPath.
+//
+// The three inputs must all belong to the same channel: currentPath is expected
+// to be the JSON decoded from currentBlockPath, and modifiedPath its edited
+// copy. The delta is computed only from the two JSON configs, while the channel
+// ID is taken only from the block. common.Config carries no channel ID, so a
+// mismatch cannot be detected here: pass a block from a different channel and
+// the resulting ConfigUpdate carries one channel's changes stamped with another
+// channel's ID, which the orderer will reject on submission.
 func (*Handler) Run(currentPath, modifiedPath, currentBlockPath, outputPath string) error {
 	logger.Debugf("compute-update: current=%s modified=%s current-block=%s output=%s",
 		currentPath, modifiedPath, currentBlockPath, outputPath)
@@ -85,7 +93,8 @@ func (*Handler) Run(currentPath, modifiedPath, currentBlockPath, outputPath stri
 }
 
 // channelIDFromBlock reads the config block at path and returns the channel ID
-// from its channel header, which is the channel the ConfigUpdate targets.
+// from its channel header, which is the channel the ConfigUpdate targets. An
+// empty channel ID is rejected.
 func channelIDFromBlock(path string) (string, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -94,6 +103,9 @@ func channelIDFromBlock(path string) (string, error) {
 	channelID, err := protoutil.GetChannelIDFromBlockBytes(content)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to read channel id from config block %q", path)
+	}
+	if channelID == "" {
+		return "", errors.Newf("config block %q has an empty channel id", path)
 	}
 	return channelID, nil
 }

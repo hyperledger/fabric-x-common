@@ -147,6 +147,23 @@ func TestRunMalformedBlock(t *testing.T) {
 	require.NoFileExists(t, outputPath)
 }
 
+// TestRunEmptyChannelID asserts a config block whose channel header carries an
+// empty channel ID is rejected up front, rather than stamping the ConfigUpdate
+// with an empty channel and deferring the failure to submission.
+func TestRunEmptyChannelID(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+
+	currentPath := writeConfigJSON(t, dir, "current.json", "SHA256")
+	modifiedPath := writeConfigJSON(t, dir, "modified.json", "SHA384")
+	blockPath := writeConfigBlockWithChannelID(t, dir, "")
+	outputPath := filepath.Join(dir, "update.pb")
+
+	err := update.New().Run(currentPath, modifiedPath, blockPath, outputPath)
+	require.ErrorContains(t, err, "empty channel id")
+	require.NoFileExists(t, outputPath)
+}
+
 // TestRunRejectsOutputCollidingWithInput asserts an output that resolves to one
 // of the inputs is rejected before any work, so the command never overwrites
 // its own source.
@@ -200,13 +217,20 @@ func writeConfigJSON(t *testing.T, dir, name, algo string) string {
 // from which compute-update reads the channel ID the update targets.
 func writeConfigBlock(t *testing.T, dir string) string {
 	t.Helper()
+	return writeConfigBlockWithChannelID(t, dir, testChannelID)
+}
+
+// writeConfigBlockWithChannelID writes a marshaled common.Block whose sole
+// envelope carries a channel header naming channelID, and returns its path.
+func writeConfigBlockWithChannelID(t *testing.T, dir, channelID string) string {
+	t.Helper()
 	block := protoutil.NewBlock(0, []byte("previous-hash"))
 	block.Data.Data = [][]byte{protoutil.MarshalOrPanic(&cb.Envelope{
 		Payload: protoutil.MarshalOrPanic(&cb.Payload{
 			Header: &cb.Header{
 				ChannelHeader: protoutil.MarshalOrPanic(&cb.ChannelHeader{
 					Type:      int32(cb.HeaderType_CONFIG),
-					ChannelId: testChannelID,
+					ChannelId: channelID,
 				}),
 			},
 		}),
