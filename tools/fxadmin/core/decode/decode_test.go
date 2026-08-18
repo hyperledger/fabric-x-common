@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package decode_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -14,35 +15,28 @@ import (
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/decode"
 )
 
-// TestRunDecodesBlockToJSON asserts `fxadmin decode` reproduces the
-// `configtxlator proto_decode --type common.Block` rendering: the output is
-// valid JSON, the block header is preserved, and protolator deep-decodes the
-// opaque envelope bytes into their structured form.
-func TestRunDecodesBlockToJSON(t *testing.T) {
+// testChannelID is the channel named by the config block writeConfigBlock
+// builds.
+const testChannelID = "arma"
+
+// TestRunExtractsConfigToJSON asserts `fxadmin decode` extracts the common.Config
+// embedded in a config block and renders it as JSON. the output carries the
+// config's top-level channel_group, and round-trips back
+// into a common.Config via protolator — the shape `compute-update`
+// consumes.
+func TestRunExtractsConfigToJSON(t *testing.T) {
 	t.Parallel()
-
-	const channelID = "arma"
-	block := protoutil.NewBlock(7, []byte("previous-hash"))
-	block.Data.Data = [][]byte{protoutil.MarshalOrPanic(&cb.Envelope{
-		Payload: protoutil.MarshalOrPanic(&cb.Payload{
-			Header: &cb.Header{
-				ChannelHeader: protoutil.MarshalOrPanic(&cb.ChannelHeader{
-					Type:      int32(cb.HeaderType_CONFIG),
-					ChannelId: channelID,
-				}),
-			},
-		}),
-	})}
-
 	dir := t.TempDir()
-	blockPath := filepath.Join(dir, "block.pb")
-	require.NoError(t, os.WriteFile(blockPath, protoutil.MarshalOrPanic(block), 0o600))
-	outputPath := filepath.Join(dir, "block.json")
+
+	blockPath := writeConfigBlock(t, dir, "SHA256")
+	outputPath := filepath.Join(dir, "config.json")
 
 	require.NoError(t, decode.New().Run(blockPath, outputPath))
 
@@ -51,19 +45,46 @@ func TestRunDecodesBlockToJSON(t *testing.T) {
 
 	var decoded map[string]any
 	require.NoError(t, json.Unmarshal(out, &decoded), "output must be valid JSON")
+	require.Contains(t, decoded, "channel_group", "output must be a common.Config, not a block")
+	require.NotContains(t, decoded, "data", "output must not carry the block wrapper")
+	require.NotContains(t, decoded, "header", "output must not carry the block wrapper")
 
-	header, ok := decoded["header"].(map[string]any)
-	require.True(t, ok, "decoded block must have a header object")
-	require.Equal(t, "7", header["number"], "block number must be preserved")
+	// The output must round-trip into a common.Config, proving it is the shape
+	// compute-update's encodeConfig accepts.
+	config := &cb.Config{}
+	require.NoError(t, protolator.DeepUnmarshalJSON(bytes.NewReader(out), config))
+	hashingValue := config.GetChannelGroup().GetValues()["HashingAlgorithm"]
+	require.NotNil(t, hashingValue, "channel_group values must survive the round-trip")
+	hashingAlgorithm := &cb.HashingAlgorithm{}
+	require.NoError(t, proto.Unmarshal(hashingValue.GetValue(), hashingAlgorithm))
+	require.Equal(t, "SHA256", hashingAlgorithm.GetName())
+}
 
-	data := nestedMap(t, decoded, "data")
-	envelopes, ok := data["data"].([]any)
-	require.True(t, ok, "block data must be a list of envelopes")
-	require.Len(t, envelopes, 1)
-	envelope, ok := envelopes[0].(map[string]any)
-	require.True(t, ok, "envelope must be an object")
-	channelHeader := nestedMap(t, envelope, "payload", "header", "channel_header")
-	require.Equal(t, channelID, channelHeader["channel_id"])
+// TestRunRejectsNonConfigBlock asserts a block whose envelope carries no
+// ConfigEnvelope is rejected and leaves no output behind.
+func TestRunRejectsNonConfigBlock(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+
+	// A block whose sole envelope payload has no config data.
+	block := protoutil.NewBlock(1, []byte("previous-hash"))
+	block.Data.Data = [][]byte{protoutil.MarshalOrPanic(&cb.Envelope{
+		Payload: protoutil.MarshalOrPanic(&cb.Payload{
+			Header: &cb.Header{
+				ChannelHeader: protoutil.MarshalOrPanic(&cb.ChannelHeader{
+					Type:      int32(cb.HeaderType_CONFIG),
+					ChannelId: testChannelID,
+				}),
+			},
+		}),
+	})}
+	blockPath := filepath.Join(dir, "block.pb")
+	require.NoError(t, os.WriteFile(blockPath, protoutil.MarshalOrPanic(block), 0o600))
+
+	outputPath := filepath.Join(dir, "config.json")
+	err := decode.New().Run(blockPath, outputPath)
+	require.ErrorContains(t, err, "config envelope has no config")
+	require.NoFileExists(t, outputPath)
 }
 
 // TestRunMissingBlockFile asserts a missing input block is reported and no
@@ -93,7 +114,7 @@ func TestRunMalformedBlock(t *testing.T) {
 	require.NoError(t, os.WriteFile(outputPath, []byte(priorContent), 0o600))
 
 	err := decode.New().Run(blockPath, outputPath)
-	require.ErrorContains(t, err, "failed to unmarshal input")
+	require.ErrorContains(t, err, "failed to unmarshal block input")
 
 	preserved, err := os.ReadFile(outputPath)
 	require.NoError(t, err)
@@ -106,30 +127,49 @@ func TestRunMalformedBlock(t *testing.T) {
 func TestRunRejectsSameBlockAndOutput(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	blockPath := filepath.Join(dir, "block.pb")
-	require.NoError(t, os.WriteFile(blockPath, protoutil.MarshalOrPanic(protoutil.NewBlock(1, nil)), 0o600))
+	blockPath := writeConfigBlock(t, dir, "SHA256")
+	source, err := os.ReadFile(blockPath)
+	require.NoError(t, err)
 
 	// A distinct path string that resolves to the same file.
-	otuputPath := filepath.Join(dir, ".", "block.pb")
-	err := decode.New().Run(blockPath, otuputPath)
+	outputPath := filepath.Join(dir, ".", filepath.Base(blockPath))
+	err = decode.New().Run(blockPath, outputPath)
 	require.ErrorContains(t, err, "must be a different file from input")
 
 	// The source block must be left byte-for-byte intact.
 	preserved, err := os.ReadFile(blockPath)
 	require.NoError(t, err)
-	require.Equal(t, protoutil.MarshalOrPanic(protoutil.NewBlock(1, nil)), preserved)
+	require.Equal(t, source, preserved)
 }
 
-// nestedMap walks a chain of object keys through a decoded JSON map, failing
-// the test if any key is missing or not an object.
-func nestedMap(t *testing.T, data map[string]any, path ...string) map[string]any {
+// writeConfigBlock writes a marshaled common.Block whose sole envelope carries a
+// ConfigEnvelope wrapping a common.Config: a channel header naming testChannelID
+// and a single HashingAlgorithm value carrying algo. It returns the block path.
+func writeConfigBlock(t *testing.T, dir, algo string) string {
 	t.Helper()
-	curr := data
-	for i, key := range path {
-		v, ok := curr[key]
-		require.Truef(t, ok, "key %q not found at path %v", key, path[:i])
-		curr, ok = v.(map[string]any)
-		require.Truef(t, ok, "value at %q is not an object at path %v", key, path[:i+1])
-	}
-	return curr
+	config := &cb.Config{ChannelGroup: &cb.ConfigGroup{
+		Values: map[string]*cb.ConfigValue{
+			"HashingAlgorithm": {
+				ModPolicy: "Admins",
+				Value:     protoutil.MarshalOrPanic(&cb.HashingAlgorithm{Name: algo}),
+			},
+		},
+		ModPolicy: "Admins",
+	}}
+	block := protoutil.NewBlock(0, []byte("previous-hash"))
+	block.Data.Data = [][]byte{protoutil.MarshalOrPanic(&cb.Envelope{
+		Payload: protoutil.MarshalOrPanic(&cb.Payload{
+			Header: &cb.Header{
+				ChannelHeader: protoutil.MarshalOrPanic(&cb.ChannelHeader{
+					Type:      int32(cb.HeaderType_CONFIG),
+					ChannelId: testChannelID,
+				}),
+			},
+			Data: protoutil.MarshalOrPanic(&cb.ConfigEnvelope{Config: config}),
+		}),
+	})}
+
+	path := filepath.Join(dir, "config_block.pb")
+	require.NoError(t, os.WriteFile(path, protoutil.MarshalOrPanic(block), 0o600))
+	return path
 }
