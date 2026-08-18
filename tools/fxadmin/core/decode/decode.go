@@ -24,7 +24,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/protoutil"
-	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/utils"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.decode")
@@ -44,7 +44,7 @@ func New() *Handler {
 func (*Handler) Run(blockPath, outputPath string) error {
 	logger.Debugf("decode: block=%s output=%s", blockPath, outputPath)
 
-	if err := utils.RequireDistinctOutput(outputPath, blockPath); err != nil {
+	if err := helpers.RequireDistinctOutput(outputPath, blockPath); err != nil {
 		return err
 	}
 

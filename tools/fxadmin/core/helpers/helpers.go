@@ -4,8 +4,8 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-// Package utils holds small helpers shared across the fxadmin commands.
-package utils //nolint:revive
+// Package helpers holds small helpers shared across the fxadmin commands.
+package helpers
 
 import (
 	"path/filepath"

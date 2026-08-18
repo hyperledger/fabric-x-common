@@ -25,7 +25,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/protolator"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/configtxlator/update"
-	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/utils"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.compute-update")
@@ -55,7 +55,7 @@ func (*Handler) Run(currentPath, modifiedPath, currentBlockPath, outputPath stri
 	logger.Debugf("compute-update: current=%s modified=%s current-block=%s output=%s",
 		currentPath, modifiedPath, currentBlockPath, outputPath)
 
-	if err := utils.RequireDistinctOutput(outputPath, currentPath, modifiedPath, currentBlockPath); err != nil {
+	if err := helpers.RequireDistinctOutput(outputPath, currentPath, modifiedPath, currentBlockPath); err != nil {
 		return err
 	}
 

@@ -4,7 +4,7 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package utils_test
+package helpers_test
 
 import (
 	"path/filepath"
@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/utils"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 )
 
 // TestRequireDistinctOutput covers the output-collision guard: distinct inputs
@@ -53,7 +53,7 @@ func TestRequireDistinctOutput(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			err := utils.RequireDistinctOutput(tc.output, tc.inputs...)
+			err := helpers.RequireDistinctOutput(tc.output, tc.inputs...)
 			if tc.wantErr == "" {
 				require.NoError(t, err)
 				return
