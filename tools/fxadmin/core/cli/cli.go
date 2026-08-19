@@ -119,26 +119,37 @@ func (c *CLI) addLedgerCommands() {
 	})
 }
 
-// addDecodeCommand wires `fxadmin decode`, which converts a binary config
-// block into human-readable JSON.
+// addDecodeCommand wires `fxadmin decode`, which extracts the common.Config
+// embedded in a binary config block and writes it as JSON for editing.
 func (c *CLI) addDecodeCommand() {
-	decode := c.app.Command("decode", "Decode a binary config block into JSON.")
-	block := decode.Flag(flagBlock, "Path to the protobuf block file to decode.").Required().ExistingFile()
-	output := decode.Flag(flagOutput, "Path to the output JSON file.").Required().String()
+	decode := c.app.Command("decode", "Extract the common.Config from a config block into editable JSON.")
+	block := decode.Flag(flagBlock, "Path to the protobuf config block file to decode.").Required().ExistingFile()
+	output := decode.Flag(flagOutput, "Path to the output common.Config JSON file.").Required().String()
 	c.register(decode, func() error {
 		return c.handlers.Decode.Run(*block, *output)
 	})
 }
 
 // addComputeUpdateCommand wires `fxadmin compute-update`, which computes the
-// ConfigUpdate delta between the original and modified configuration JSON.
+// ConfigUpdate delta between the original and modified configuration JSON. The
+// channel ID the update targets is read from the current config block supplied with --current-block.
 func (c *CLI) addComputeUpdateCommand() {
 	cmd := c.app.Command("compute-update", "Compute the ConfigUpdate delta between two config JSON files.")
-	current := cmd.Arg("current.json", "Original configuration JSON.").Required().ExistingFile()
-	modified := cmd.Arg("modified.json", "Modified configuration JSON.").Required().ExistingFile()
+	current := cmd.Arg("current.json", "Original configuration JSON, as decoded from --current-block.").
+		Required().ExistingFile()
+	modified := cmd.Arg("modified.json", "Modified configuration JSON (edited copy of current.json).").
+		Required().ExistingFile()
+	currentBlock := cmd.
+		Flag(
+			flagCurrentBlock,
+			"Path to the current config block whose channel ID the update targets; "+
+				"must be the same channel as current.json and modified.json.",
+		).
+		Required().
+		ExistingFile()
 	output := cmd.Flag(flagOutput, "Path to the output ConfigUpdate protobuf file.").Required().String()
 	c.register(cmd, func() error {
-		return c.handlers.Update.Run(*current, *modified, *output)
+		return c.handlers.Update.Run(*current, *modified, *currentBlock, *output)
 	})
 }
 

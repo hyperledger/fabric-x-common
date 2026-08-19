@@ -83,8 +83,11 @@ func (f fakeDecode) Run(blockPath, outputPath string) error {
 
 type fakeUpdate struct{ invoked *call }
 
-func (f fakeUpdate) Run(currentPath, modifiedPath, outputPath string) error {
-	*f.invoked = call{handler: "ComputeUpdate", args: []string{currentPath, modifiedPath, outputPath}}
+func (f fakeUpdate) Run(currentPath, modifiedPath, currentBlockPath, outputPath string) error {
+	*f.invoked = call{
+		handler: "ComputeUpdate",
+		args:    []string{currentPath, modifiedPath, currentBlockPath, outputPath},
+	}
 	return nil
 }
 
@@ -190,10 +193,18 @@ func TestRunRoutesToHandler(t *testing.T) {
 			wantArgs:    []string{currBlock, "current_config.json"},
 		},
 		{
-			name:        "compute-update",
-			args:        []string{"compute-update", currentJSON, modifiedJSON, flagOutput, fileConfigUpdate},
+			name: "compute-update",
+			args: []string{
+				"compute-update",
+				currentJSON,
+				modifiedJSON,
+				flagCurrentBlock,
+				currBlock,
+				flagOutput,
+				fileConfigUpdate,
+			},
 			wantHandler: "ComputeUpdate",
-			wantArgs:    []string{currentJSON, modifiedJSON, fileConfigUpdate},
+			wantArgs:    []string{currentJSON, modifiedJSON, currBlock, fileConfigUpdate},
 		},
 		{
 			name:        "tx endorse",

@@ -33,7 +33,7 @@ type DecodeHandler interface {
 
 // UpdateHandler executes `fxadmin compute-update`.
 type UpdateHandler interface {
-	Run(currentPath, modifiedPath, outputPath string) error
+	Run(currentPath, modifiedPath, currentBlockPath, outputPath string) error
 }
 
 // TxHandler executes the `fxadmin tx` subcommands.
