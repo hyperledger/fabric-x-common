@@ -87,6 +87,36 @@ func TestRunRejectsNonConfigBlock(t *testing.T) {
 	require.NoFileExists(t, outputPath)
 }
 
+// TestRunRejectsWrongHeaderType asserts a block whose channel header type is not
+// HeaderType_CONFIG is rejected up front, even when its payload data decodes into
+// a ConfigEnvelope carrying a non-nil Config.
+func TestRunRejectsWrongHeaderType(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+
+	// A config-shaped payload, but stamped with a non-CONFIG header type.
+	config := &cb.Config{ChannelGroup: &cb.ConfigGroup{}}
+	block := protoutil.NewBlock(1, []byte("previous-hash"))
+	block.Data.Data = [][]byte{protoutil.MarshalOrPanic(&cb.Envelope{
+		Payload: protoutil.MarshalOrPanic(&cb.Payload{
+			Header: &cb.Header{
+				ChannelHeader: protoutil.MarshalOrPanic(&cb.ChannelHeader{
+					Type:      int32(cb.HeaderType_ENDORSER_TRANSACTION),
+					ChannelId: testChannelID,
+				}),
+			},
+			Data: protoutil.MarshalOrPanic(&cb.ConfigEnvelope{Config: config}),
+		}),
+	})}
+	blockPath := filepath.Join(dir, "block.pb")
+	require.NoError(t, os.WriteFile(blockPath, protoutil.MarshalOrPanic(block), 0o600))
+
+	outputPath := filepath.Join(dir, "config.json")
+	err := decode.New().Run(blockPath, outputPath)
+	require.ErrorContains(t, err, "block is not a config block")
+	require.NoFileExists(t, outputPath)
+}
+
 // TestRunMissingBlockFile asserts a missing input block is reported and no
 // output file is created.
 func TestRunMissingBlockFile(t *testing.T) {

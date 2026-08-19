@@ -106,6 +106,18 @@ func configFromBlock(marshaledBlock []byte) (*cb.Config, error) {
 		return nil, errors.Wrap(err, "failed to unmarshal config payload")
 	}
 
+	if payload.GetHeader() == nil {
+		return nil, errors.New("block is not a config block: payload has no header")
+	}
+	channelHeader, err := protoutil.UnmarshalChannelHeader(payload.GetHeader().GetChannelHeader())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal channel header")
+	}
+	if channelHeader.GetType() != int32(cb.HeaderType_CONFIG) {
+		return nil, errors.Newf("block is not a config block: channel header type is %s, want %s",
+			cb.HeaderType(channelHeader.GetType()), cb.HeaderType_CONFIG)
+	}
+
 	configEnvelope, err := protoutil.UnmarshalConfigEnvelope(payload.Data)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal config envelope")
