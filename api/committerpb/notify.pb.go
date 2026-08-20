@@ -294,7 +294,11 @@ type TxEventBatch struct {
 	// The block number from which these transactions originated.
 	BlockNumber uint64 `protobuf:"varint,1,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
 	// List of transaction events (may be filtered based on request).
-	Events        []*TxEvent `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	Events []*TxEvent `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	// The hash of the block from which these transactions originated.
+	BlockHash []byte `protobuf:"bytes,3,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty"`
+	// The hash of the previous block.
+	PrevBlockHash []byte `protobuf:"bytes,4,opt,name=prev_block_hash,json=prevBlockHash,proto3" json:"prev_block_hash,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -339,6 +343,20 @@ func (x *TxEventBatch) GetBlockNumber() uint64 {
 func (x *TxEventBatch) GetEvents() []*TxEvent {
 	if x != nil {
 		return x.Events
+	}
+	return nil
+}
+
+func (x *TxEventBatch) GetBlockHash() []byte {
+	if x != nil {
+		return x.BlockHash
+	}
+	return nil
+}
+
+func (x *TxEventBatch) GetPrevBlockHash() []byte {
+	if x != nil {
+		return x.PrevBlockHash
 	}
 	return nil
 }
@@ -450,10 +468,13 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\rfilter_status\x18\x02 \x03(\x0e2\x13.committerpb.StatusR\ffilterStatus\x125\n" +
 	"\x17include_read_write_sets\x18\x03 \x01(\bR\x14includeReadWriteSets\x121\n" +
 	"\x14include_endorsements\x18\x04 \x01(\bR\x13includeEndorsements\x12)\n" +
-	"\x10include_metadata\x18\x05 \x01(\bR\x0fincludeMetadata\"_\n" +
+	"\x10include_metadata\x18\x05 \x01(\bR\x0fincludeMetadata\"\xa6\x01\n" +
 	"\fTxEventBatch\x12!\n" +
 	"\fblock_number\x18\x01 \x01(\x04R\vblockNumber\x12,\n" +
-	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\"\xf5\x01\n" +
+	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\x12\x1d\n" +
+	"\n" +
+	"block_hash\x18\x03 \x01(\fR\tblockHash\x12&\n" +
+	"\x0fprev_block_hash\x18\x04 \x01(\fR\rprevBlockHash\"\xf5\x01\n" +
 	"\aTxEvent\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status\x12:\n" +

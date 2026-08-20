@@ -81,6 +81,12 @@ message TxEventBatch {
 
     // List of transaction events (may be filtered based on request).
     repeated TxEvent events = 2;
+
+    // The hash of the block from which these transactions originated.
+    bytes block_hash = 3;
+
+    // The hash of the previous block.
+    bytes prev_block_hash = 4;
 }
 
 // TxEvent represents a single transaction event.
