@@ -28,8 +28,9 @@ import (
 )
 
 const (
-	notImplemented = "not implemented"
-	adminYAML      = "admin.yaml"
+	notImplemented   = "not implemented"
+	adminYAML        = "admin.yaml"
+	missingInputCase = "missing input file"
 )
 
 // TestHandlerNotImplemented asserts every not-yet-implemented tx subcommand is
@@ -39,10 +40,6 @@ func TestHandlerNotImplemented(t *testing.T) {
 	t.Parallel()
 	h := tx.New()
 
-	t.Run("prepare", func(t *testing.T) {
-		t.Parallel()
-		require.ErrorContains(t, h.Prepare("endorsed.pb", adminYAML, "tx.pb"), notImplemented)
-	})
 	t.Run("submit", func(t *testing.T) {
 		t.Parallel()
 		require.ErrorContains(t, h.Submit("tx.pb", adminYAML, "current.pb"), notImplemented)
@@ -109,7 +106,7 @@ func TestEndorseErrors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "missing input file",
+			name:    missingInputCase,
 			input:   filepath.Join(t.TempDir(), "absent.pb"),
 			config:  adminConfigPath,
 			wantErr: "failed to read config update",
@@ -198,7 +195,7 @@ func TestMergeErrors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "missing input file",
+			name:    missingInputCase,
 			inputs:  []string{validEndorsement, filepath.Join(t.TempDir(), "absent.pb")},
 			wantErr: "failed to read endorsement",
 		},
@@ -222,6 +219,134 @@ func TestMergeErrors(t *testing.T) {
 			t.Parallel()
 			outputPath := filepath.Join(t.TempDir(), "merged.pb")
 			require.ErrorContains(t, tx.New().Merge(tc.inputs, outputPath), tc.wantErr)
+		})
+	}
+}
+
+// TestPrepare asserts that `tx prepare` wraps an endorsed ConfigUpdateEnvelope
+// in a common.Envelope whose channel header is of type CONFIG_UPDATE and whose
+// channel ID matches the one in the endorsed update, that the wrapped envelope
+// wraps the original endorsed update (endorsement signatures
+// preserved), and that the payload is signed by the submitting client identity.
+func TestPrepare(t *testing.T) {
+	t.Parallel()
+
+	client := newAdminConfigs(t, 1)[0]
+	rawConfigUpdate := marshalConfigUpdate(t, "test-channel")
+	endorsedPath := endorse(t, client, rawConfigUpdate)
+	endorsed := readConfigUpdateEnvelope(t, endorsedPath)
+	outputPath := filepath.Join(t.TempDir(), "config_tx.pb")
+
+	require.NoError(t, tx.New().Prepare(endorsedPath, client.configPath, outputPath))
+
+	out, err := os.ReadFile(outputPath)
+	require.NoError(t, err)
+	env := &cb.Envelope{}
+	require.NoError(t, proto.Unmarshal(out, env))
+
+	payload := &cb.Payload{}
+	require.NoError(t, proto.Unmarshal(env.GetPayload(), payload))
+
+	channelHeader := &cb.ChannelHeader{}
+	require.NoError(t, proto.Unmarshal(payload.GetHeader().GetChannelHeader(), channelHeader))
+	require.Equal(t, int32(cb.HeaderType_CONFIG_UPDATE), channelHeader.GetType())
+	require.Equal(t, "test-channel", channelHeader.GetChannelId())
+
+	wrapped := &cb.ConfigUpdateEnvelope{}
+	require.NoError(t, proto.Unmarshal(payload.GetData(), wrapped))
+	require.Equal(t, rawConfigUpdate, wrapped.GetConfigUpdate())
+	require.Len(t, wrapped.GetSignatures(), 1)
+	requireSignatureFrom(t, wrapped, client)
+
+	identity, err := signer.New(client.mspID, client.mspDir)
+	require.NoError(t, err)
+	require.NoError(t, identity.Verify(env.GetPayload(), env.GetSignature()))
+
+	signatureHeader := &cb.SignatureHeader{}
+	require.NoError(t, proto.Unmarshal(payload.GetHeader().GetSignatureHeader(), signatureHeader))
+	creator, err := identity.Serialize()
+	require.NoError(t, err)
+	require.Equal(t, creator, signatureHeader.GetCreator())
+
+	require.Equal(t, endorsed.GetConfigUpdate(), wrapped.GetConfigUpdate())
+}
+
+// TestPrepareMergedEndorsement asserts that `tx prepare` preserves every
+// signature of a multi-org merged endorsement while wrapping it, and that the
+// outer envelope is signed by the single submitting client (one of the admins).
+func TestPrepareMergedEndorsement(t *testing.T) {
+	t.Parallel()
+
+	admins := newAdminConfigs(t, 2)
+	rawConfigUpdate := marshalConfigUpdate(t, "test-channel")
+	mergedPath := filepath.Join(t.TempDir(), "merged.pb")
+	require.NoError(t, tx.New().Merge(
+		[]string{endorse(t, admins[0], rawConfigUpdate), endorse(t, admins[1], rawConfigUpdate)},
+		mergedPath,
+	))
+
+	client := admins[0] // the submitting client is one of the endorsing admins.
+	outputPath := filepath.Join(t.TempDir(), "config_tx.pb")
+	require.NoError(t, tx.New().Prepare(mergedPath, client.configPath, outputPath))
+
+	out, err := os.ReadFile(outputPath)
+	require.NoError(t, err)
+	env := &cb.Envelope{}
+	require.NoError(t, proto.Unmarshal(out, env))
+	payload := &cb.Payload{}
+	require.NoError(t, proto.Unmarshal(env.GetPayload(), payload))
+
+	wrapped := &cb.ConfigUpdateEnvelope{}
+	require.NoError(t, proto.Unmarshal(payload.GetData(), wrapped))
+	require.Equal(t, rawConfigUpdate, wrapped.GetConfigUpdate())
+	require.Len(t, wrapped.GetSignatures(), 2)
+	requireSignatureFrom(t, wrapped, admins[0])
+	requireSignatureFrom(t, wrapped, admins[1])
+
+	identity, err := signer.New(client.mspID, client.mspDir)
+	require.NoError(t, err)
+	require.NoError(t, identity.Verify(env.GetPayload(), env.GetSignature()))
+}
+
+// TestPrepareErrors asserts that `tx prepare` reports readable errors for a
+// missing input file, a missing client configuration, and an input that is not
+// a ConfigUpdateEnvelope.
+func TestPrepareErrors(t *testing.T) {
+	t.Parallel()
+
+	client := newAdminConfigs(t, 1)[0]
+	validEndorsement := endorse(t, client, marshalConfigUpdate(t, "test-channel"))
+	notConfigUpdateEnvelope := writeFile(t, []byte("not a config update envelope"))
+
+	for _, tc := range []struct {
+		name    string
+		input   string
+		config  string
+		wantErr string
+	}{
+		{
+			name:    missingInputCase,
+			input:   filepath.Join(t.TempDir(), "absent.pb"),
+			config:  client.configPath,
+			wantErr: "failed to read endorsement",
+		},
+		{
+			name:    "missing config file",
+			input:   validEndorsement,
+			config:  filepath.Join(t.TempDir(), "absent.yaml"),
+			wantErr: "failed to read user configuration",
+		},
+		{
+			name:    "input is not an envelope",
+			input:   notConfigUpdateEnvelope,
+			config:  client.configPath,
+			wantErr: "failed to unmarshal endorsement",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			outputPath := filepath.Join(t.TempDir(), "config_tx.pb")
+			require.ErrorContains(t, tx.New().Prepare(tc.input, tc.config, outputPath), tc.wantErr)
 		})
 	}
 }
