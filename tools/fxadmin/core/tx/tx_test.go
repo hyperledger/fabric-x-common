@@ -31,6 +31,10 @@ const (
 	notImplemented   = "not implemented"
 	adminYAML        = "admin.yaml"
 	missingInputCase = "missing input file"
+
+	missingConfigCase   = "missing config file"
+	notEnvelopeCase     = "input is not an envelope"
+	readUserConfigError = "failed to read user configuration"
 )
 
 // TestHandlerNotImplemented asserts every not-yet-implemented tx subcommand is
@@ -40,14 +44,65 @@ func TestHandlerNotImplemented(t *testing.T) {
 	t.Parallel()
 	h := tx.New()
 
-	t.Run("submit", func(t *testing.T) {
-		t.Parallel()
-		require.ErrorContains(t, h.Submit("tx.pb", adminYAML, "current.pb"), notImplemented)
-	})
 	t.Run("send", func(t *testing.T) {
 		t.Parallel()
 		require.ErrorContains(t, h.Send("endorsed.pb", adminYAML, "current.pb"), notImplemented)
 	})
+}
+
+// TestSubmitErrors asserts that `tx submit` reports readable errors, before any
+// network access, for a missing transaction file, a transaction that is not a
+// well-formed envelope, a missing configuration file, and an unreadable config
+// block.
+func TestSubmitErrors(t *testing.T) {
+	t.Parallel()
+
+	configPath, _, _ := newAdminConfig(t)
+	validTx := writeFile(t, marshalConfigTx(t, "test-channel"))
+	invalidEnvelope := writeFile(t, []byte("not an envelope"))
+	invalidBlock := writeFile(t, []byte("not a block"))
+
+	for _, tc := range []struct {
+		name    string
+		input   string
+		config  string
+		block   string
+		wantErr string
+	}{
+		{
+			name:    missingInputCase,
+			input:   filepath.Join(t.TempDir(), "absent.pb"),
+			config:  configPath,
+			block:   invalidBlock,
+			wantErr: "failed to read configuration transaction",
+		},
+		{
+			name:    notEnvelopeCase,
+			input:   invalidEnvelope,
+			config:  configPath,
+			block:   invalidBlock,
+			wantErr: "failed to unmarshal configuration transaction",
+		},
+		{
+			name:    missingConfigCase,
+			input:   validTx,
+			config:  filepath.Join(t.TempDir(), "absent.yaml"),
+			block:   invalidBlock,
+			wantErr: readUserConfigError,
+		},
+		{
+			name:    "unreadable config block",
+			input:   validTx,
+			config:  configPath,
+			block:   filepath.Join(t.TempDir(), "absent.pb"),
+			wantErr: "failed to read config block",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			require.ErrorContains(t, tx.New().Submit(tc.input, tc.config, tc.block), tc.wantErr)
+		})
+	}
 }
 
 // TestEndorse asserts that `tx endorse` wraps the input ConfigUpdate in a
@@ -112,10 +167,10 @@ func TestEndorseErrors(t *testing.T) {
 			wantErr: "failed to read config update",
 		},
 		{
-			name:    "missing config file",
+			name:    missingConfigCase,
 			input:   validConfigUpdate,
 			config:  filepath.Join(t.TempDir(), "absent.yaml"),
-			wantErr: "failed to read user configuration",
+			wantErr: readUserConfigError,
 		},
 		{
 			name:    "input is not a config update",
@@ -200,7 +255,7 @@ func TestMergeErrors(t *testing.T) {
 			wantErr: "failed to read endorsement",
 		},
 		{
-			name:    "input is not an envelope",
+			name:    notEnvelopeCase,
 			inputs:  []string{validEndorsement, notConfigUpdateEnvelope},
 			wantErr: "failed to unmarshal endorsement",
 		},
@@ -331,13 +386,13 @@ func TestPrepareErrors(t *testing.T) {
 			wantErr: "failed to read endorsement",
 		},
 		{
-			name:    "missing config file",
+			name:    missingConfigCase,
 			input:   validEndorsement,
 			config:  filepath.Join(t.TempDir(), "absent.yaml"),
-			wantErr: "failed to read user configuration",
+			wantErr: readUserConfigError,
 		},
 		{
-			name:    "input is not an envelope",
+			name:    notEnvelopeCase,
 			input:   notConfigUpdateEnvelope,
 			config:  client.configPath,
 			wantErr: "failed to unmarshal endorsement",
@@ -455,6 +510,26 @@ func requireSignatureFrom(t *testing.T, env *cb.ConfigUpdateEnvelope, admin admi
 func marshalConfigUpdate(t *testing.T, channelID string) []byte {
 	t.Helper()
 	raw, err := proto.Marshal(&cb.ConfigUpdate{ChannelId: channelID})
+	require.NoError(t, err)
+	return raw
+}
+
+// marshalConfigTx returns the marshaled bytes of a minimal, well-formed
+// common.Envelope standing in for a prepared configuration transaction. Its
+// contents are not validated by `tx submit`, which only unmarshals the envelope
+// before broadcasting it.
+func marshalConfigTx(t *testing.T, channelID string) []byte {
+	t.Helper()
+	channelHeader, err := proto.Marshal(&cb.ChannelHeader{
+		Type:      int32(cb.HeaderType_CONFIG_UPDATE),
+		ChannelId: channelID,
+	})
+	require.NoError(t, err)
+	payload, err := proto.Marshal(&cb.Payload{
+		Header: &cb.Header{ChannelHeader: channelHeader},
+	})
+	require.NoError(t, err)
+	raw, err := proto.Marshal(&cb.Envelope{Payload: payload})
 	require.NoError(t, err)
 	return raw
 }

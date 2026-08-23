@@ -14,6 +14,8 @@ import (
 	"os"
 
 	"github.com/cockroachdb/errors"
+	"github.com/hyperledger/fabric-lib-go/bccsp"
+	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
@@ -21,6 +23,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/signer"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
 )
@@ -29,14 +32,15 @@ var logger = flogging.MustGetLogger("fxadmin.tx")
 
 var errNotImplemented = errors.New("not implemented")
 
-// Handler executes the tx subcommands. Its dependencies (the signer, the
-// router Broadcast client) will be added as constructor arguments and struct
-// fields when the commands are implemented.
-type Handler struct{}
+// Handler executes the tx subcommands. It carries the BCCSP used to build the
+// channel config bundle when reading router endpoints from the config block.
+type Handler struct {
+	csp bccsp.BCCSP
+}
 
 // New returns a tx command handler.
 func New() *Handler {
-	return &Handler{}
+	return &Handler{csp: factory.GetDefault()}
 }
 
 // Endorse implements `fxadmin tx endorse`. It reads the marshaled
@@ -223,10 +227,69 @@ func (*Handler) Prepare(inputPath, configPath, outputPath string) error {
 	return nil
 }
 
-// Submit implements `fxadmin tx submit`.
-func (*Handler) Submit(inputPath, configPath, currentBlockPath string) error {
+// Submit implements `fxadmin tx submit`. It reads the prepared configuration
+// transaction (a common.Envelope) at inputPath and broadcasts it to every
+// router of the network described by the config block at currentBlockPath,
+// using the client identity in the configuration YAML at configPath to sign the
+// connection. It collects the routers' acknowledgements and logs how many
+// routers acknowledged the transaction.
+func (h *Handler) Submit(inputPath, configPath, currentBlockPath string) error {
 	logger.Debugf("tx submit: input=%s config=%s current-block=%s", inputPath, configPath, currentBlockPath)
-	return fmt.Errorf("tx submit: %w", errNotImplemented)
+
+	envelope, err := readEnvelope(inputPath)
+	if err != nil {
+		return err
+	}
+
+	cl, err := client.LoadFromFiles(configPath, currentBlockPath, h.csp)
+	if err != nil {
+		return err
+	}
+
+	statuses, err := cl.BroadcastToAllRouters(envelope)
+	if err != nil {
+		return errors.Wrap(err, "failed to broadcast configuration transaction")
+	}
+	reportBroadcast(statuses)
+	return nil
+}
+
+// readEnvelope reads and unmarshals a prepared configuration transaction
+// (common.Envelope) from path.
+func readEnvelope(path string) (*cb.Envelope, error) {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read configuration transaction %q", path)
+	}
+	envelope, err := protoutil.UnmarshalEnvelope(content)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal configuration transaction %q", path)
+	}
+	return envelope, nil
+}
+
+// countAcks returns the number of routers that acknowledged the transaction,
+// those whose status carries no error.
+func countAcks(statuses []client.RouterStatus) int {
+	acked := 0
+	for _, status := range statuses {
+		if status.Err == nil {
+			acked++
+		}
+	}
+	return acked
+}
+
+// reportBroadcast logs how many routers acknowledged the transaction, listing
+// first the routers that rejected it or were unreachable.
+func reportBroadcast(statuses []client.RouterStatus) {
+	for _, status := range statuses {
+		if status.Err != nil {
+			logger.Warnf("router %s failed to acknowledge: %v", status.Endpoint, status.Err)
+		}
+	}
+	logger.Infof("configuration transaction acknowledged by %d of %d routers",
+		countAcks(statuses), len(statuses))
 }
 
 // Send implements `fxadmin tx send`.
