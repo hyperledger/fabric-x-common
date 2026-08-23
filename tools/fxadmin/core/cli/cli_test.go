@@ -113,8 +113,8 @@ func (f fakeTx) Submit(inputPath, configPath, currentBlockPath string) error {
 	return nil
 }
 
-func (f fakeTx) Send(inputPath, configPath, currentBlockPath string) error {
-	*f.invoked = call{handler: "TxSend", args: []string{inputPath, configPath, currentBlockPath}}
+func (f fakeTx) Send(inputPath, configPath, currentBlockPath, outputPath string) error {
+	*f.invoked = call{handler: "TxSend", args: []string{inputPath, configPath, currentBlockPath, outputPath}}
 	return nil
 }
 
@@ -231,10 +231,12 @@ func TestRunRoutesToHandler(t *testing.T) {
 			wantArgs:    []string{configTx, admin, currBlock},
 		},
 		{
-			name:        "tx send",
-			args:        []string{"tx", "send", endorsed, flagConfig, admin, flagCurrentBlock, currBlock},
+			name: "tx send",
+			args: []string{
+				"tx", "send", endorsed, flagConfig, admin, flagCurrentBlock, currBlock, flagOutput, fileConfigTx,
+			},
 			wantHandler: "TxSend",
-			wantArgs:    []string{endorsed, admin, currBlock},
+			wantArgs:    []string{endorsed, admin, currBlock, fileConfigTx},
 		},
 		{
 			name:        "follow",

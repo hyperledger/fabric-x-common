@@ -223,8 +223,12 @@ func (c *CLI) addTxSendCommand(tx *kingpin.CmdClause) {
 	config := send.Flag(flagConfig, "Path to the admin configuration YAML file.").Required().ExistingFile()
 	currentBlock := send.Flag(flagCurrentBlock, "Path to the current config block containing the router endpoints.").
 		Required().ExistingFile()
+	output := send.
+		Flag(flagOutput, "Path to write the prepared configuration transaction to, for record keeping.").
+		Required().
+		String()
 	c.register(send, func() error {
-		return c.handlers.Tx.Send(*input, *config, *currentBlock)
+		return c.handlers.Tx.Send(*input, *config, *currentBlock, *output)
 	})
 }
 

@@ -10,7 +10,6 @@ package tx
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 
 	"github.com/cockroachdb/errors"
@@ -29,8 +28,6 @@ import (
 )
 
 var logger = flogging.MustGetLogger("fxadmin.tx")
-
-var errNotImplemented = errors.New("not implemented")
 
 // Handler executes the tx subcommands. It carries the BCCSP used to build the
 // channel config bundle when reading router endpoints from the config block.
@@ -297,8 +294,20 @@ func countAcks(statuses []client.RouterStatus) int {
 	return acked
 }
 
-// Send implements `fxadmin tx send`.
-func (*Handler) Send(inputPath, configPath, currentBlockPath string) error {
-	logger.Debugf("tx send: input=%s config=%s current-block=%s", inputPath, configPath, currentBlockPath)
-	return fmt.Errorf("tx send: %w", errNotImplemented)
+// Send implements `fxadmin tx send`, equivalent to `tx prepare` followed by
+// `tx submit` in one step: it prepares the configuration transaction from the
+// endorsed common.ConfigUpdateEnvelope at inputPath, writing it to outputPath,
+// then submits that transaction to the routers of the network described by the
+// config block at currentBlockPath, using the client identity in the
+// configuration YAML at configPath for both steps.
+// The transaction is written by Prepare before Submit broadcasts it, so the
+// record is kept even if the broadcast fails.
+func (h *Handler) Send(inputPath, configPath, currentBlockPath, outputPath string) error {
+	logger.Debugf("tx send: input=%s config=%s current-block=%s output=%s",
+		inputPath, configPath, currentBlockPath, outputPath)
+
+	if err := h.Prepare(inputPath, configPath, outputPath); err != nil {
+		return err
+	}
+	return h.Submit(outputPath, configPath, currentBlockPath)
 }
