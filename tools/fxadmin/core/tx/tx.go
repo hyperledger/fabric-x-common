@@ -268,18 +268,6 @@ func readEnvelope(path string) (*cb.Envelope, error) {
 	return envelope, nil
 }
 
-// countAcks returns the number of routers that acknowledged the transaction,
-// those whose status carries no error.
-func countAcks(statuses []client.RouterStatus) int {
-	acked := 0
-	for _, status := range statuses {
-		if status.Err == nil {
-			acked++
-		}
-	}
-	return acked
-}
-
 // reportBroadcast logs how many routers acknowledged the transaction, listing
 // first the routers that rejected it or were unreachable.
 func reportBroadcast(statuses []client.RouterStatus) {
@@ -290,6 +278,18 @@ func reportBroadcast(statuses []client.RouterStatus) {
 	}
 	logger.Infof("configuration transaction acknowledged by %d of %d routers",
 		countAcks(statuses), len(statuses))
+}
+
+// countAcks returns the number of routers that acknowledged the transaction,
+// those whose status carries no error.
+func countAcks(statuses []client.RouterStatus) int {
+	acked := 0
+	for _, status := range statuses {
+		if status.Err == nil {
+			acked++
+		}
+	}
+	return acked
 }
 
 // Send implements `fxadmin tx send`.

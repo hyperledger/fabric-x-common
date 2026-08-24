@@ -77,11 +77,11 @@ func load(config *user.Config, block *cb.Block, csp bccsp.BCCSP) (*Client, error
 func LoadFromFiles(configPath, blockPath string, csp bccsp.BCCSP) (*Client, error) {
 	config, err := user.LoadConfig(configPath)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to load user configuration %q", configPath)
 	}
 	block, err := readBlock(blockPath)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to load config block %q", blockPath)
 	}
 	return load(config, block, csp)
 }
