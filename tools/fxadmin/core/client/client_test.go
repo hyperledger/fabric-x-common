@@ -7,9 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package client
 
 import (
-	"errors"
-	"io"
-	"net"
 	"os"
 	"path/filepath"
 	"testing"
@@ -20,7 +17,6 @@ import (
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/stretchr/testify/require"
 	"go.yaml.in/yaml/v3"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
@@ -28,6 +24,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 	"github.com/hyperledger/fabric-x-common/tools/cryptogen"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client/test"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/ordererconn"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
 	"github.com/hyperledger/fabric-x-common/tools/pkg/comm"
@@ -164,9 +161,9 @@ func TestBroadcastToAllRoutersNoRouterEndpoints(t *testing.T) {
 func TestBroadcastToAllRoutersCollectsStatuses(t *testing.T) {
 	t.Parallel()
 
-	acking := startBroadcastServer(t, cb.Status_SUCCESS)
-	rejecting := startBroadcastServer(t, cb.Status_BAD_REQUEST)
-	unreachable := freeAddress(t)
+	acking := test.StartBroadcastServer(t, cb.Status_SUCCESS)
+	rejecting := test.StartBroadcastServer(t, cb.Status_BAD_REQUEST)
+	unreachable := test.FreeAddress(t)
 
 	c := &Client{
 		ordererConnInfo: &ordererconn.Info{
@@ -329,46 +326,6 @@ func newConfigBlockWithMSP(t *testing.T, channelID string, shared *ordererpb.Sha
 	return block, mspDirs[0].MspDir, mspDirs[0].MspName
 }
 
-// broadcastStub is an in-process AtomicBroadcast server that replies to every
-// received envelope with a fixed status.
-type broadcastStub struct {
-	ab.UnimplementedAtomicBroadcastServer
-	status cb.Status
-}
-
-// Broadcast replies with the stub's fixed status for each envelope received,
-// returning when the client closes the stream.
-func (s *broadcastStub) Broadcast(stream ab.AtomicBroadcast_BroadcastServer) error {
-	for {
-		_, err := stream.Recv()
-		if errors.Is(err, io.EOF) {
-			return nil // client closed the stream
-		}
-		if err != nil {
-			return err
-		}
-		if err := stream.Send(&ab.BroadcastResponse{Status: s.status}); err != nil {
-			return err
-		}
-	}
-}
-
-// startBroadcastServer starts an in-process AtomicBroadcast server that answers
-// every broadcast with status, and returns its "host:port" address. The server
-// is stopped when the test ends.
-func startBroadcastServer(t *testing.T, status cb.Status) string {
-	t.Helper()
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-
-	srv := grpc.NewServer()
-	ab.RegisterAtomicBroadcastServer(srv, &broadcastStub{status: status})
-	go func() { _ = srv.Serve(lis) }()
-	t.Cleanup(srv.Stop)
-
-	return lis.Addr().String()
-}
-
 // writeUserConfig writes a minimal user configuration YAML naming the given MSP
 // to path.
 func writeUserConfig(t *testing.T, path, mspID, mspDir string) {
@@ -378,17 +335,6 @@ func writeUserConfig(t *testing.T, path, mspID, mspDir string) {
 	})
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(path, content, 0o600))
-}
-
-// freeAddress returns a "host:port" that no server is listening on, so a dial
-// to it fails. The listener is closed before returning.
-func freeAddress(t *testing.T) string {
-	t.Helper()
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	addr := lis.Addr().String()
-	require.NoError(t, lis.Close())
-	return addr
 }
 
 // clientKeyPair is a client TLS cert/key pair written to disk for a test.

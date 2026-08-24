@@ -233,6 +233,11 @@ func (*Handler) Prepare(inputPath, configPath, outputPath string) error {
 // using the client identity in the configuration YAML at configPath to sign the
 // connection. It collects the routers' acknowledgements and logs how many
 // routers acknowledged the transaction.
+//
+// Submit does not fail on individual router rejections or unreachable routers,
+// including the case where zero routers acknowledged the transaction: each
+// router's outcome is reported by reportBroadcast, and it returns an error only
+// when the broadcast could not be attempted at all (no routers configured).
 func (h *Handler) Submit(inputPath, configPath, currentBlockPath string) error {
 	logger.Debugf("tx submit: input=%s config=%s current-block=%s", inputPath, configPath, currentBlockPath)
 

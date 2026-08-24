@@ -8,8 +8,6 @@ package tx_test
 
 import (
 	"bytes"
-	"errors"
-	"io"
 	"net"
 	"os"
 	"path/filepath"
@@ -18,10 +16,8 @@ import (
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/stretchr/testify/require"
 	"go.yaml.in/yaml/v3"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
@@ -29,6 +25,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 	"github.com/hyperledger/fabric-x-common/tools/cryptogen"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client/test"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/signer"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/tx"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
@@ -124,11 +121,11 @@ func TestSubmit(t *testing.T) {
 	// Three routers: one acknowledges, one rejects, one is unreachable. Submit
 	// still returns nil, because it broadcasts to every router and reports the
 	// per-router outcomes rather than failing on individual rejections.
-	acking := startBroadcastServer(t, cb.Status_SUCCESS)
-	rejecting := startBroadcastServer(t, cb.Status_BAD_REQUEST)
-	unreachable := freeAddress(t)
+	acking := test.StartBroadcastServer(t, cb.Status_SUCCESS)
+	rejecting := test.StartBroadcastServer(t, cb.Status_BAD_REQUEST)
+	unreachable := test.FreeAddress(t)
 
-	blockPath, configPath := newSubmitFixture(t, "test-channel", []string{acking, rejecting, unreachable})
+	blockPath, configPath := newSubmitInputs(t, "test-channel", []string{acking, rejecting, unreachable})
 	txPath := writeFile(t, marshalConfigTx(t, "test-channel"))
 
 	require.NoError(t, tx.New().Submit(txPath, configPath, blockPath))
@@ -140,7 +137,7 @@ func TestSubmit(t *testing.T) {
 func TestSubmitNoRouters(t *testing.T) {
 	t.Parallel()
 
-	blockPath, configPath := newSubmitFixture(t, "test-channel", nil)
+	blockPath, configPath := newSubmitInputs(t, "test-channel", nil)
 	txPath := writeFile(t, marshalConfigTx(t, "test-channel"))
 
 	err := tx.New().Submit(txPath, configPath, blockPath)
@@ -584,22 +581,20 @@ func writeFile(t *testing.T, content []byte) string {
 	return path
 }
 
-// newSubmitFixture builds a real ARMA config block whose parties' router
+// newSubmitInputs builds a real ARMA config block whose parties' router
 // endpoints are the given addresses (one party per address), writes it to disk,
-// and writes an admin configuration YAML for a loadable consenter identity of
+// and writes an admin configuration YAML for a loadable identity of
 // the same crypto tree. It returns the paths to the block and the admin
 // configuration, ready to be passed to `tx submit`.
-func newSubmitFixture(t *testing.T, channelID string, routerEndpoints []string) (blockPath, configPath string) {
+func newSubmitInputs(t *testing.T, channelID string, routerEndpoints []string) (blockPath, configPath string) {
 	t.Helper()
 
 	shared := &ordererpb.SharedConfig{}
 	for i, endpoint := range routerEndpoints {
 		host, port := splitHostPort(t, endpoint)
 		shared.PartiesConfig = append(shared.PartiesConfig, &ordererpb.PartyConfig{
-			PartyID:      uint32(i + 1),
-			RouterConfig: &ordererpb.RouterNodeConfig{Host: host, Port: port},
-			// An assembler endpoint is required for the config block to be valid;
-			// `tx submit` only dials the routers.
+			PartyID:         uint32(i + 1),
+			RouterConfig:    &ordererpb.RouterNodeConfig{Host: host, Port: port},
 			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: host, Port: port},
 		})
 	}
@@ -627,11 +622,19 @@ func newSubmitFixture(t *testing.T, channelID string, routerEndpoints []string) 
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(blockPath, raw, 0o600))
 
-	mspDirs := testcrypto.GetConsenterMspDirs(targetPath)
-	require.NotEmpty(t, mspDirs)
+	// The submitting client is the orderer org's admin user, whose MSP lives
+	// under users/Admin@<org>/msp in the generated crypto tree.
+	orgsPath := filepath.Join(targetPath, cryptogen.OrdererOrganizationsDir)
+	orgDirs, err := os.ReadDir(orgsPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, orgDirs)
+	orgName := orgDirs[0].Name()
+	mspID := strings.TrimSuffix(orgName, ".com")
+	mspDir := filepath.Join(orgsPath, orgName, "users", "Admin@"+orgName, "msp")
+
 	configPath = filepath.Join(t.TempDir(), adminYAML)
 	content, err := yaml.Marshal(user.Config{
-		MSP: user.MSPConfig{LocalMspID: mspDirs[0].MspName, LocalMspDir: mspDirs[0].MspDir},
+		MSP: user.MSPConfig{LocalMspID: mspID, LocalMspDir: mspDir},
 	})
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(configPath, content, 0o600))
@@ -646,55 +649,4 @@ func splitHostPort(t *testing.T, address string) (host string, port uint32) {
 	p, err := strconv.ParseUint(portStr, 10, 32)
 	require.NoError(t, err)
 	return host, uint32(p)
-}
-
-// broadcastStub is an in-process AtomicBroadcast server that replies to every
-// received envelope with a fixed status.
-type broadcastStub struct {
-	ab.UnimplementedAtomicBroadcastServer
-	status cb.Status
-}
-
-// Broadcast replies with the stub's fixed status for each envelope received,
-// returning when the client closes the stream.
-func (s *broadcastStub) Broadcast(stream ab.AtomicBroadcast_BroadcastServer) error {
-	for {
-		_, err := stream.Recv()
-		if errors.Is(err, io.EOF) {
-			return nil // client closed the stream
-		}
-		if err != nil {
-			return err
-		}
-		if err := stream.Send(&ab.BroadcastResponse{Status: s.status}); err != nil {
-			return err
-		}
-	}
-}
-
-// startBroadcastServer starts an in-process AtomicBroadcast server that answers
-// every broadcast with status, and returns its "host:port" address. The server
-// is stopped when the test ends.
-func startBroadcastServer(t *testing.T, status cb.Status) string {
-	t.Helper()
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-
-	srv := grpc.NewServer()
-	ab.RegisterAtomicBroadcastServer(srv, &broadcastStub{status: status})
-	go func() { _ = srv.Serve(lis) }()
-	t.Cleanup(srv.Stop)
-
-	return lis.Addr().String()
-}
-
-// freeAddress returns a "host:port" that no server is listening on, so a dial
-// to it fails. The listener is closed before returning.
-func freeAddress(t *testing.T) string {
-	t.Helper()
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	addr := lis.Addr().String()
-	require.NoError(t, lis.Close())
-	return addr
 }
