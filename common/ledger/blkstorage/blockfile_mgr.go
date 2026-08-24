@@ -314,7 +314,7 @@ func (mgr *blockfileMgr) addBlockInternal(block *common.Block, syncToDisk bool) 
 			bcInfo.CurrentBlockHash, block.Header.PreviousHash,
 		)
 	}
-	blockBytes, info := serializeBlock(block)
+	blockBytes, info := serializeBlock(block, mgr.index.serializationNeeds())
 	blockHash := protoutil.BlockHeaderHash(block.Header)
 	// Get the location / offset where each transaction starts in the block and where the block ends
 	txOffsets := info.txOffsets
