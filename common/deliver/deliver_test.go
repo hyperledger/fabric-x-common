@@ -366,7 +366,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 				gomega.Expect(fakeResponseSender.SendBlockResponseCallCount()).To(gomega.Equal(5))
-				for i := 0; i < 5; i++ {
+				for i := range 5 {
 					b, _, _, _ := fakeResponseSender.SendBlockResponseArgsForCall(i)
 					gomega.Expect(b).To(gomega.Equal(&cb.Block{
 						Header: &cb.BlockHeader{Number: 995 + uint64(i)},
@@ -390,7 +390,7 @@ var _ = ginkgo.Describe("Deliver", func() {
 
 				gomega.Expect(fakeBlocksSent.AddCallCount()).To(gomega.Equal(5))
 				gomega.Expect(fakeBlocksSent.WithCallCount()).To(gomega.Equal(5))
-				for i := 0; i < 5; i++ {
+				for i := range 5 {
 					gomega.Expect(fakeBlocksSent.AddArgsForCall(i)).To(gomega.BeNumerically("~", 1.0))
 					labelValues := fakeBlocksSent.WithArgsForCall(i)
 					gomega.Expect(labelValues).To(gomega.Equal([]string{

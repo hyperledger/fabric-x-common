@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/sha3"
 	"crypto/sha512"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -22,7 +23,6 @@ import (
 
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/sha3"
 )
 
 func TestDigest(t *testing.T) {

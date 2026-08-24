@@ -81,7 +81,7 @@ type aclmgmtPolicyProvider interface {
 	GetPolicyName(resName string) string
 
 	// CheckACL backs ACLProvider interface
-	CheckACL(polName string, idinfo interface{}) error
+	CheckACL(polName string, idinfo any) error
 }
 
 // aclmgmtPolicyProviderImpl holds the bytes from state of the ledger
@@ -96,7 +96,7 @@ func (rp *aclmgmtPolicyProviderImpl) GetPolicyName(resName string) string {
 
 // CheckACL implements AClProvider's CheckACL interface so it can be registered
 // as a provider with aclmgmt
-func (rp *aclmgmtPolicyProviderImpl) CheckACL(polName string, idinfo interface{}) error {
+func (rp *aclmgmtPolicyProviderImpl) CheckACL(polName string, idinfo any) error {
 	aclLogger.Debugf("acl check(%s)", polName)
 
 	// we will implement other identifiers. In the end we just need a SignedData
@@ -171,14 +171,14 @@ func newResourceProvider(rg ResourceGetter, defprov defaultACLProvider) *resourc
 	return &resourceProvider{rg, defprov}
 }
 
-func (rp *resourceProvider) enforceDefaultBehavior(resName string, channelID string, idinfo interface{}) bool {
+func (rp *resourceProvider) enforceDefaultBehavior(resName, _ string, _ any) bool {
 	// we currently enforce using p types if defined.  In future we will allow p types
 	// to be overridden through peer configuration
 	return rp.defaultProvider.IsPtypePolicy(resName)
 }
 
 // CheckACL implements the ACL
-func (rp *resourceProvider) CheckACL(resName string, channelID string, idinfo interface{}) error {
+func (rp *resourceProvider) CheckACL(resName, channelID string, idinfo any) error {
 	if !rp.enforceDefaultBehavior(resName, channelID, idinfo) {
 		resCfg := rp.resGetter(channelID)
 
@@ -197,7 +197,7 @@ func (rp *resourceProvider) CheckACL(resName string, channelID string, idinfo in
 }
 
 // CheckACLNoChannel implements the ACLProvider interface function
-func (rp *resourceProvider) CheckACLNoChannel(resName string, idinfo interface{}) error {
+func (rp *resourceProvider) CheckACLNoChannel(resName string, idinfo any) error {
 	if !rp.enforceDefaultBehavior(resName, "", idinfo) {
 		return fmt.Errorf("cannot override peer type policy for channeless ACL check")
 	}

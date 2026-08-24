@@ -8,8 +8,8 @@ set -e
 
 # Versions
 protoc_bin_version="35.1"
-golangci_lint_version="v2.12.2"
-mockery_version="v2.53.5"
+golangci_lint_version="v2.13.1"
+mockery_version="v3.7.4"
 
 # Install protoc binary (C++ based, not available via go install)
 download_dir=$(mktemp -d -t "fx_dev_depedencies.XXXX")
@@ -63,4 +63,4 @@ go install "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${golangci_li
 
 # mockery is installed separately (not via go.mod tool directive)
 # to avoid pulling unmaintained dependencies.
-go install "github.com/vektra/mockery/v2@${mockery_version}"
+go install "github.com/vektra/mockery/v3@${mockery_version}"

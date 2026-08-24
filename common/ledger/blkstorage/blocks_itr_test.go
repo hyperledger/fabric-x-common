@@ -73,7 +73,7 @@ func TestRaceToDeadlock(t *testing.T) {
 	blocks := testutil.ConstructTestBlocks(t, 5)
 	blkfileMgrWrapper.addBlocks(blocks)
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		itr, err := blkfileMgr.retrieveBlocks(5)
 		if err != nil {
 			panic(err)
@@ -84,7 +84,7 @@ func TestRaceToDeadlock(t *testing.T) {
 		itr.Close()
 	}
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		itr, err := blkfileMgr.retrieveBlocks(5)
 		if err != nil {
 			panic(err)
