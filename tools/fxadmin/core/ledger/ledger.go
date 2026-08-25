@@ -22,7 +22,6 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
-	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.ledger")
@@ -111,28 +110,7 @@ func (h *Handler) Config(configPath, currentBlockPath, reference, outputPath str
 // newOrdererClient loads the user configuration and the current config block, then
 // assembles an orderer client for the network the block describes.
 func (h *Handler) newOrdererClient(configPath, currentBlockPath string) (*client.Client, error) {
-	config, err := user.LoadConfig(configPath)
-	if err != nil {
-		return nil, err
-	}
-	block, err := readBlock(currentBlockPath)
-	if err != nil {
-		return nil, err
-	}
-	return client.Load(config, block, h.csp)
-}
-
-// readBlock reads and unmarshals a protobuf block from path.
-func readBlock(path string) (*cb.Block, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read config block %q", path)
-	}
-	block, err := protoutil.UnmarshalBlock(content)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal config block %q", path)
-	}
-	return block, nil
+	return client.LoadFromFiles(configPath, currentBlockPath, h.csp)
 }
 
 // writeBlock marshals block and writes it to path.

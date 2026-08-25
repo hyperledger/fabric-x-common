@@ -10,11 +10,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/stretchr/testify/require"
+	"go.yaml.in/yaml/v3"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
@@ -22,6 +24,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 	"github.com/hyperledger/fabric-x-common/tools/cryptogen"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client/test"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/ordererconn"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
 	"github.com/hyperledger/fabric-x-common/tools/pkg/comm"
@@ -46,7 +49,7 @@ func TestLoad(t *testing.T) {
 		block, mspDir, mspID := newConfigBlockWithMSP(t, "arma", sharedConfig)
 
 		config := &user.Config{MSP: user.MSPConfig{LocalMspID: mspID, LocalMspDir: mspDir}}
-		client, err := Load(config, block, factory.GetDefault())
+		client, err := load(config, block, factory.GetDefault())
 		require.NoError(t, err)
 		require.Equal(t, "arma", client.ChannelID())
 		require.Equal(t, []string{"router1.example.com:8013"}, client.ordererConnInfo.RouterEndpoints)
@@ -60,7 +63,7 @@ func TestLoad(t *testing.T) {
 	// failure cases
 	t.Run("errors on a block that is not a config block", func(t *testing.T) {
 		t.Parallel()
-		_, err := Load(&user.Config{MSP: user.MSPConfig{LocalMspID: "org1", LocalMspDir: t.TempDir()}},
+		_, err := load(&user.Config{MSP: user.MSPConfig{LocalMspID: "org1", LocalMspDir: t.TempDir()}},
 			&cb.Block{}, factory.GetDefault())
 		require.Error(t, err)
 	})
@@ -77,9 +80,61 @@ func TestLoad(t *testing.T) {
 		}
 		block, _, _ := newConfigBlockWithMSP(t, "arma", sharedConfig)
 
-		_, err := Load(&user.Config{MSP: user.MSPConfig{LocalMspID: "org1", LocalMspDir: t.TempDir()}},
+		_, err := load(&user.Config{MSP: user.MSPConfig{LocalMspID: "org1", LocalMspDir: t.TempDir()}},
 			block, factory.GetDefault())
 		require.ErrorContains(t, err, "failed to load local MSP")
+	})
+}
+
+// TestLoadFromFiles asserts the file-based loader reads the user configuration
+// YAML and the config block from disk and builds a client for the network the
+// block describes.
+func TestLoadFromFiles(t *testing.T) {
+	t.Parallel()
+
+	sharedConfig := &ordererpb.SharedConfig{
+		PartiesConfig: []*ordererpb.PartyConfig{{
+			PartyID:         1,
+			TLSCACerts:      [][]byte{[]byte("ca-1")},
+			RouterConfig:    &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
+			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
+		}},
+	}
+	block, mspDir, mspID := newConfigBlockWithMSP(t, "arma", sharedConfig)
+	blockPath := filepath.Join(t.TempDir(), "current.pb")
+	raw, err := proto.Marshal(block)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(blockPath, raw, 0o600))
+
+	configPath := filepath.Join(t.TempDir(), "admin.yaml")
+	writeUserConfig(t, configPath, mspID, mspDir)
+
+	c, err := LoadFromFiles(configPath, blockPath, factory.GetDefault())
+	require.NoError(t, err)
+	require.Equal(t, "arma", c.ChannelID())
+	require.Equal(t, []string{"router1.example.com:8013"}, c.ordererConnInfo.RouterEndpoints)
+}
+
+// TestLoadFromFilesErrors asserts the loader reports readable errors for a
+// missing configuration file and an unreadable config block.
+func TestLoadFromFilesErrors(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join(t.TempDir(), "admin.yaml")
+	writeUserConfig(t, configPath, "org1", t.TempDir())
+	notABlock := filepath.Join(t.TempDir(), "current.pb")
+	require.NoError(t, os.WriteFile(notABlock, []byte("not a block"), 0o600))
+
+	t.Run("missing config file", func(t *testing.T) {
+		t.Parallel()
+		_, err := LoadFromFiles(filepath.Join(t.TempDir(), "absent.yaml"), notABlock, factory.GetDefault())
+		require.ErrorContains(t, err, "failed to read user configuration")
+	})
+
+	t.Run("unreadable config block", func(t *testing.T) {
+		t.Parallel()
+		_, err := LoadFromFiles(configPath, notABlock, factory.GetDefault())
+		require.ErrorContains(t, err, "failed to unmarshal config block")
 	})
 }
 
@@ -94,8 +149,42 @@ func TestFetchBlockNoAssemblerEndpoints(t *testing.T) {
 func TestBroadcastToAllRoutersNoRouterEndpoints(t *testing.T) {
 	t.Parallel()
 	c := &Client{ordererConnInfo: &ordererconn.Info{}}
-	err := c.BroadcastToAllRouters(&cb.Envelope{})
+	statuses, err := c.BroadcastToAllRouters(&cb.Envelope{})
+	require.Nil(t, statuses)
 	require.ErrorContains(t, err, "no router endpoints configured")
+}
+
+// TestBroadcastToAllRoutersCollectsStatuses asserts the client sends the
+// envelope to every configured router and returns one RouterStatus per router,
+// in endpoint order, with Err nil for routers that acknowledge SUCCESS and a
+// non-nil Err for routers that reject or are unreachable.
+func TestBroadcastToAllRoutersCollectsStatuses(t *testing.T) {
+	t.Parallel()
+
+	acking := test.StartBroadcastServer(t, cb.Status_SUCCESS)
+	rejecting := test.StartBroadcastServer(t, cb.Status_BAD_REQUEST)
+	unreachable := test.FreeAddress(t)
+
+	c := &Client{
+		ordererConnInfo: &ordererconn.Info{
+			RouterEndpoints: []string{acking, rejecting, unreachable},
+		},
+		clientConfig: comm.ClientConfig{DialTimeout: 5 * time.Second},
+	}
+
+	statuses, err := c.BroadcastToAllRouters(&cb.Envelope{})
+	require.NoError(t, err)
+	require.Len(t, statuses, 3)
+
+	require.Equal(t, acking, statuses[0].Endpoint)
+	require.NoError(t, statuses[0].Err)
+
+	require.Equal(t, rejecting, statuses[1].Endpoint)
+	require.ErrorContains(t, statuses[1].Err, cb.Status_BAD_REQUEST.String())
+
+	require.Equal(t, unreachable, statuses[2].Endpoint)
+	require.Error(t, statuses[2].Err)
+	require.ErrorContains(t, statuses[2].Err, "connection refused")
 }
 
 func TestNewClientConfig(t *testing.T) {
@@ -235,6 +324,17 @@ func newConfigBlockWithMSP(t *testing.T, channelID string, shared *ordererpb.Sha
 	mspDirs := testcrypto.GetConsenterMspDirs(targetPath)
 	require.NotEmpty(t, mspDirs)
 	return block, mspDirs[0].MspDir, mspDirs[0].MspName
+}
+
+// writeUserConfig writes a minimal user configuration YAML naming the given MSP
+// to path.
+func writeUserConfig(t *testing.T, path, mspID, mspDir string) {
+	t.Helper()
+	content, err := yaml.Marshal(user.Config{
+		MSP: user.MSPConfig{LocalMspID: mspID, LocalMspDir: mspDir},
+	})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, content, 0o600))
 }
 
 // clientKeyPair is a client TLS cert/key pair written to disk for a test.

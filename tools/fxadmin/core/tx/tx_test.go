@@ -8,8 +8,10 @@ package tx_test
 
 import (
 	"bytes"
+	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -18,9 +20,12 @@ import (
 	"go.yaml.in/yaml/v3"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/ordererpb"
 	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 	"github.com/hyperledger/fabric-x-common/tools/cryptogen"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client/test"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/signer"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/tx"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
@@ -31,6 +36,10 @@ const (
 	notImplemented   = "not implemented"
 	adminYAML        = "admin.yaml"
 	missingInputCase = "missing input file"
+
+	missingConfigCase   = "missing config file"
+	notEnvelopeCase     = "input is not an envelope"
+	readUserConfigError = "failed to read user configuration"
 )
 
 // TestHandlerNotImplemented asserts every not-yet-implemented tx subcommand is
@@ -40,14 +49,99 @@ func TestHandlerNotImplemented(t *testing.T) {
 	t.Parallel()
 	h := tx.New()
 
-	t.Run("submit", func(t *testing.T) {
-		t.Parallel()
-		require.ErrorContains(t, h.Submit("tx.pb", adminYAML, "current.pb"), notImplemented)
-	})
 	t.Run("send", func(t *testing.T) {
 		t.Parallel()
 		require.ErrorContains(t, h.Send("endorsed.pb", adminYAML, "current.pb"), notImplemented)
 	})
+}
+
+// TestSubmitErrors asserts that `tx submit` reports readable errors, before any
+// network access, for a missing transaction file, a transaction that is not a
+// well-formed envelope, a missing configuration file, and an unreadable config
+// block.
+func TestSubmitErrors(t *testing.T) {
+	t.Parallel()
+
+	configPath, _, _ := newAdminConfig(t)
+	validTx := writeFile(t, marshalConfigTx(t, "test-channel"))
+	invalidEnvelope := writeFile(t, []byte("not an envelope"))
+	invalidBlock := writeFile(t, []byte("not a block"))
+
+	for _, tc := range []struct {
+		name    string
+		input   string
+		config  string
+		block   string
+		wantErr string
+	}{
+		{
+			name:    missingInputCase,
+			input:   filepath.Join(t.TempDir(), "absent.pb"),
+			config:  configPath,
+			block:   invalidBlock,
+			wantErr: "failed to read configuration transaction",
+		},
+		{
+			name:    notEnvelopeCase,
+			input:   invalidEnvelope,
+			config:  configPath,
+			block:   invalidBlock,
+			wantErr: "failed to unmarshal configuration transaction",
+		},
+		{
+			name:    missingConfigCase,
+			input:   validTx,
+			config:  filepath.Join(t.TempDir(), "absent.yaml"),
+			block:   invalidBlock,
+			wantErr: readUserConfigError,
+		},
+		{
+			name:    "unreadable config block",
+			input:   validTx,
+			config:  configPath,
+			block:   filepath.Join(t.TempDir(), "absent.pb"),
+			wantErr: "failed to read config block",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			require.ErrorContains(t, tx.New().Submit(tc.input, tc.config, tc.block), tc.wantErr)
+		})
+	}
+}
+
+// TestSubmit asserts that `tx submit` reads the prepared configuration
+// transaction, connects to the network described by the config block, and
+// broadcasts the transaction to every router without error, including when some
+// routers reject it or are unreachable (the command reports per-router outcomes
+// but only fails when no routers are configured).
+func TestSubmit(t *testing.T) {
+	t.Parallel()
+
+	// Three routers: one acknowledges, one rejects, one is unreachable. Submit
+	// still returns nil, because it broadcasts to every router and reports the
+	// per-router outcomes rather than failing on individual rejections.
+	acking := test.StartBroadcastServer(t, cb.Status_SUCCESS)
+	rejecting := test.StartBroadcastServer(t, cb.Status_BAD_REQUEST)
+	unreachable := test.FreeAddress(t)
+
+	blockPath, configPath := newSubmitInputs(t, "test-channel", []string{acking, rejecting, unreachable})
+	txPath := writeFile(t, marshalConfigTx(t, "test-channel"))
+
+	require.NoError(t, tx.New().Submit(txPath, configPath, blockPath))
+}
+
+// TestSubmitNoRouters asserts that `tx submit` fails when the config block
+// carries no router endpoints to broadcast to. The failure surfaces while
+// loading the client from the block, before any broadcast is attempted.
+func TestSubmitNoRouters(t *testing.T) {
+	t.Parallel()
+
+	blockPath, configPath := newSubmitInputs(t, "test-channel", nil)
+	txPath := writeFile(t, marshalConfigTx(t, "test-channel"))
+
+	err := tx.New().Submit(txPath, configPath, blockPath)
+	require.ErrorContains(t, err, "no router endpoints")
 }
 
 // TestEndorse asserts that `tx endorse` wraps the input ConfigUpdate in a
@@ -112,10 +206,10 @@ func TestEndorseErrors(t *testing.T) {
 			wantErr: "failed to read config update",
 		},
 		{
-			name:    "missing config file",
+			name:    missingConfigCase,
 			input:   validConfigUpdate,
 			config:  filepath.Join(t.TempDir(), "absent.yaml"),
-			wantErr: "failed to read user configuration",
+			wantErr: readUserConfigError,
 		},
 		{
 			name:    "input is not a config update",
@@ -200,7 +294,7 @@ func TestMergeErrors(t *testing.T) {
 			wantErr: "failed to read endorsement",
 		},
 		{
-			name:    "input is not an envelope",
+			name:    notEnvelopeCase,
 			inputs:  []string{validEndorsement, notConfigUpdateEnvelope},
 			wantErr: "failed to unmarshal endorsement",
 		},
@@ -331,13 +425,13 @@ func TestPrepareErrors(t *testing.T) {
 			wantErr: "failed to read endorsement",
 		},
 		{
-			name:    "missing config file",
+			name:    missingConfigCase,
 			input:   validEndorsement,
 			config:  filepath.Join(t.TempDir(), "absent.yaml"),
-			wantErr: "failed to read user configuration",
+			wantErr: readUserConfigError,
 		},
 		{
-			name:    "input is not an envelope",
+			name:    notEnvelopeCase,
 			input:   notConfigUpdateEnvelope,
 			config:  client.configPath,
 			wantErr: "failed to unmarshal endorsement",
@@ -459,10 +553,100 @@ func marshalConfigUpdate(t *testing.T, channelID string) []byte {
 	return raw
 }
 
+// marshalConfigTx returns the marshaled bytes of a minimal, well-formed
+// common.Envelope standing in for a prepared configuration transaction. Its
+// contents are not validated by `tx submit`, which only unmarshals the envelope
+// before broadcasting it.
+func marshalConfigTx(t *testing.T, channelID string) []byte {
+	t.Helper()
+	channelHeader, err := proto.Marshal(&cb.ChannelHeader{
+		Type:      int32(cb.HeaderType_CONFIG_UPDATE),
+		ChannelId: channelID,
+	})
+	require.NoError(t, err)
+	payload, err := proto.Marshal(&cb.Payload{
+		Header: &cb.Header{ChannelHeader: channelHeader},
+	})
+	require.NoError(t, err)
+	raw, err := proto.Marshal(&cb.Envelope{Payload: payload})
+	require.NoError(t, err)
+	return raw
+}
+
 // writeFile writes content to a fresh temp file and returns its path.
 func writeFile(t *testing.T, content []byte) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "config_update.pb")
 	require.NoError(t, os.WriteFile(path, content, 0o600))
 	return path
+}
+
+// newSubmitInputs builds a real ARMA config block whose parties' router
+// endpoints are the given addresses (one party per address), writes it to disk,
+// and writes an admin configuration YAML for a loadable identity of
+// the same crypto tree. It returns the paths to the block and the admin
+// configuration, ready to be passed to `tx submit`.
+func newSubmitInputs(t *testing.T, channelID string, routerEndpoints []string) (blockPath, configPath string) {
+	t.Helper()
+
+	shared := &ordererpb.SharedConfig{}
+	for i, endpoint := range routerEndpoints {
+		host, port := splitHostPort(t, endpoint)
+		shared.PartiesConfig = append(shared.PartiesConfig, &ordererpb.PartyConfig{
+			PartyID:         uint32(i + 1),
+			RouterConfig:    &ordererpb.RouterNodeConfig{Host: host, Port: port},
+			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: host, Port: port},
+		})
+	}
+	meta, err := proto.Marshal(shared)
+	require.NoError(t, err)
+
+	targetPath := t.TempDir()
+	block, err := cryptogen.CreateOrExtendConfigBlockWithCrypto(cryptogen.ConfigBlockParameters{
+		TargetPath:  targetPath,
+		BaseProfile: configtxgen.SampleFabricX,
+		ChannelID:   channelID,
+		Organizations: []cryptogen.OrganizationParameters{{
+			Name:             "orderer-org-1",
+			Domain:           "orderer-org-1.com",
+			OrdererEndpoints: []*types.OrdererEndpoint{{ID: 1, Host: "localhost", Port: 7050}},
+			ConsenterNodes:   []cryptogen.Node{{CommonName: "consenter", Hostname: "consenter"}},
+			OrdererNodes:     []cryptogen.Node{{CommonName: "orderer-node", Hostname: "orderer-node"}},
+		}},
+		ArmaMetaBytes: meta,
+	})
+	require.NoError(t, err)
+
+	blockPath = filepath.Join(targetPath, "current.pb")
+	raw, err := proto.Marshal(block)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(blockPath, raw, 0o600))
+
+	// The submitting client is the orderer org's admin user, whose MSP lives
+	// under users/Admin@<org>/msp in the generated crypto tree.
+	orgsPath := filepath.Join(targetPath, cryptogen.OrdererOrganizationsDir)
+	orgDirs, err := os.ReadDir(orgsPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, orgDirs)
+	orgName := orgDirs[0].Name()
+	mspID := strings.TrimSuffix(orgName, ".com")
+	mspDir := filepath.Join(orgsPath, orgName, "users", "Admin@"+orgName, "msp")
+
+	configPath = filepath.Join(t.TempDir(), adminYAML)
+	content, err := yaml.Marshal(user.Config{
+		MSP: user.MSPConfig{LocalMspID: mspID, LocalMspDir: mspDir},
+	})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(configPath, content, 0o600))
+	return blockPath, configPath
+}
+
+// splitHostPort splits a "host:port" address into its host and numeric port.
+func splitHostPort(t *testing.T, address string) (host string, port uint32) {
+	t.Helper()
+	host, portStr, err := net.SplitHostPort(address)
+	require.NoError(t, err)
+	p, err := strconv.ParseUint(portStr, 10, 32)
+	require.NoError(t, err)
+	return host, uint32(p)
 }

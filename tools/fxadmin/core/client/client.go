@@ -45,8 +45,8 @@ type Client struct {
 	tlsCertHash     []byte
 }
 
-// Load builds a Client from the user configuration and the config block.
-func Load(config *user.Config, block *cb.Block, csp bccsp.BCCSP) (*Client, error) {
+// load builds a Client from the user configuration and the config block.
+func load(config *user.Config, block *cb.Block, csp bccsp.BCCSP) (*Client, error) {
 	ordererConnInfo, err := ordererconn.Load(block, csp)
 	if err != nil {
 		return nil, err
@@ -69,6 +69,34 @@ func Load(config *user.Config, block *cb.Block, csp bccsp.BCCSP) (*Client, error
 		signer:          signingIdentity,
 		tlsCertHash:     certHash,
 	}, nil
+}
+
+// LoadFromFiles builds a Client from the user configuration YAML at configPath
+// and the config block at blockPath, using csp to build the channel config
+// bundle.
+func LoadFromFiles(configPath, blockPath string, csp bccsp.BCCSP) (*Client, error) {
+	config, err := user.LoadConfig(configPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load user configuration %q", configPath)
+	}
+	block, err := readBlock(blockPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load config block %q", blockPath)
+	}
+	return load(config, block, csp)
+}
+
+// readBlock reads and unmarshals a protobuf config block from path.
+func readBlock(path string) (*cb.Block, error) {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read config block %q", path)
+	}
+	block, err := protoutil.UnmarshalBlock(content)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal config block %q", path)
+	}
+	return block, nil
 }
 
 // ChannelID returns the channel the client targets.
@@ -100,21 +128,33 @@ func (c *Client) FetchBlock(seek *ab.SeekInfo) (*cb.Block, error) {
 	return nil, errors.Wrap(errors.Join(errs...), "failed to fetch block from all assemblers")
 }
 
-// BroadcastToAllRouters sends a prepared envelope to every router, returning an
-// error if any router rejects or is unreachable. The envelope must already be
-// built and signed by the caller (e.g. a prepared configuration transaction).
-func (c *Client) BroadcastToAllRouters(envelope *cb.Envelope) error {
+// RouterStatus is the outcome of broadcasting an envelope to a single router.
+// Err is nil when the router acknowledged the envelope with status SUCCESS, and
+// otherwise describes the rejection or the reason the router was unreachable.
+type RouterStatus struct {
+	Endpoint string
+	Err      error
+}
+
+// BroadcastToAllRouters sends a prepared envelope to every router and returns
+// one RouterStatus per router, in endpoint order, reporting whether each router
+// acknowledged the envelope. The envelope must already be built and signed by
+// the caller (e.g. a prepared configuration transaction). It returns an error
+// only when no routers are configured; individual router rejections and
+// unreachable routers are carried in the returned statuses.
+func (c *Client) BroadcastToAllRouters(envelope *cb.Envelope) ([]RouterStatus, error) {
 	if len(c.ordererConnInfo.RouterEndpoints) == 0 {
-		return errors.New("no router endpoints configured")
+		return nil, errors.New("no router endpoints configured")
 	}
 
-	var errs []error
+	statuses := make([]RouterStatus, 0, len(c.ordererConnInfo.RouterEndpoints))
 	for _, endpoint := range c.ordererConnInfo.RouterEndpoints {
-		if err := c.broadcastToRouter(endpoint, envelope); err != nil {
-			errs = append(errs, fmt.Errorf("router %s: %w", endpoint, err))
-		}
+		statuses = append(statuses, RouterStatus{
+			Endpoint: endpoint,
+			Err:      c.broadcastToRouter(endpoint, envelope),
+		})
 	}
-	return errors.Join(errs...)
+	return statuses, nil
 }
 
 // signedSeekEnvelope wraps seek in a signed DELIVER_SEEK_INFO envelope for the
