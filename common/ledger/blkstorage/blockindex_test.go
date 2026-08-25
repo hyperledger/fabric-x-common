@@ -12,6 +12,7 @@ import (
 	"hash"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/common/metrics/disabled"
@@ -58,7 +59,7 @@ func testBlockIndexSync(t *testing.T, numBlocks int, numBlocksToIndex int, syncB
 		// Plug-in back the original index store
 		blkfileMgr.index.db = originalIndexStore
 		// Verify that the first set of blocks are indexed in the original index
-		for i := 0; i < numBlocksToIndex; i++ {
+		for i := range numBlocksToIndex {
 			block, err := blkfileMgr.retrieveBlockByNumber(uint64(i))
 			require.NoError(t, err, "block [%d] should have been present in the index", i)
 			require.Equal(t, blocks[i], block)
@@ -118,7 +119,7 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 		// if index has been configured for an indexItem then the item should be indexed else not
 		// test 'retrieveBlockByHash'
 		block, err := blockfileMgr.retrieveBlockByHash(protoutil.BlockHeaderHash(blocks[0].Header))
-		if containsAttr(indexItems, IndexableAttrBlockHash) {
+		if slices.Contains(indexItems, IndexableAttrBlockHash) {
 			require.NoError(t, err, "Error while retrieving block by hash")
 			require.Equal(t, blocks[0], block)
 		} else {
@@ -127,7 +128,7 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 
 		// test 'retrieveBlockByNumber'
 		block, err = blockfileMgr.retrieveBlockByNumber(0)
-		if containsAttr(indexItems, IndexableAttrBlockNum) {
+		if slices.Contains(indexItems, IndexableAttrBlockNum) {
 			require.NoError(t, err, "Error while retrieving block by number")
 			require.Equal(t, blocks[0], block)
 		} else {
@@ -138,7 +139,7 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 		txid, err := protoutil.GetOrComputeTxIDFromEnvelope(blocks[0].Data.Data[0])
 		require.NoError(t, err)
 		txEnvelope, err := blockfileMgr.retrieveTransactionByID(txid)
-		if containsAttr(indexItems, IndexableAttrTxID) {
+		if slices.Contains(indexItems, IndexableAttrTxID) {
 			require.NoError(t, err, "Error while retrieving tx by id")
 			txEnvelopeBytes := blocks[0].Data.Data[0]
 			txEnvelopeOrig, err := protoutil.GetEnvelopeFromBlock(txEnvelopeBytes)
@@ -152,7 +153,7 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 		txid, err = protoutil.GetOrComputeTxIDFromEnvelope(blocks[0].Data.Data[0])
 		require.NoError(t, err)
 		exists, err := blockfileMgr.txIDExists(txid)
-		if containsAttr(indexItems, IndexableAttrTxID) {
+		if slices.Contains(indexItems, IndexableAttrTxID) {
 			require.NoError(t, err)
 			require.True(t, exists)
 		} else {
@@ -161,7 +162,7 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 
 		// test 'retrieveTrasnactionsByBlockNumTranNum
 		txEnvelope2, err := blockfileMgr.retrieveTransactionByBlockNumTranNum(0, 0)
-		if containsAttr(indexItems, IndexableAttrBlockNumTranNum) {
+		if slices.Contains(indexItems, IndexableAttrBlockNumTranNum) {
 			require.NoError(t, err, "Error while retrieving tx by blockNum and tranNum")
 			txEnvelopeBytes2 := blocks[0].Data.Data[0]
 			txEnvelopeOrig2, err2 := protoutil.GetEnvelopeFromBlock(txEnvelopeBytes2)
@@ -175,7 +176,7 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 		txid, err = protoutil.GetOrComputeTxIDFromEnvelope(blocks[0].Data.Data[0])
 		require.NoError(t, err)
 		block, err = blockfileMgr.retrieveBlockByTxID(txid)
-		if containsAttr(indexItems, IndexableAttrTxID) {
+		if slices.Contains(indexItems, IndexableAttrTxID) {
 			require.NoError(t, err, "Error while retrieving block by txID")
 			require.Equal(t, block, blocks[0])
 		} else {
@@ -191,7 +192,7 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 
 				reason, blkNum, err := blockfileMgr.retrieveTxValidationCodeByTxID(txid)
 
-				if containsAttr(indexItems, IndexableAttrTxID) {
+				if slices.Contains(indexItems, IndexableAttrTxID) {
 					require.NoError(t, err)
 					reasonFromFlags := flags.Flag(idx)
 					require.Equal(t, reasonFromFlags, reason)
@@ -202,15 +203,6 @@ func testBlockIndexSelectiveIndexing(t *testing.T, indexItems []IndexableAttr) {
 			}
 		}
 	})
-}
-
-func containsAttr(indexItems []IndexableAttr, attr IndexableAttr) bool {
-	for _, element := range indexItems {
-		if element == attr {
-			return true
-		}
-	}
-	return false
 }
 
 func TestTxIDKeyEncodingDecoding(t *testing.T) {
@@ -421,7 +413,7 @@ func verifyExportedTxIDs(t *testing.T, dir string, fileHashes map[string][]byte,
 	numTxIDs, err := metadataReader.DecodeUVarInt()
 	require.NoError(t, err)
 	retrievedTxIDs := []string{}
-	for i := uint64(0); i < numTxIDs; i++ {
+	for range numTxIDs {
 		txID, err := dataReader.DecodeString()
 		require.NoError(t, err)
 		retrievedTxIDs = append(retrievedTxIDs, txID)

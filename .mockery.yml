@@ -1,0 +1,23 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# mockery v3 takes no per-interface flags, so the interfaces are listed here rather than in the
+# `//go:generate mockery` directive that invokes it (core/policy/application.go). Counterfeiter
+# fakes keep their own per-interface directives. Regenerate everything with `make mocks`.
+all: false
+template: testify
+dir: "{{.InterfaceDir}}/mocks"
+filename: "{{.InterfaceName | snakecase}}.go"
+structname: "{{.InterfaceName}}"
+pkgname: mocks
+packages:
+  github.com/hyperledger/fabric-x-common/core/policy:
+    interfaces:
+      ChannelPolicyManagerGetter:
+      ChannelPolicyReferenceProvider:
+      Identity:
+      IdentityDeserializer:
+      Policy:
+      PolicyManager:
+      SignaturePolicyProvider:

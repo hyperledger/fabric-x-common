@@ -71,7 +71,7 @@ var _ = ginkgo.Describe("SessionAccessControl", func() {
 		sac, err := deliver.NewSessionAC(fakeChain, envelope, fakePolicyChecker, "chain-id", expiresAt)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			err = sac.Evaluate()
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		}

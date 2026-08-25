@@ -74,17 +74,17 @@ func TestTrackExpiration(t *testing.T) {
 	tlsCert, err := ca.NewServerCertKeyPair("127.0.0.1")
 	require.NoError(t, err)
 
-	warnShouldNotBeInvoked := func(format string, args ...interface{}) {
+	warnShouldNotBeInvoked := func(format string, args ...any) {
 		t.Fatalf(format, args...)
 	}
 
 	var formattedWarning string
-	warnShouldBeInvoked := func(format string, args ...interface{}) {
+	warnShouldBeInvoked := func(format string, args ...any) {
 		formattedWarning = fmt.Sprintf(format, args...)
 	}
 
 	var formattedInfo string
-	infoShouldBeInvoked := func(format string, args ...interface{}) {
+	infoShouldBeInvoked := func(format string, args ...any) {
 		formattedInfo = fmt.Sprintf(format, args...)
 	}
 
@@ -208,7 +208,7 @@ func TestLogNonPubKeyMismatchErr(t *testing.T) {
 		string(bobKeyPair.Cert)))
 
 	b := &bytes.Buffer{}
-	f := func(template string, args ...interface{}) {
+	f := func(template string, args ...any) {
 		fmt.Fprintf(b, template, args...)
 	}
 

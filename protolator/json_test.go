@@ -43,18 +43,16 @@ func (tpff *testProtoPlainFieldFactory) Handles(msg proto.Message, fieldName str
 
 func (tpff *testProtoPlainFieldFactory) NewProtoField(msg proto.Message, fieldName string, fieldType reflect.Type, fieldValue reflect.Value) (protoField, error) {
 	return &plainField{
-		baseField: baseField{
-			msg:   msg,
-			name:  fieldName,
-			fType: reflect.TypeOf(""),
-			vType: fieldType,
-			value: fieldValue,
-		},
-		populateFrom: func(source interface{}, destType reflect.Type) (reflect.Value, error) {
+		msg:   msg,
+		name:  fieldName,
+		fType: reflect.TypeFor[string](),
+		vType: fieldType,
+		value: fieldValue,
+		populateFrom: func(source any, destType reflect.Type) (reflect.Value, error) {
 			sourceAsString := source.(string)
 			return reflect.ValueOf(tpff.fromPrefix + sourceAsString), tpff.fromError
 		},
-		populateTo: func(source reflect.Value) (interface{}, error) {
+		populateTo: func(source reflect.Value) (any, error) {
 			return tpff.toPrefix + source.Interface().(string), tpff.toError
 		},
 	}, nil
@@ -113,18 +111,16 @@ func (tpff *testProtoMapFieldFactory) Handles(msg proto.Message, fieldName strin
 
 func (tpff *testProtoMapFieldFactory) NewProtoField(msg proto.Message, fieldName string, fieldType reflect.Type, fieldValue reflect.Value) (protoField, error) {
 	return &mapField{
-		baseField: baseField{
-			msg:   msg,
-			name:  fieldName,
-			fType: reflect.TypeOf(""),
-			vType: fieldType,
-			value: fieldValue,
-		},
-		populateFrom: func(key string, source interface{}, destType reflect.Type) (reflect.Value, error) {
+		msg:   msg,
+		name:  fieldName,
+		fType: reflect.TypeFor[string](),
+		vType: fieldType,
+		value: fieldValue,
+		populateFrom: func(key string, source any, destType reflect.Type) (reflect.Value, error) {
 			sourceAsString := source.(string)
 			return reflect.ValueOf(tpff.fromPrefix + key + sourceAsString), tpff.fromError
 		},
-		populateTo: func(key string, source reflect.Value) (interface{}, error) {
+		populateTo: func(key string, source reflect.Value) (any, error) {
 			return tpff.toPrefix + key + source.Interface().(string), tpff.toError
 		},
 	}, nil
@@ -183,18 +179,16 @@ func (tpff *testProtoSliceFieldFactory) Handles(msg proto.Message, fieldName str
 
 func (tpff *testProtoSliceFieldFactory) NewProtoField(msg proto.Message, fieldName string, fieldType reflect.Type, fieldValue reflect.Value) (protoField, error) {
 	return &sliceField{
-		baseField: baseField{
-			msg:   msg,
-			name:  fieldName,
-			fType: reflect.TypeOf(""),
-			vType: fieldType,
-			value: fieldValue,
-		},
-		populateFrom: func(index int, source interface{}, destType reflect.Type) (reflect.Value, error) {
+		msg:   msg,
+		name:  fieldName,
+		fType: reflect.TypeFor[string](),
+		vType: fieldType,
+		value: fieldValue,
+		populateFrom: func(index int, source any, destType reflect.Type) (reflect.Value, error) {
 			sourceAsString := source.(string)
 			return reflect.ValueOf(tpff.fromPrefix + fmt.Sprintf("%d", index) + sourceAsString), tpff.fromError
 		},
-		populateTo: func(index int, source reflect.Value) (interface{}, error) {
+		populateTo: func(index int, source reflect.Value) (any, error) {
 			return tpff.toPrefix + fmt.Sprintf("%d", index) + source.Interface().(string), tpff.toError
 		},
 	}, nil
@@ -299,7 +293,7 @@ func TestMostlyDeterministicMarshal(t *testing.T) {
 	// detect a mismatch if the default behavior persists.  Even with 3 map
 	// elements, there is usually a mismatch within 2-3 iterations, so 13
 	// entries and 10 iterations seems like a reasonable check.
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		newResult, err := MostlyDeterministicMarshal(multiKeyMap)
 		gt.Expect(err).NotTo(HaveOccurred())
 		gt.Expect(newResult).To(Equal(result))

@@ -39,12 +39,10 @@ func TestBFTCensorshipMonitor_Stop(t *testing.T) {
 	require.NotNil(t, mon)
 
 	var wg sync.WaitGroup
-	wg.Add(1)
 
-	go func() {
+	wg.Go(func() {
 		mon.Monitor()
-		wg.Done()
-	}()
+	})
 
 	mon.Stop()
 	wg.Wait()
@@ -720,7 +718,7 @@ func newMonitorTestSetup(t *testing.T, numSources int) *monitorTestSetup {
 	}
 	s.fakeUpdatableBlockVerifier.CloneReturns(&fake.UpdatableBlockVerifier{})
 
-	for i := 0; i < numSources; i++ {
+	for i := range numSources {
 		s.sources = append(s.sources, &orderers.Endpoint{
 			Address:   fmt.Sprintf("orderer-address-%d", i),
 			RootCerts: [][]byte{{1, 2, 3, 4}},

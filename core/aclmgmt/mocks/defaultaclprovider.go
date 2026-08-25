@@ -6,12 +6,12 @@ import (
 )
 
 type DefaultACLProvider struct {
-	CheckACLStub        func(string, string, interface{}) error
+	CheckACLStub        func(string, string, any) error
 	checkACLMutex       sync.RWMutex
 	checkACLArgsForCall []struct {
 		arg1 string
 		arg2 string
-		arg3 interface{}
+		arg3 any
 	}
 	checkACLReturns struct {
 		result1 error
@@ -19,11 +19,11 @@ type DefaultACLProvider struct {
 	checkACLReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CheckACLNoChannelStub        func(string, interface{}) error
+	CheckACLNoChannelStub        func(string, any) error
 	checkACLNoChannelMutex       sync.RWMutex
 	checkACLNoChannelArgsForCall []struct {
 		arg1 string
-		arg2 interface{}
+		arg2 any
 	}
 	checkACLNoChannelReturns struct {
 		result1 error
@@ -46,13 +46,13 @@ type DefaultACLProvider struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *DefaultACLProvider) CheckACL(arg1 string, arg2 string, arg3 interface{}) error {
+func (fake *DefaultACLProvider) CheckACL(arg1 string, arg2 string, arg3 any) error {
 	fake.checkACLMutex.Lock()
 	ret, specificReturn := fake.checkACLReturnsOnCall[len(fake.checkACLArgsForCall)]
 	fake.checkACLArgsForCall = append(fake.checkACLArgsForCall, struct {
 		arg1 string
 		arg2 string
-		arg3 interface{}
+		arg3 any
 	}{arg1, arg2, arg3})
 	stub := fake.CheckACLStub
 	fakeReturns := fake.checkACLReturns
@@ -73,13 +73,13 @@ func (fake *DefaultACLProvider) CheckACLCallCount() int {
 	return len(fake.checkACLArgsForCall)
 }
 
-func (fake *DefaultACLProvider) CheckACLCalls(stub func(string, string, interface{}) error) {
+func (fake *DefaultACLProvider) CheckACLCalls(stub func(string, string, any) error) {
 	fake.checkACLMutex.Lock()
 	defer fake.checkACLMutex.Unlock()
 	fake.CheckACLStub = stub
 }
 
-func (fake *DefaultACLProvider) CheckACLArgsForCall(i int) (string, string, interface{}) {
+func (fake *DefaultACLProvider) CheckACLArgsForCall(i int) (string, string, any) {
 	fake.checkACLMutex.RLock()
 	defer fake.checkACLMutex.RUnlock()
 	argsForCall := fake.checkACLArgsForCall[i]
@@ -109,12 +109,12 @@ func (fake *DefaultACLProvider) CheckACLReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *DefaultACLProvider) CheckACLNoChannel(arg1 string, arg2 interface{}) error {
+func (fake *DefaultACLProvider) CheckACLNoChannel(arg1 string, arg2 any) error {
 	fake.checkACLNoChannelMutex.Lock()
 	ret, specificReturn := fake.checkACLNoChannelReturnsOnCall[len(fake.checkACLNoChannelArgsForCall)]
 	fake.checkACLNoChannelArgsForCall = append(fake.checkACLNoChannelArgsForCall, struct {
 		arg1 string
-		arg2 interface{}
+		arg2 any
 	}{arg1, arg2})
 	stub := fake.CheckACLNoChannelStub
 	fakeReturns := fake.checkACLNoChannelReturns
@@ -135,13 +135,13 @@ func (fake *DefaultACLProvider) CheckACLNoChannelCallCount() int {
 	return len(fake.checkACLNoChannelArgsForCall)
 }
 
-func (fake *DefaultACLProvider) CheckACLNoChannelCalls(stub func(string, interface{}) error) {
+func (fake *DefaultACLProvider) CheckACLNoChannelCalls(stub func(string, any) error) {
 	fake.checkACLNoChannelMutex.Lock()
 	defer fake.checkACLNoChannelMutex.Unlock()
 	fake.CheckACLNoChannelStub = stub
 }
 
-func (fake *DefaultACLProvider) CheckACLNoChannelArgsForCall(i int) (string, interface{}) {
+func (fake *DefaultACLProvider) CheckACLNoChannelArgsForCall(i int) (string, any) {
 	fake.checkACLNoChannelMutex.RLock()
 	defer fake.checkACLNoChannelMutex.RUnlock()
 	argsForCall := fake.checkACLNoChannelArgsForCall[i]

@@ -24,11 +24,11 @@ func SetSleeper(d sleeperSetter, sleeper customSleeper) {
 }
 
 type testSleeper struct {
-	c int32
+	c atomic.Int32
 }
 
 func (s *testSleeper) Sleep(duration time.Duration) {
-	atomic.AddInt32(&s.c, 1)
+	s.c.Add(1)
 }
 
 func TestSleeper(t *testing.T) {
@@ -68,14 +68,14 @@ func TestSleeper(t *testing.T) {
 		doneC := make(chan struct{})
 
 		go func() {
-			for i := 0; i < 10; i++ {
+			for range 10 {
 				d.sleeper.Sleep(time.Millisecond, doneC)
 			}
 		}()
 
 		require.Eventually(t,
 			func() bool {
-				return atomic.LoadInt32(&s.c) == 10
+				return s.c.Load() == 10
 			},
 			10*time.Second, time.Millisecond)
 	})

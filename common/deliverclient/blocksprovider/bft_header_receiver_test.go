@@ -60,7 +60,7 @@ func TestBftHeaderReceiver_BadStatus(t *testing.T) {
 	streamClientMock.RecvReturnsOnCall(2, &orderer.DeliverResponse{Type: &orderer.DeliverResponse_Status{Status: common.Status_SERVICE_UNAVAILABLE}}, nil)
 	streamClientMock.CloseSendReturns(nil)
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		hr := blocksprovider.NewBFTHeaderReceiver("testchannel", "10.10.10.11:666", streamClientMock,
 			fakeBlockVerifier, nil, flogging.MustGetLogger("test.BFTHeaderReceiver"))
 		assert.NotNil(t, hr)
@@ -316,7 +316,7 @@ func TestBftHeaderReceiver_VerifyOnce(t *testing.T) {
 		return err == nil && bNum == uint64(5) && !bTime.IsZero()
 	}, time.Second, time.Millisecond)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		bNum, bTime, err := hr.LastBlockNum()
 		assert.NoError(t, err)
 		assert.Equal(t, uint64(5), bNum)
@@ -335,7 +335,7 @@ func prepareBlock(seq uint64, contentType orderer.SeekInfo_SeekContentType, good
 	data := &common.BlockData{
 		Data: make([][]byte, numTx),
 	}
-	for i := 0; i < numTx; i++ {
+	for i := range numTx {
 		data.Data[i] = []byte{byte(i), byte(seq)}
 	}
 	block.Header.DataHash = protoutil.ComputeBlockDataHash(data)

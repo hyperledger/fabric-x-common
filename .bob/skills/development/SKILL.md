@@ -3,7 +3,7 @@ name: development
 description: >-
   Conventions for writing NEW Go code in the Fabric-X Common library: matching the
   Fabric-ported style, license headers, the strict golangci-lint set, error handling
-  (cockroachdb/errors), logging (flogging), Go 1.26 idioms, and reuse of protoutil /
+  (cockroachdb/errors), logging (flogging), Go 1.27 idioms, and reuse of protoutil /
   common / utils helpers. Use this skill BEFORE writing or modifying any Go source in
   this repository — adding or changing a package, function, proto/ASN.1 API, or config
   path — so new code matches established patterns and passes `make lint`. For test-only
@@ -131,7 +131,7 @@ concurrency, use the standard toolkit (`errgroup.WithContext`, `context` cancell
 from another repo; keep it minimal and idiomatic. `containedctx`/`fatcontext` forbid storing a
 `context.Context` in a struct.
 
-## Modern Go idioms (1.26)
+## Modern Go idioms (1.27)
 
 Prefer in new code (several are linter-enforced):
 
@@ -140,6 +140,18 @@ Prefer in new code (several are linter-enforced):
 - Range-over-integer: `for range n` / `for i := range n` (the `intrange` linter pushes this).
 - `any`, never `interface{}` (only generated `.pb.go` uses the latter).
 - `errors.Join` to combine causes.
+- Stdlib iterator forms over index loops and slice-returning helpers: `reflect.Type.Fields()`
+  (`common/viperutil/config_util.go`), `strings.SplitSeq` / `strings.FieldsSeq`
+  (`api/types/orderer_endpoint.go`).
+- `reflect.TypeFor[T]()` instead of `reflect.TypeOf(...)` on a throwaway value (`protolator/json.go`).
+- `maps.Copy` instead of a copy loop (`common/configtx/update.go`).
+- `atomic.Int32` / `atomic.Bool` fields instead of `atomic.AddInt32(&x, …)` on a plain field
+  (`msp/cache/second_chance.go`).
+- Promoted (embedded) field names directly in composite literals — Go 1.27 accepts
+  `&signingidentity{id: …, signer: …}` in place of spelling out the embedded `identity{…}` literal.
+  In **ported** files weigh this against keeping upstream Fabric's structure.
+- `go fix ./...` applies most of the above; re-run it until it converges (it can need more than one
+  pass), then check the diff rather than trusting it blindly.
 
 ## Building or changing a structured API
 
