@@ -232,10 +232,11 @@ func (c *CLI) addTxSendCommand(tx *kingpin.CmdClause) {
 	})
 }
 
-// addFollowCommand wires `fxadmin follow`, which monitors the assembler ledgers
-// until the configured timeout expires.
+// addFollowCommand wires `fxadmin follow`, which waits for the next config block
+// to commit across the assemblers, or until the timeout expires.
 func (c *CLI) addFollowCommand() {
-	follow := c.app.Command("follow", "Follow the assembler ledgers until the timeout expires.")
+	follow := c.app.Command("follow",
+		"Wait for the next config block to commit across the assemblers, or until the timeout expires.")
 	config := follow.Flag(flagConfig, "Path to the admin configuration YAML file.").Required().ExistingFile()
 	currentBlock := follow.
 		Flag(

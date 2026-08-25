@@ -187,6 +187,64 @@ func TestBroadcastToAllRoutersCollectsStatuses(t *testing.T) {
 	require.ErrorContains(t, statuses[2].Err, "connection refused")
 }
 
+// TestSequenceFromBlock asserts the config sequence is read from a config block,
+// and that a block which is not a config block is rejected.
+func TestSequenceFromBlock(t *testing.T) {
+	t.Parallel()
+
+	sharedConfig := &ordererpb.SharedConfig{
+		PartiesConfig: []*ordererpb.PartyConfig{{
+			PartyID:         1,
+			TLSCACerts:      [][]byte{[]byte("ca-1")},
+			RouterConfig:    &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
+			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
+		}},
+	}
+	block, _, _ := newConfigBlockWithMSP(t, "arma", sharedConfig)
+
+	sequence, err := SequenceFromBlock(block)
+	require.NoError(t, err)
+	require.Equal(t, uint64(0), sequence) // a freshly generated genesis config is at sequence 0
+
+	_, err = SequenceFromBlock(&cb.Block{})
+	require.Error(t, err)
+}
+
+// TestFetchLedgerStatus asserts the client seeks the newest block from the
+// assembler, reports its number as the last block, follows its last-config index
+// to the config block, and returns that config block's sequence.
+func TestFetchLedgerStatus(t *testing.T) {
+	t.Parallel()
+
+	// Newest block is 104; its last-config index points to block 100, which is a
+	// config block at sequence 5.
+	endpoint := test.StartConfigDeliverServer(t, 104, 100, 5)
+
+	c := &Client{
+		ordererConnInfo: &ordererconn.Info{AssemblerEndpoints: []string{endpoint}},
+		clientConfig:    comm.ClientConfig{DialTimeout: 5 * time.Second},
+	}
+
+	ledger, err := c.FetchLedgerStatus(endpoint)
+	require.NoError(t, err)
+	require.Equal(t, uint64(104), ledger.LastBlockNumber)
+	require.Equal(t, uint64(5), ledger.LastConfigSequence)
+}
+
+// TestFetchLedgerStatusUnreachable asserts the client reports an error when
+// the assembler cannot be dialed.
+func TestFetchLedgerStatusUnreachable(t *testing.T) {
+	t.Parallel()
+
+	c := &Client{
+		ordererConnInfo: &ordererconn.Info{},
+		clientConfig:    comm.ClientConfig{DialTimeout: 2 * time.Second},
+	}
+
+	_, err := c.FetchLedgerStatus(test.FreeAddress(t))
+	require.Error(t, err)
+}
+
 func TestNewClientConfig(t *testing.T) {
 	t.Parallel()
 
