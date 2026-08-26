@@ -152,12 +152,72 @@ func (Status) EnumDescriptor() ([]byte, []int) {
 	return file_api_committerpb_status_proto_rawDescGZIP(), []int{0}
 }
 
-// A batch of TXs' status.
+// Signal controls new intake. HOLD and HALT allow already-fetched work to drain.
+type CheckpointFeedback_Signal int32
+
+const (
+	// No checkpoint feedback. Ordinary per-TX status is authoritative.
+	CheckpointFeedback_SIGNAL_UNSPECIFIED CheckpointFeedback_Signal = 0
+	// Local snapshot hash is computed and verified. Releases a prior HOLD and resumes intake.
+	CheckpointFeedback_PROCEED CheckpointFeedback_Signal = 1
+	// Local snapshot hash is not yet computed. Blocks new intake while already-fetched work drains.
+	CheckpointFeedback_HOLD CheckpointFeedback_Signal = 2
+	// Same intake barrier as HOLD, but terminal: no PROCEED follows without operator intervention.
+	CheckpointFeedback_HALT CheckpointFeedback_Signal = 3
+)
+
+// Enum value maps for CheckpointFeedback_Signal.
+var (
+	CheckpointFeedback_Signal_name = map[int32]string{
+		0: "SIGNAL_UNSPECIFIED",
+		1: "PROCEED",
+		2: "HOLD",
+		3: "HALT",
+	}
+	CheckpointFeedback_Signal_value = map[string]int32{
+		"SIGNAL_UNSPECIFIED": 0,
+		"PROCEED":            1,
+		"HOLD":               2,
+		"HALT":               3,
+	}
+)
+
+func (x CheckpointFeedback_Signal) Enum() *CheckpointFeedback_Signal {
+	p := new(CheckpointFeedback_Signal)
+	*p = x
+	return p
+}
+
+func (x CheckpointFeedback_Signal) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CheckpointFeedback_Signal) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_committerpb_status_proto_enumTypes[1].Descriptor()
+}
+
+func (CheckpointFeedback_Signal) Type() protoreflect.EnumType {
+	return &file_api_committerpb_status_proto_enumTypes[1]
+}
+
+func (x CheckpointFeedback_Signal) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CheckpointFeedback_Signal.Descriptor instead.
+func (CheckpointFeedback_Signal) EnumDescriptor() ([]byte, []int) {
+	return file_api_committerpb_status_proto_rawDescGZIP(), []int{1, 0}
+}
+
+// A batch of TXs' status and optional checkpoint feedback.
 type TxStatusBatch struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        []*TxStatus            `protobuf:"bytes,1,rep,name=status,proto3" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Status []*TxStatus            `protobuf:"bytes,1,rep,name=status,proto3" json:"status,omitempty"`
+	// Checkpoint feedback from the VC to the coordinator. The coordinator forwards the same message to the sidecar.
+	// If absent, ordinary per-TX status is authoritative.
+	CheckpointFeedback *CheckpointFeedback `protobuf:"bytes,2,opt,name=checkpoint_feedback,json=checkpointFeedback,proto3,oneof" json:"checkpoint_feedback,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *TxStatusBatch) Reset() {
@@ -197,6 +257,87 @@ func (x *TxStatusBatch) GetStatus() []*TxStatus {
 	return nil
 }
 
+func (x *TxStatusBatch) GetCheckpointFeedback() *CheckpointFeedback {
+	if x != nil {
+		return x.CheckpointFeedback
+	}
+	return nil
+}
+
+// CheckpointFeedback controls checkpoint intake while local snapshot hash verification completes.
+type CheckpointFeedback struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Checkpoint feedback signal.
+	Signal CheckpointFeedback_Signal `protobuf:"varint,1,opt,name=signal,proto3,enum=committerpb.CheckpointFeedback_Signal" json:"signal,omitempty"`
+	// Checkpoint transaction ID used by the coordinator to correlate feedback with the in-flight checkpoint.
+	TxId string `protobuf:"bytes,2,opt,name=tx_id,json=txId,proto3" json:"tx_id,omitempty"`
+	// Referenced snapshot block number used in coordinator and sidecar diagnostic logs.
+	BlockNumber uint64 `protobuf:"varint,3,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
+	// HALT divergence detail for operator diagnostics, including local and checkpoint hashes.
+	// Required when signal is HALT. Must be logged, not used as a metric label.
+	Reason        string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckpointFeedback) Reset() {
+	*x = CheckpointFeedback{}
+	mi := &file_api_committerpb_status_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckpointFeedback) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckpointFeedback) ProtoMessage() {}
+
+func (x *CheckpointFeedback) ProtoReflect() protoreflect.Message {
+	mi := &file_api_committerpb_status_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckpointFeedback.ProtoReflect.Descriptor instead.
+func (*CheckpointFeedback) Descriptor() ([]byte, []int) {
+	return file_api_committerpb_status_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CheckpointFeedback) GetSignal() CheckpointFeedback_Signal {
+	if x != nil {
+		return x.Signal
+	}
+	return CheckpointFeedback_SIGNAL_UNSPECIFIED
+}
+
+func (x *CheckpointFeedback) GetTxId() string {
+	if x != nil {
+		return x.TxId
+	}
+	return ""
+}
+
+func (x *CheckpointFeedback) GetBlockNumber() uint64 {
+	if x != nil {
+		return x.BlockNumber
+	}
+	return 0
+}
+
+func (x *CheckpointFeedback) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
 // The status of a TX.
 type TxStatus struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -208,7 +349,7 @@ type TxStatus struct {
 
 func (x *TxStatus) Reset() {
 	*x = TxStatus{}
-	mi := &file_api_committerpb_status_proto_msgTypes[1]
+	mi := &file_api_committerpb_status_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -220,7 +361,7 @@ func (x *TxStatus) String() string {
 func (*TxStatus) ProtoMessage() {}
 
 func (x *TxStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_status_proto_msgTypes[1]
+	mi := &file_api_committerpb_status_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -233,7 +374,7 @@ func (x *TxStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TxStatus.ProtoReflect.Descriptor instead.
 func (*TxStatus) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_status_proto_rawDescGZIP(), []int{1}
+	return file_api_committerpb_status_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *TxStatus) GetRef() *TxRef {
@@ -254,9 +395,21 @@ var File_api_committerpb_status_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_status_proto_rawDesc = "" +
 	"\n" +
-	"\x1capi/committerpb/status.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\">\n" +
+	"\x1capi/committerpb/status.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\"\xad\x01\n" +
 	"\rTxStatusBatch\x12-\n" +
-	"\x06status\x18\x01 \x03(\v2\x15.committerpb.TxStatusR\x06status\"]\n" +
+	"\x06status\x18\x01 \x03(\v2\x15.committerpb.TxStatusR\x06status\x12U\n" +
+	"\x13checkpoint_feedback\x18\x02 \x01(\v2\x1f.committerpb.CheckpointFeedbackH\x00R\x12checkpointFeedback\x88\x01\x01B\x16\n" +
+	"\x14_checkpoint_feedback\"\xe7\x01\n" +
+	"\x12CheckpointFeedback\x12>\n" +
+	"\x06signal\x18\x01 \x01(\x0e2&.committerpb.CheckpointFeedback.SignalR\x06signal\x12\x13\n" +
+	"\x05tx_id\x18\x02 \x01(\tR\x04txId\x12!\n" +
+	"\fblock_number\x18\x03 \x01(\x04R\vblockNumber\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"A\n" +
+	"\x06Signal\x12\x16\n" +
+	"\x12SIGNAL_UNSPECIFIED\x10\x00\x12\v\n" +
+	"\aPROCEED\x10\x01\x12\b\n" +
+	"\x04HOLD\x10\x02\x12\b\n" +
+	"\x04HALT\x10\x03\"]\n" +
 	"\bTxStatus\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status*\xf0\x06\n" +
@@ -300,23 +453,27 @@ func file_api_committerpb_status_proto_rawDescGZIP() []byte {
 	return file_api_committerpb_status_proto_rawDescData
 }
 
-var file_api_committerpb_status_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_api_committerpb_status_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_committerpb_status_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_api_committerpb_status_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_api_committerpb_status_proto_goTypes = []any{
-	(Status)(0),           // 0: committerpb.Status
-	(*TxStatusBatch)(nil), // 1: committerpb.TxStatusBatch
-	(*TxStatus)(nil),      // 2: committerpb.TxStatus
-	(*TxRef)(nil),         // 3: committerpb.TxRef
+	(Status)(0),                    // 0: committerpb.Status
+	(CheckpointFeedback_Signal)(0), // 1: committerpb.CheckpointFeedback.Signal
+	(*TxStatusBatch)(nil),          // 2: committerpb.TxStatusBatch
+	(*CheckpointFeedback)(nil),     // 3: committerpb.CheckpointFeedback
+	(*TxStatus)(nil),               // 4: committerpb.TxStatus
+	(*TxRef)(nil),                  // 5: committerpb.TxRef
 }
 var file_api_committerpb_status_proto_depIdxs = []int32{
-	2, // 0: committerpb.TxStatusBatch.status:type_name -> committerpb.TxStatus
-	3, // 1: committerpb.TxStatus.ref:type_name -> committerpb.TxRef
-	0, // 2: committerpb.TxStatus.status:type_name -> committerpb.Status
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	4, // 0: committerpb.TxStatusBatch.status:type_name -> committerpb.TxStatus
+	3, // 1: committerpb.TxStatusBatch.checkpoint_feedback:type_name -> committerpb.CheckpointFeedback
+	1, // 2: committerpb.CheckpointFeedback.signal:type_name -> committerpb.CheckpointFeedback.Signal
+	5, // 3: committerpb.TxStatus.ref:type_name -> committerpb.TxRef
+	0, // 4: committerpb.TxStatus.status:type_name -> committerpb.Status
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_api_committerpb_status_proto_init() }
@@ -325,13 +482,14 @@ func file_api_committerpb_status_proto_init() {
 		return
 	}
 	file_api_committerpb_ref_proto_init()
+	file_api_committerpb_status_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_committerpb_status_proto_rawDesc), len(file_api_committerpb_status_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   2,
+			NumEnums:      2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
