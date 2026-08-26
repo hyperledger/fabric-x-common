@@ -42,7 +42,7 @@ type TxHandler interface {
 	Merge(inputPaths []string, outputPath string) error
 	Prepare(inputPath, configPath, outputPath string) error
 	Submit(inputPath, configPath, currentBlockPath string) error
-	Send(inputPath, configPath, currentBlockPath string) error
+	Send(inputPath, configPath, currentBlockPath, outputPath string) error
 }
 
 // FollowHandler executes `fxadmin follow`.

@@ -33,26 +33,112 @@ import (
 )
 
 const (
-	notImplemented   = "not implemented"
 	adminYAML        = "admin.yaml"
 	missingInputCase = "missing input file"
 
 	missingConfigCase   = "missing config file"
 	notEnvelopeCase     = "input is not an envelope"
 	readUserConfigError = "failed to read user configuration"
+
+	readEndorsementError      = "failed to read endorsement"
+	unmarshalEndorsementError = "failed to unmarshal endorsement"
 )
 
-// TestHandlerNotImplemented asserts every not-yet-implemented tx subcommand is
-// a skeleton that reports "not implemented" without panicking. Replace each
-// subtest with a behavioral test as the command is implemented.
-func TestHandlerNotImplemented(t *testing.T) {
+// TestSendWritesPreparedTx asserts that `tx send` writes the prepared
+// configuration transaction to its output path before broadcasting, so the
+// record is kept even when the broadcast fails. The written envelope must be a
+// signed CONFIG_UPDATE transaction wrapping the endorsed update, identical in
+// structure to what `tx prepare` produces. The generated config block carries no
+// reachable routers, so the broadcast step fails; the record must exist anyway.
+func TestSendWritesPreparedTx(t *testing.T) {
 	t.Parallel()
-	h := tx.New()
 
-	t.Run("send", func(t *testing.T) {
-		t.Parallel()
-		require.ErrorContains(t, h.Send("endorsed.pb", adminYAML, "current.pb"), notImplemented)
-	})
+	client := newAdminConfigs(t, 1)[0]
+	rawConfigUpdate := marshalConfigUpdate(t, "test-channel")
+	endorsedPath := endorse(t, client, rawConfigUpdate)
+	outputPath := filepath.Join(t.TempDir(), "config_tx.pb")
+
+	// The broadcast fails because the generated block has no router endpoints,
+	// but the prepared transaction must still have been written for the record.
+	require.Error(t, tx.New().Send(endorsedPath, client.configPath, client.blockPath, outputPath))
+
+	out, err := os.ReadFile(outputPath)
+	require.NoError(t, err)
+	env := &cb.Envelope{}
+	require.NoError(t, proto.Unmarshal(out, env))
+
+	payload := &cb.Payload{}
+	require.NoError(t, proto.Unmarshal(env.GetPayload(), payload))
+	channelHeader := &cb.ChannelHeader{}
+	require.NoError(t, proto.Unmarshal(payload.GetHeader().GetChannelHeader(), channelHeader))
+	require.Equal(t, int32(cb.HeaderType_CONFIG_UPDATE), channelHeader.GetType())
+	require.Equal(t, "test-channel", channelHeader.GetChannelId())
+
+	wrapped := &cb.ConfigUpdateEnvelope{}
+	require.NoError(t, proto.Unmarshal(payload.GetData(), wrapped))
+	require.Equal(t, rawConfigUpdate, wrapped.GetConfigUpdate())
+	requireSignatureFrom(t, wrapped, client)
+
+	identity, err := signer.New(client.mspID, client.mspDir)
+	require.NoError(t, err)
+	require.NoError(t, identity.Verify(env.GetPayload(), env.GetSignature()))
+}
+
+// TestSendErrors asserts that `tx send` reports readable errors, before any
+// network access, for a missing endorsement file, an endorsement that is not a
+// well-formed ConfigUpdateEnvelope, a missing configuration file, and an
+// unreadable config block. It covers both stages send composes: preparing the
+// transaction from the endorsement and loading the network from the block.
+func TestSendErrors(t *testing.T) {
+	t.Parallel()
+
+	client := newAdminConfigs(t, 1)[0]
+	validEndorsement := endorse(t, client, marshalConfigUpdate(t, "test-channel"))
+	invalidEnvelope := writeFile(t, []byte("not a config update envelope"))
+	invalidBlock := writeFile(t, []byte("not a block"))
+
+	for _, tc := range []struct {
+		name    string
+		input   string
+		config  string
+		block   string
+		wantErr string
+	}{
+		{
+			name:    missingInputCase,
+			input:   filepath.Join(t.TempDir(), "absent.pb"),
+			config:  client.configPath,
+			block:   invalidBlock,
+			wantErr: readEndorsementError,
+		},
+		{
+			name:    notEnvelopeCase,
+			input:   invalidEnvelope,
+			config:  client.configPath,
+			block:   invalidBlock,
+			wantErr: unmarshalEndorsementError,
+		},
+		{
+			name:    missingConfigCase,
+			input:   validEndorsement,
+			config:  filepath.Join(t.TempDir(), "absent.yaml"),
+			block:   invalidBlock,
+			wantErr: readUserConfigError,
+		},
+		{
+			name:    "unreadable config block",
+			input:   validEndorsement,
+			config:  client.configPath,
+			block:   filepath.Join(t.TempDir(), "absent.pb"),
+			wantErr: "failed to read config block",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			outputPath := filepath.Join(t.TempDir(), "config_tx.pb")
+			require.ErrorContains(t, tx.New().Send(tc.input, tc.config, tc.block, outputPath), tc.wantErr)
+		})
+	}
 }
 
 // TestSubmitErrors asserts that `tx submit` reports readable errors, before any
@@ -291,12 +377,12 @@ func TestMergeErrors(t *testing.T) {
 		{
 			name:    missingInputCase,
 			inputs:  []string{validEndorsement, filepath.Join(t.TempDir(), "absent.pb")},
-			wantErr: "failed to read endorsement",
+			wantErr: readEndorsementError,
 		},
 		{
 			name:    notEnvelopeCase,
 			inputs:  []string{validEndorsement, notConfigUpdateEnvelope},
-			wantErr: "failed to unmarshal endorsement",
+			wantErr: unmarshalEndorsementError,
 		},
 		{
 			name:    "config updates disagree",
@@ -422,7 +508,7 @@ func TestPrepareErrors(t *testing.T) {
 			name:    missingInputCase,
 			input:   filepath.Join(t.TempDir(), "absent.pb"),
 			config:  client.configPath,
-			wantErr: "failed to read endorsement",
+			wantErr: readEndorsementError,
 		},
 		{
 			name:    missingConfigCase,
@@ -434,7 +520,7 @@ func TestPrepareErrors(t *testing.T) {
 			name:    notEnvelopeCase,
 			input:   notConfigUpdateEnvelope,
 			config:  client.configPath,
-			wantErr: "failed to unmarshal endorsement",
+			wantErr: unmarshalEndorsementError,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -446,9 +532,10 @@ func TestPrepareErrors(t *testing.T) {
 }
 
 // adminConfig is a generated admin identity: the path to its admin
-// configuration YAML plus the MSP directory and ID for independent verification.
+// configuration YAML plus the MSP directory and ID for independent verification,
+// and the path to the config block describing the network the admins connects to.
 type adminConfig struct {
-	configPath, mspDir, mspID string
+	configPath, mspDir, mspID, blockPath string
 }
 
 // newAdminConfig generates a single orderer org and returns its admin user's
@@ -473,11 +560,16 @@ func newAdminConfigs(t *testing.T, count int) []adminConfig {
 			&types.OrdererEndpoint{ID: partyID, Host: "localhost", Port: 7051 + 2*i, API: []string{types.Deliver}},
 		)
 	}
-	_, err := testcrypto.CreateOrExtendConfigBlockWithCrypto(targetPath, &testcrypto.ConfigBlock{
+	block, err := testcrypto.CreateOrExtendConfigBlockWithCrypto(targetPath, &testcrypto.ConfigBlock{
 		ChannelID:        "test-channel",
 		OrdererEndpoints: endpoints,
 	})
 	require.NoError(t, err)
+
+	blockPath := filepath.Join(t.TempDir(), "current.pb")
+	rawBlock, err := proto.Marshal(block)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(blockPath, rawBlock, 0o600))
 
 	orgsPath := filepath.Join(targetPath, cryptogen.OrdererOrganizationsDir)
 	orgDirs, err := os.ReadDir(orgsPath)
@@ -496,7 +588,7 @@ func newAdminConfigs(t *testing.T, count int) []adminConfig {
 		})
 		require.NoError(t, err)
 		require.NoError(t, os.WriteFile(configPath, content, 0o600))
-		admins[i] = adminConfig{configPath: configPath, mspDir: mspDir, mspID: mspID}
+		admins[i] = adminConfig{configPath: configPath, mspDir: mspDir, mspID: mspID, blockPath: blockPath}
 	}
 	return admins
 }
