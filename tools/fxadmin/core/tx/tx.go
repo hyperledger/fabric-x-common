@@ -19,7 +19,6 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
@@ -231,10 +230,10 @@ func (*Handler) Prepare(inputPath, configPath, outputPath string) error {
 // using the client identity in the configuration YAML at configPath to sign the
 // connection. It logs each router's outcome and a summary.
 //
-// Submit succeeds only when a BFT quorum of the routers acknowledged the
-// transaction: with n parties (one router each) the quorum is 2f+1, computed by
-// policies.ComputeFTQ(n) where n is the number of parties given from the config block.
-// Otherwise, it returns an error, so a partial or failed delivery is reported to the caller.
+// Submit succeeds only when at least 2f+1 of the routers acknowledged the transaction,
+// where f is the number of faulty parties the network tolerates, derived from
+// the number of parties in the config block. Otherwise, it returns an error,
+// so a partial or failed delivery is reported to the caller.
 func (h *Handler) Submit(inputPath, configPath, currentBlockPath string) error {
 	logger.Debugf("tx submit: input=%s config=%s current-block=%s", inputPath, configPath, currentBlockPath)
 
@@ -254,8 +253,8 @@ func (h *Handler) Submit(inputPath, configPath, currentBlockPath string) error {
 	}
 
 	//nolint:gosec // number of parties is small and non-negative.
-	_, _, quorum := policies.ComputeFTQ(uint16(cl.NumParties()))
-	return reportBroadcast(statuses, int(quorum))
+	f := (cl.NumParties() - 1) / 3
+	return reportBroadcast(statuses, 2*int(f)+1)
 }
 
 // readEnvelope reads and unmarshals a prepared configuration transaction
