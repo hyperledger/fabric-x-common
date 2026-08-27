@@ -50,6 +50,7 @@ func TestLoad(t *testing.T) {
 		info, err := ordererconn.Load(block, factory.GetDefault())
 		require.NoError(t, err)
 		require.Equal(t, armaChannel, info.ChannelID)
+		require.Equal(t, 2, info.NumParties)
 		require.Equal(t, []string{"router1.example.com:8013", "router2.example.com:8014"}, info.RouterEndpoints)
 		require.Equal(t,
 			[]string{"assembler1.example.com:8011", "assembler2.example.com:8012"},

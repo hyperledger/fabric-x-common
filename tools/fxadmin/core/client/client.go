@@ -135,6 +135,12 @@ func (c *Client) ChannelID() string {
 	return c.ordererConnInfo.ChannelID
 }
 
+// NumParties returns the number of parties in the network the client targets,
+// as read from the config block's ARMA shared config.
+func (c *Client) NumParties() int {
+	return c.ordererConnInfo.NumParties
+}
+
 // AssemblerEndpoints returns the assembler endpoints the client targets, in
 // config-block order.
 func (c *Client) AssemblerEndpoints() []string {

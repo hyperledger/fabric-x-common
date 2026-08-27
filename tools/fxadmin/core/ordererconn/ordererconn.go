@@ -25,11 +25,12 @@ import (
 )
 
 // Info holds everything needed to dial the orderer, extracted from a config
-// block: the channel ID, the ordered router and assembler endpoints, and the
-// aggregated TLS CA certificates used to verify the orderer nodes' server
-// certificates.
+// block: the channel ID, the number of parties, the ordered router and
+// assembler endpoints, and the aggregated TLS CA certificates used to verify
+// the orderer nodes' server certificates.
 type Info struct {
 	ChannelID          string
+	NumParties         int // number of parties in the ARMA shared config
 	RouterEndpoints    []string
 	AssemblerEndpoints []string
 	TLSCACerts         [][]byte // TLS CA certificates of orderer organizations
@@ -79,7 +80,7 @@ func unmarshalSharedConfig(metadata []byte) (*ordererpb.SharedConfig, error) {
 // TLS CA certificates from an ARMA shared config into an Info for the given
 // channel.
 func infoFromSharedConfig(channelID string, shared *ordererpb.SharedConfig) (*Info, error) {
-	info := &Info{ChannelID: channelID}
+	info := &Info{ChannelID: channelID, NumParties: len(shared.GetPartiesConfig())}
 	for _, party := range shared.GetPartiesConfig() {
 		if router := party.GetRouterConfig(); router != nil {
 			info.RouterEndpoints = append(info.RouterEndpoints,

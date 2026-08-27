@@ -35,6 +35,7 @@ import (
 const (
 	adminYAML        = "admin.yaml"
 	missingInputCase = "missing input file"
+	localhost        = "localhost"
 
 	missingConfigCase   = "missing config file"
 	notEnvelopeCase     = "input is not an envelope"
@@ -60,7 +61,8 @@ func TestSendWritesPreparedTx(t *testing.T) {
 
 	// The broadcast fails because the generated block has no router endpoints,
 	// but the prepared transaction must still have been written for the record.
-	require.ErrorContains(t, tx.New().Send(endorsedPath, client.configPath, client.blockPath, outputPath), "no router endpoints")
+	err := tx.New().Send(endorsedPath, client.configPath, client.blockPath, outputPath)
+	require.ErrorContains(t, err, "no router endpoints")
 
 	out, err := os.ReadFile(outputPath)
 	require.NoError(t, err)
@@ -196,25 +198,42 @@ func TestSubmitErrors(t *testing.T) {
 	}
 }
 
-// TestSubmit asserts that `tx submit` reads the prepared configuration
-// transaction, connects to the network described by the config block, and
-// broadcasts the transaction to every router without error, including when some
-// routers reject it or are unreachable (the command reports per-router outcomes
-// but only fails when no routers are configured).
+// TestSubmit asserts that `tx submit` succeeds when a BFT quorum of the routers
+// acknowledged the transaction, even if some routers reject it or are
+// unreachable. With 4 parties the quorum is 2f+1 = 3, so 3 acknowledgements are
+// enough despite the 4th router being unreachable.
 func TestSubmit(t *testing.T) {
 	t.Parallel()
 
-	// Three routers: one acknowledges, one rejects, one is unreachable. Submit
-	// still returns nil, because it broadcasts to every router and reports the
-	// per-router outcomes rather than failing on individual rejections.
-	acking := test.StartBroadcastServer(t, cb.Status_SUCCESS)
-	rejecting := test.StartBroadcastServer(t, cb.Status_BAD_REQUEST)
-	unreachable := test.FreeAddress(t)
-
-	blockPath, configPath := newSubmitInputs(t, "test-channel", []string{acking, rejecting, unreachable})
+	endpoints := []string{
+		test.StartBroadcastServer(t, cb.Status_SUCCESS),
+		test.StartBroadcastServer(t, cb.Status_SUCCESS),
+		test.StartBroadcastServer(t, cb.Status_SUCCESS),
+		test.FreeAddress(t), // unreachable, but a quorum of 3 already acknowledged
+	}
+	blockPath, configPath := newSubmitInputs(t, "test-channel", endpoints)
 	txPath := writeFile(t, marshalConfigTx(t, "test-channel"))
 
 	require.NoError(t, tx.New().Submit(txPath, configPath, blockPath))
+}
+
+// TestSubmitBelowQuorum asserts that `tx submit` fails when fewer than a BFT
+// quorum of the routers acknowledged the transaction. With 4 parties the quorum
+// is 3, so 2 acknowledgements (one router rejects, one is unreachable) fall short.
+func TestSubmitBelowQuorum(t *testing.T) {
+	t.Parallel()
+
+	endpoints := []string{
+		test.StartBroadcastServer(t, cb.Status_SUCCESS),
+		test.StartBroadcastServer(t, cb.Status_SUCCESS),
+		test.StartBroadcastServer(t, cb.Status_BAD_REQUEST),
+		test.FreeAddress(t),
+	}
+	blockPath, configPath := newSubmitInputs(t, "test-channel", endpoints)
+	txPath := writeFile(t, marshalConfigTx(t, "test-channel"))
+
+	err := tx.New().Submit(txPath, configPath, blockPath)
+	require.ErrorContains(t, err, "acknowledged by 2 of 4 routers, below the quorum of 3")
 }
 
 // TestSubmitNoRouters asserts that `tx submit` fails when the config block
@@ -556,8 +575,8 @@ func newAdminConfigs(t *testing.T, count int) []adminConfig {
 	for i := range count {
 		partyID := uint32(i + 1)
 		endpoints = append(endpoints,
-			&types.OrdererEndpoint{ID: partyID, Host: "localhost", Port: 7050 + 2*i, API: []string{types.Broadcast}},
-			&types.OrdererEndpoint{ID: partyID, Host: "localhost", Port: 7051 + 2*i, API: []string{types.Deliver}},
+			&types.OrdererEndpoint{ID: partyID, Host: localhost, Port: 7050 + 2*i, API: []string{types.Broadcast}},
+			&types.OrdererEndpoint{ID: partyID, Host: localhost, Port: 7051 + 2*i, API: []string{types.Deliver}},
 		)
 	}
 	block, err := testcrypto.CreateOrExtendConfigBlockWithCrypto(targetPath, &testcrypto.ConfigBlock{
@@ -690,6 +709,15 @@ func newSubmitInputs(t *testing.T, channelID string, routerEndpoints []string) (
 			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: host, Port: port},
 		})
 	}
+	return writeSubmitInputs(t, channelID, shared)
+}
+
+// writeSubmitInputs builds a real ARMA config block carrying shared, writes it
+// to disk, and writes an admin configuration YAML for a loadable identity of the
+// same crypto tree. It returns the paths to the block and the admin configuration.
+func writeSubmitInputs(t *testing.T, channelID string, shared *ordererpb.SharedConfig) (blockPath, configPath string) {
+	t.Helper()
+
 	meta, err := proto.Marshal(shared)
 	require.NoError(t, err)
 
@@ -701,7 +729,7 @@ func newSubmitInputs(t *testing.T, channelID string, routerEndpoints []string) (
 		Organizations: []cryptogen.OrganizationParameters{{
 			Name:             "orderer-org-1",
 			Domain:           "orderer-org-1.com",
-			OrdererEndpoints: []*types.OrdererEndpoint{{ID: 1, Host: "localhost", Port: 7050}},
+			OrdererEndpoints: []*types.OrdererEndpoint{{ID: 1, Host: localhost, Port: 7050}},
 			ConsenterNodes:   []cryptogen.Node{{CommonName: "consenter", Hostname: "consenter"}},
 			OrdererNodes:     []cryptogen.Node{{CommonName: "orderer-node", Hostname: "orderer-node"}},
 		}},

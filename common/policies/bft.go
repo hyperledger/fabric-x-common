@@ -58,3 +58,11 @@ func EncodeBFTBlockVerificationPolicy(consenterProtos []*cb.Consenter, ordererGr
 func ComputeBFTQuorum(totalNodes, faultyNodes int) int {
 	return int(math.Ceil(float64(totalNodes+faultyNodes+1) / 2))
 }
+
+// ComputeFTQ computes the F, Threshold and Quorum corresponds to N.
+func ComputeFTQ(n uint16) (f, threshold, quorum uint16) {
+	f = (n - 1) / 3
+	threshold = f + 1
+	quorum = uint16(math.Ceil((float64(n) + float64(f) + 1) / 2.0))
+	return f, threshold, quorum
+}
