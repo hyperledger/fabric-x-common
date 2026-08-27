@@ -22,11 +22,13 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/ordererconn"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/seek"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/signer"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
 	"github.com/hyperledger/fabric-x-common/tools/pkg/comm"
@@ -51,7 +53,13 @@ func load(config *user.Config, block *cb.Block, csp bccsp.BCCSP) (*Client, error
 	if err != nil {
 		return nil, err
 	}
-	clientConfig, err := newClientConfig(config, ordererConnInfo)
+	return LoadWithConnInfo(config, ordererConnInfo)
+}
+
+// LoadWithConnInfo builds a Client that dials the orderer described by info,
+// signing with the identity in config.
+func LoadWithConnInfo(config *user.Config, info *ordererconn.Info) (*Client, error) {
+	clientConfig, err := newClientConfig(config, info)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +72,7 @@ func load(config *user.Config, block *cb.Block, csp bccsp.BCCSP) (*Client, error
 		return nil, err
 	}
 	return &Client{
-		ordererConnInfo: ordererConnInfo,
+		ordererConnInfo: info,
 		clientConfig:    clientConfig,
 		signer:          signingIdentity,
 		tlsCertHash:     certHash,
@@ -79,15 +87,16 @@ func LoadFromFiles(configPath, blockPath string, csp bccsp.BCCSP) (*Client, erro
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load user configuration %q", configPath)
 	}
-	block, err := readBlock(blockPath)
+	block, err := ReadConfigBlock(blockPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load config block %q", blockPath)
+		return nil, err
 	}
 	return load(config, block, csp)
 }
 
-// readBlock reads and unmarshals a protobuf config block from path.
-func readBlock(path string) (*cb.Block, error) {
+// ReadConfigBlock reads and unmarshals a protobuf config block from path. It is
+// shared by the commands that take a --current-block file.
+func ReadConfigBlock(path string) (*cb.Block, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read config block %q", path)
@@ -99,9 +108,37 @@ func readBlock(path string) (*cb.Block, error) {
 	return block, nil
 }
 
+// SequenceFromBlock returns the config sequence recorded in a config block's
+// configuration envelope. It reads the sequence field directly rather than
+// building a channel config bundle, so it needs no BCCSP.
+func SequenceFromBlock(block *cb.Block) (uint64, error) {
+	envelope, err := protoutil.ExtractEnvelope(block, 0)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to extract envelope from config block")
+	}
+	payload, err := protoutil.UnmarshalPayload(envelope.GetPayload())
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to unmarshal config block payload")
+	}
+	configEnvelope := &cb.ConfigEnvelope{}
+	if err := proto.Unmarshal(payload.GetData(), configEnvelope); err != nil {
+		return 0, errors.Wrap(err, "failed to unmarshal config envelope")
+	}
+	if configEnvelope.GetConfig() == nil {
+		return 0, errors.New("config block carries no config")
+	}
+	return configEnvelope.GetConfig().GetSequence(), nil
+}
+
 // ChannelID returns the channel the client targets.
 func (c *Client) ChannelID() string {
 	return c.ordererConnInfo.ChannelID
+}
+
+// AssemblerEndpoints returns the assembler endpoints the client targets, in
+// config-block order.
+func (c *Client) AssemblerEndpoints() []string {
+	return c.ordererConnInfo.AssemblerEndpoints
 }
 
 // FetchBlock seeks the block described by seek from the first reachable
@@ -126,6 +163,53 @@ func (c *Client) FetchBlock(seek *ab.SeekInfo) (*cb.Block, error) {
 		errs = append(errs, fmt.Errorf("assembler %s: %w", endpoint, err))
 	}
 	return nil, errors.Wrap(errors.Join(errs...), "failed to fetch block from all assemblers")
+}
+
+// LedgerStatus summarizes a single assembler's ledger: the number of its newest
+// block (its height indicator) and the config sequence of its last config block.
+type LedgerStatus struct {
+	LastBlockNumber    uint64
+	LastConfigSequence uint64
+}
+
+// FetchLedgerStatus returns the ledger status of a single assembler. It seeks the
+// assembler's newest block (whose number is the ledger's last block), follows its
+// last-config index to the config block, and reads that block's sequence. Unlike
+// FetchBlock, it targets one endpoint and does not fail over, so callers (e.g.
+// `fxadmin follow`) can track each assembler's ledger independently.
+func (c *Client) FetchLedgerStatus(endpoint string) (LedgerStatus, error) {
+	newestEnvelope, err := c.createSignedDeliverSeekEnvelope(seek.Newest())
+	if err != nil {
+		return LedgerStatus{}, err
+	}
+	newest, err := c.fetchBlockFromEndpoint(endpoint, newestEnvelope)
+	if err != nil {
+		return LedgerStatus{}, err
+	}
+	lastBlock := newest.GetHeader().GetNumber()
+
+	lastConfigIndex, err := protoutil.GetLastConfigIndexFromBlock(newest)
+	if err != nil {
+		return LedgerStatus{}, errors.Wrapf(err, "failed to read last config index from block %d", lastBlock)
+	}
+
+	configBlock := newest
+	if lastBlock != lastConfigIndex {
+		var configEnvelope *cb.Envelope
+		configEnvelope, err = c.createSignedDeliverSeekEnvelope(seek.ByNumber(lastConfigIndex))
+		if err != nil {
+			return LedgerStatus{}, err
+		}
+		if configBlock, err = c.fetchBlockFromEndpoint(endpoint, configEnvelope); err != nil {
+			return LedgerStatus{}, err
+		}
+	}
+
+	sequence, err := SequenceFromBlock(configBlock)
+	if err != nil {
+		return LedgerStatus{}, err
+	}
+	return LedgerStatus{LastBlockNumber: lastBlock, LastConfigSequence: sequence}, nil
 }
 
 // RouterStatus is the outcome of broadcasting an envelope to a single router.

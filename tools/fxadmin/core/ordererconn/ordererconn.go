@@ -26,7 +26,8 @@ import (
 
 // Info holds everything needed to dial the orderer, extracted from a config
 // block: the channel ID, the ordered router and assembler endpoints, and the
-// aggregated TLS CA certificates used to verify the orderer nodes' server certificates.
+// aggregated TLS CA certificates used to verify the orderer nodes' server
+// certificates.
 type Info struct {
 	ChannelID          string
 	RouterEndpoints    []string
@@ -57,13 +58,29 @@ func Load(block *cb.Block, csp bccsp.BCCSP) (*Info, error) {
 		return nil, errors.Newf("unsupported consensus type %q: expected %q", consensusType, configtxgen.Arma)
 	}
 
-	var sharedConfig ordererpb.SharedConfig
-	if err := proto.Unmarshal(ordererConfig.ConsensusMetadata(), &sharedConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal ARMA shared config from consensus metadata")
+	sharedConfig, err := unmarshalSharedConfig(ordererConfig.ConsensusMetadata())
+	if err != nil {
+		return nil, err
 	}
 
-	info := &Info{ChannelID: bundle.ConfigtxValidator().ChannelID()}
-	for _, party := range sharedConfig.GetPartiesConfig() {
+	return infoFromSharedConfig(bundle.ConfigtxValidator().ChannelID(), sharedConfig)
+}
+
+// unmarshalSharedConfig parses the ARMA shared config from consensus metadata.
+func unmarshalSharedConfig(metadata []byte) (*ordererpb.SharedConfig, error) {
+	sharedConfig := &ordererpb.SharedConfig{}
+	if err := proto.Unmarshal(metadata, sharedConfig); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal ARMA shared config from consensus metadata")
+	}
+	return sharedConfig, nil
+}
+
+// infoFromSharedConfig collects each party's router and assembler endpoints and
+// TLS CA certificates from an ARMA shared config into an Info for the given
+// channel.
+func infoFromSharedConfig(channelID string, shared *ordererpb.SharedConfig) (*Info, error) {
+	info := &Info{ChannelID: channelID}
+	for _, party := range shared.GetPartiesConfig() {
 		if router := party.GetRouterConfig(); router != nil {
 			info.RouterEndpoints = append(info.RouterEndpoints,
 				net.JoinHostPort(router.GetHost(), strconv.Itoa(int(router.GetPort()))))

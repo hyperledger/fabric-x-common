@@ -22,6 +22,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/seek"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.ledger")
@@ -46,7 +47,7 @@ func (h *Handler) Height(configPath, currentBlockPath string) error {
 	if err != nil {
 		return err
 	}
-	block, err := cl.FetchBlock(seekNewest())
+	block, err := cl.FetchBlock(seek.Newest())
 	if err != nil {
 		return err
 	}
@@ -59,7 +60,7 @@ func (h *Handler) Height(configPath, currentBlockPath string) error {
 func (h *Handler) Block(configPath, currentBlockPath, reference, outputPath string) error {
 	logger.Debugf("ledger block %s: config=%s current-block=%s output=%s",
 		reference, configPath, currentBlockPath, outputPath)
-	seek, err := seekForReference(reference)
+	seekInfo, err := seek.ForReference(reference)
 	if err != nil {
 		return err
 	}
@@ -67,7 +68,7 @@ func (h *Handler) Block(configPath, currentBlockPath, reference, outputPath stri
 	if err != nil {
 		return err
 	}
-	block, err := cl.FetchBlock(seek)
+	block, err := cl.FetchBlock(seekInfo)
 	if err != nil {
 		return err
 	}
@@ -80,15 +81,15 @@ func (h *Handler) Block(configPath, currentBlockPath, reference, outputPath stri
 func (h *Handler) Config(configPath, currentBlockPath, reference, outputPath string) error {
 	logger.Debugf("ledger config %s: config=%s current-block=%s output=%s",
 		reference, configPath, currentBlockPath, outputPath)
-	if reference != latestReference {
-		return errors.Newf("unsupported config reference %q: only %q is supported", reference, latestReference)
+	if reference != seek.LatestReference {
+		return errors.Newf("unsupported config reference %q: only %q is supported", reference, seek.LatestReference)
 	}
 	cl, err := h.newOrdererClient(configPath, currentBlockPath)
 	if err != nil {
 		return err
 	}
 
-	lastBlock, err := cl.FetchBlock(seekNewest())
+	lastBlock, err := cl.FetchBlock(seek.Newest())
 	if err != nil {
 		return err
 	}
@@ -99,7 +100,7 @@ func (h *Handler) Config(configPath, currentBlockPath, reference, outputPath str
 
 	configBlock := lastBlock
 	if lastBlock.GetHeader().GetNumber() != lastConfigIndex {
-		configBlock, err = cl.FetchBlock(seekByNumber(lastConfigIndex))
+		configBlock, err = cl.FetchBlock(seek.ByNumber(lastConfigIndex))
 		if err != nil {
 			return err
 		}

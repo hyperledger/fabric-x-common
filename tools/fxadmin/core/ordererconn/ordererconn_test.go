@@ -21,6 +21,9 @@ import (
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/ordererconn"
 )
 
+// armaChannel is the channel used by the test config blocks and updates.
+const armaChannel = "arma"
+
 func TestLoad(t *testing.T) {
 	t.Parallel()
 
@@ -42,11 +45,11 @@ func TestLoad(t *testing.T) {
 				},
 			},
 		}
-		block := newConfigBlock(t, "arma", sharedConfig)
+		block := newConfigBlock(t, armaChannel, sharedConfig)
 
 		info, err := ordererconn.Load(block, factory.GetDefault())
 		require.NoError(t, err)
-		require.Equal(t, "arma", info.ChannelID)
+		require.Equal(t, armaChannel, info.ChannelID)
 		require.Equal(t, []string{"router1.example.com:8013", "router2.example.com:8014"}, info.RouterEndpoints)
 		require.Equal(t,
 			[]string{"assembler1.example.com:8011", "assembler2.example.com:8012"},
@@ -63,7 +66,7 @@ func TestLoad(t *testing.T) {
 				AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
 			}},
 		}
-		block := newConfigBlock(t, "arma", sharedConfig)
+		block := newConfigBlock(t, armaChannel, sharedConfig)
 
 		_, err := ordererconn.Load(block, factory.GetDefault())
 		require.ErrorContains(t, err, "no router endpoints")
@@ -78,7 +81,7 @@ func TestLoad(t *testing.T) {
 				RouterConfig: &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
 			}},
 		}
-		block := newConfigBlock(t, "arma", sharedConfig)
+		block := newConfigBlock(t, armaChannel, sharedConfig)
 
 		_, err := ordererconn.Load(block, factory.GetDefault())
 		require.ErrorContains(t, err, "no assembler endpoints")
