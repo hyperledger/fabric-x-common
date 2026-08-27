@@ -152,51 +152,6 @@ func (Status) EnumDescriptor() ([]byte, []int) {
 	return file_api_committerpb_status_proto_rawDescGZIP(), []int{0}
 }
 
-// A batch of TXs' status.
-type TxStatusBatch struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        []*TxStatus            `protobuf:"bytes,1,rep,name=status,proto3" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TxStatusBatch) Reset() {
-	*x = TxStatusBatch{}
-	mi := &file_api_committerpb_status_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TxStatusBatch) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TxStatusBatch) ProtoMessage() {}
-
-func (x *TxStatusBatch) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_status_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TxStatusBatch.ProtoReflect.Descriptor instead.
-func (*TxStatusBatch) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_status_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *TxStatusBatch) GetStatus() []*TxStatus {
-	if x != nil {
-		return x.Status
-	}
-	return nil
-}
-
 // The status of a TX.
 type TxStatus struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -208,7 +163,7 @@ type TxStatus struct {
 
 func (x *TxStatus) Reset() {
 	*x = TxStatus{}
-	mi := &file_api_committerpb_status_proto_msgTypes[1]
+	mi := &file_api_committerpb_status_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -220,7 +175,7 @@ func (x *TxStatus) String() string {
 func (*TxStatus) ProtoMessage() {}
 
 func (x *TxStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_status_proto_msgTypes[1]
+	mi := &file_api_committerpb_status_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -233,7 +188,7 @@ func (x *TxStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TxStatus.ProtoReflect.Descriptor instead.
 func (*TxStatus) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_status_proto_rawDescGZIP(), []int{1}
+	return file_api_committerpb_status_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *TxStatus) GetRef() *TxRef {
@@ -254,9 +209,7 @@ var File_api_committerpb_status_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_status_proto_rawDesc = "" +
 	"\n" +
-	"\x1capi/committerpb/status.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\">\n" +
-	"\rTxStatusBatch\x12-\n" +
-	"\x06status\x18\x01 \x03(\v2\x15.committerpb.TxStatusR\x06status\"]\n" +
+	"\x1capi/committerpb/status.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\"]\n" +
 	"\bTxStatus\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status*\xf0\x06\n" +
@@ -301,22 +254,20 @@ func file_api_committerpb_status_proto_rawDescGZIP() []byte {
 }
 
 var file_api_committerpb_status_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_api_committerpb_status_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_committerpb_status_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_api_committerpb_status_proto_goTypes = []any{
-	(Status)(0),           // 0: committerpb.Status
-	(*TxStatusBatch)(nil), // 1: committerpb.TxStatusBatch
-	(*TxStatus)(nil),      // 2: committerpb.TxStatus
-	(*TxRef)(nil),         // 3: committerpb.TxRef
+	(Status)(0),      // 0: committerpb.Status
+	(*TxStatus)(nil), // 1: committerpb.TxStatus
+	(*TxRef)(nil),    // 2: committerpb.TxRef
 }
 var file_api_committerpb_status_proto_depIdxs = []int32{
-	2, // 0: committerpb.TxStatusBatch.status:type_name -> committerpb.TxStatus
-	3, // 1: committerpb.TxStatus.ref:type_name -> committerpb.TxRef
-	0, // 2: committerpb.TxStatus.status:type_name -> committerpb.Status
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	2, // 0: committerpb.TxStatus.ref:type_name -> committerpb.TxRef
+	0, // 1: committerpb.TxStatus.status:type_name -> committerpb.Status
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_api_committerpb_status_proto_init() }
@@ -331,7 +282,7 @@ func file_api_committerpb_status_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_committerpb_status_proto_rawDesc), len(file_api_committerpb_status_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
