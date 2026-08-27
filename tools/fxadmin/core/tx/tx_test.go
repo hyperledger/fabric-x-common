@@ -60,7 +60,7 @@ func TestSendWritesPreparedTx(t *testing.T) {
 
 	// The broadcast fails because the generated block has no router endpoints,
 	// but the prepared transaction must still have been written for the record.
-	require.Error(t, tx.New().Send(endorsedPath, client.configPath, client.blockPath, outputPath))
+	require.ErrorContains(t, tx.New().Send(endorsedPath, client.configPath, client.blockPath, outputPath), "no router endpoints")
 
 	out, err := os.ReadFile(outputPath)
 	require.NoError(t, err)
@@ -533,7 +533,7 @@ func TestPrepareErrors(t *testing.T) {
 
 // adminConfig is a generated admin identity: the path to its admin
 // configuration YAML plus the MSP directory and ID for independent verification,
-// and the path to the config block describing the network the admins connects to.
+// and the path to the config block describing the network the admins connect to.
 type adminConfig struct {
 	configPath, mspDir, mspID, blockPath string
 }
