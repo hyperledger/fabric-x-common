@@ -47,7 +47,8 @@ func (s *configDeliverStub) Deliver(stream ab.AtomicBroadcast_DeliverServer) err
 		}
 
 		seekInfo := &ab.SeekInfo{}
-		if _, err := protoutil.UnmarshalEnvelopeOfType(envelope, cb.HeaderType_DELIVER_SEEK_INFO, seekInfo); err != nil {
+		_, err = protoutil.UnmarshalEnvelopeOfType(envelope, cb.HeaderType_DELIVER_SEEK_INFO, seekInfo)
+		if err != nil {
 			return err
 		}
 
@@ -61,33 +62,41 @@ func (s *configDeliverStub) Deliver(stream ab.AtomicBroadcast_DeliverServer) err
 	}
 }
 
-// StartConfigDeliverServer starts an in-process AtomicBroadcast server whose
-// ledger newest block is numbered newestNumber and points at a config block at
-// configIndex carrying configSequence. It returns its "host:port" address; the
-// server is stopped when the test ends.
-func StartConfigDeliverServer(t *testing.T, newestNumber, configIndex, configSequence uint64) string {
+// ConfigLedger describes the ledger a config-deliver stub emulates: its newest
+// block number, the number of the config block that newest points at, and the
+// config sequence that config block carries.
+type ConfigLedger struct {
+	NewestNumber   uint64
+	ConfigIndex    uint64
+	ConfigSequence uint64
+}
+
+// StartConfigDeliverServer starts an in-process AtomicBroadcast server emulating
+// the given config ledger, and returns its "host:port" address. The server is
+// stopped when the test ends.
+func StartConfigDeliverServer(t *testing.T, ledger ConfigLedger) string {
 	t.Helper()
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	ServeConfigDeliver(t, lis, newestNumber, configIndex, configSequence)
+	ServeConfigDeliver(t, lis, ledger)
 	return lis.Addr().String()
 }
 
-// ServeConfigDeliver serves the config-deliver stub on lis: its ledger newest
-// block is numbered newestNumber and points at a config block at configIndex
-// carrying configSequence. It lets callers bind the listener first (learning its
-// address before building a config block that references it). The server is
-// stopped when the test ends.
-func ServeConfigDeliver(t *testing.T, lis net.Listener, newestNumber, configIndex, configSequence uint64) {
+// ServeConfigDeliver serves the config-deliver stub for the given config ledger
+// on lis. It lets callers bind the listener first (learning its address before
+// building a config block that references it). The server is stopped when the
+// test ends.
+func ServeConfigDeliver(t *testing.T, lis net.Listener, ledger ConfigLedger) {
 	t.Helper()
 
-	newest := protoutil.NewBlock(newestNumber, nil)
+	newest := protoutil.NewBlock(ledger.NewestNumber, nil)
 	newest.Data = &cb.BlockData{Data: [][]byte{{0x01}}}
+	lastConfig := &cb.OrdererBlockMetadata{LastConfig: &cb.LastConfig{Index: ledger.ConfigIndex}}
 	newest.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(&cb.Metadata{
-		Value: protoutil.MarshalOrPanic(&cb.OrdererBlockMetadata{LastConfig: &cb.LastConfig{Index: configIndex}}),
+		Value: protoutil.MarshalOrPanic(lastConfig),
 	})
 
-	configBlock := configBlockAtSequence(configIndex, configSequence)
+	configBlock := configBlockAtSequence(ledger.ConfigIndex, ledger.ConfigSequence)
 
 	srv := grpc.NewServer()
 	ab.RegisterAtomicBroadcastServer(srv, &configDeliverStub{newest: newest, configBlock: configBlock})

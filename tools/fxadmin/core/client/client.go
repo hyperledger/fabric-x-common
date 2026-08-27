@@ -195,7 +195,8 @@ func (c *Client) FetchLedgerStatus(endpoint string) (LedgerStatus, error) {
 
 	configBlock := newest
 	if lastBlock != lastConfigIndex {
-		configEnvelope, err := c.createSignedDeliverSeekEnvelope(seek.ByNumber(lastConfigIndex))
+		var configEnvelope *cb.Envelope
+		configEnvelope, err = c.createSignedDeliverSeekEnvelope(seek.ByNumber(lastConfigIndex))
 		if err != nil {
 			return LedgerStatus{}, err
 		}

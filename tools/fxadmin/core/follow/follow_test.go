@@ -34,6 +34,8 @@ import (
 // the next config block, follow reports each as committed. The generated current
 // block is at genesis sequence 0, so follow waits for sequence 1, which the
 // in-process assembler stubs serve.
+//
+//nolint:paralleltest
 func TestRunAllAssemblersCommitted(t *testing.T) {
 	endpoints := []string{serveAssembler(t, 1), serveAssembler(t, 1), serveAssembler(t, 1)}
 	configPath, blockPath := newFollowInputs(t, "test-channel", endpoints)
@@ -53,6 +55,8 @@ func TestRunAllAssemblersCommitted(t *testing.T) {
 // TestRunTimeoutSomeBehind asserts that when the timeout elapses before every
 // assembler committed the next config block, follow reports the assemblers still
 // at the old sequence as behind and the rest as committed.
+//
+//nolint:paralleltest
 func TestRunTimeoutSomeBehind(t *testing.T) {
 	// Two assemblers already serve the new config sequence 1; one is still at the
 	// current sequence 0, so it never reaches the expected sequence.
@@ -69,6 +73,8 @@ func TestRunTimeoutSomeBehind(t *testing.T) {
 
 // TestRunAssemblerUnreachable asserts that an assembler that never answers is
 // reported as unreachable, alongside a reachable assembler that committed.
+//
+//nolint:paralleltest
 func TestRunAssemblerUnreachable(t *testing.T) {
 	// One assembler serves the new config sequence 1; the other has no server
 	// listening, so it can never be reached.
@@ -91,7 +97,9 @@ func serveAssembler(t *testing.T, configSequence uint64) string {
 	t.Helper()
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	clienttest.ServeConfigDeliver(t, lis, 10, 5, configSequence)
+	clienttest.ServeConfigDeliver(t, lis, clienttest.ConfigLedger{
+		NewestNumber: 10, ConfigIndex: 5, ConfigSequence: configSequence,
+	})
 	return lis.Addr().String()
 }
 

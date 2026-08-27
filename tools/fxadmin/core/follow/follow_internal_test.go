@@ -14,6 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Endpoint addresses reused across the classification and summary tests.
+const (
+	endpointA = "a:1"
+	endpointB = "b:2"
+	endpointC = "c:3"
+	endpointD = "d:4"
+)
+
 // TestClassify asserts an assembler is committed once its last config sequence
 // reaches the expected sequence (>=), behind when it is lower, and unreachable
 // when it never reported a sequence.
@@ -21,7 +29,8 @@ func TestClassify(t *testing.T) {
 	t.Parallel()
 
 	require.Equal(t, statusCommitted, classify(assemblerResult{lastConfigSequence: 5, ok: true}, 5))
-	require.Equal(t, statusCommitted, classify(assemblerResult{lastConfigSequence: 6, ok: true}, 5)) // a later config also counts
+	// A later config sequence also counts as committed.
+	require.Equal(t, statusCommitted, classify(assemblerResult{lastConfigSequence: 6, ok: true}, 5))
 	require.Equal(t, statusBehind, classify(assemblerResult{lastConfigSequence: 4, ok: true}, 5))
 	require.Equal(t, statusUnreachable, classify(assemblerResult{ok: false}, 5))
 }
@@ -34,9 +43,9 @@ func TestFormatSummary(t *testing.T) {
 	t.Parallel()
 
 	results := []assemblerResult{
-		{endpoint: "a:1", lastBlockNumber: 104, lastConfigSequence: 5, ok: true},
-		{endpoint: "b:2", lastBlockNumber: 103, lastConfigSequence: 4, ok: true},
-		{endpoint: "c:3", ok: false},
+		{endpoint: endpointA, lastBlockNumber: 104, lastConfigSequence: 5, ok: true},
+		{endpoint: endpointB, lastBlockNumber: 103, lastConfigSequence: 4, ok: true},
+		{endpoint: endpointC, ok: false},
 	}
 
 	lines := strings.Split(strings.TrimSpace(formatSummary(results, 5, 90*time.Second)), "\n")
@@ -59,9 +68,9 @@ func TestNotCommitted(t *testing.T) {
 	t.Parallel()
 
 	results := []assemblerResult{
-		{endpoint: "a:1", lastConfigSequence: 5, ok: true}, // committed
-		{endpoint: "b:2", lastConfigSequence: 4, ok: true}, // behind
-		{endpoint: "c:3", ok: false},                       // unreachable
+		{endpoint: endpointA, lastConfigSequence: 5, ok: true}, // committed
+		{endpoint: endpointB, lastConfigSequence: 4, ok: true}, // behind
+		{endpoint: endpointC, ok: false},                       // unreachable
 	}
 	require.Equal(t, 2, notCommitted(results, 5)) // behind + unreachable
 	require.Equal(t, 1, notCommitted(results, 4)) // a,b committed; c still unreachable
@@ -73,10 +82,10 @@ func TestSummaryLine(t *testing.T) {
 	t.Parallel()
 
 	results := []assemblerResult{
-		{endpoint: "a:1", lastConfigSequence: 5, ok: true},
-		{endpoint: "b:2", lastConfigSequence: 5, ok: true},
-		{endpoint: "c:3", lastConfigSequence: 4, ok: true},
-		{endpoint: "d:4", ok: false},
+		{endpoint: endpointA, lastConfigSequence: 5, ok: true},
+		{endpoint: endpointB, lastConfigSequence: 5, ok: true},
+		{endpoint: endpointC, lastConfigSequence: 4, ok: true},
+		{endpoint: endpointD, ok: false},
 	}
 
 	line := summaryLine(results, 5)

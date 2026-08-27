@@ -218,7 +218,9 @@ func TestFetchLedgerStatus(t *testing.T) {
 
 	// Newest block is 104; its last-config index points to block 100, which is a
 	// config block at sequence 5.
-	endpoint := test.StartConfigDeliverServer(t, 104, 100, 5)
+	endpoint := test.StartConfigDeliverServer(t, test.ConfigLedger{
+		NewestNumber: 104, ConfigIndex: 100, ConfigSequence: 5,
+	})
 
 	c := &Client{
 		ordererConnInfo: &ordererconn.Info{AssemblerEndpoints: []string{endpoint}},

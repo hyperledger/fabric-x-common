@@ -130,7 +130,9 @@ func pollAssembler(cl *client.Client, endpoint string, expected uint64, deadline
 		if err != nil {
 			logger.Debugf("follow: assembler %s: %v", endpoint, err)
 		} else {
-			result.lastBlockNumber, result.lastConfigSequence, result.ok = ledger.LastBlockNumber, ledger.LastConfigSequence, true
+			result.lastBlockNumber = ledger.LastBlockNumber
+			result.lastConfigSequence = ledger.LastConfigSequence
+			result.ok = true
 			if ledger.LastConfigSequence >= expected {
 				return result
 			}
