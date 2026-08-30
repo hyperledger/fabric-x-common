@@ -92,8 +92,8 @@ func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout t
 	}
 	_, _ = fmt.Print(formatSummary(results, expected, timeout))
 
-	quorum := faultThreshold(cl.NumParties()) + 1
-	agreed, count := agreedConfigBlock(results, expected)
+	quorum := cl.FaultThreshold() + 1
+	agreed, count := agreedConfigBlock(results, expected, quorum)
 	if agreed == nil {
 		return errors.Newf("no config block at last config sequence %d was agreed by a quorum of %d assemblers",
 			expected, quorum)
@@ -106,19 +106,12 @@ func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout t
 	return nil
 }
 
-// faultThreshold returns f, the number of faulty parties a BFT network of n
-// parties tolerates.
-func faultThreshold(n int) int {
-	return (n - 1) / 3
-}
-
-// agreedConfigBlock returns the config block at the expected sequence that f+1
-// of assemblers reported identically, along with the number of
-// assemblers that reported it. It returns nil when no block reaches f+1 copies.
-// Blocks are compared by their header hash, which commits to the block number,
-// previous hash, and data hash.
-func agreedConfigBlock(results []assemblerResult, expected uint64) (*cb.Block, int) {
-	quorum := faultThreshold(len(results)) + 1
+// agreedConfigBlock returns the config block at the expected sequence that a
+// quorum of assemblers reported identically, along with the number of
+// assemblers that reported it. It returns nil when no block reaches quorum
+// copies. Blocks are compared by their header hash, which commits to the block
+// number, previous hash, and data hash.
+func agreedConfigBlock(results []assemblerResult, expected uint64, quorum int) (*cb.Block, int) {
 	counts := make(map[string]int)
 	blocks := make(map[string]*cb.Block)
 	for _, result := range results {

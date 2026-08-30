@@ -11,7 +11,10 @@ import (
 	"testing"
 	"time"
 
+	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/require"
+
+	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
 // Endpoint addresses reused across the classification and summary tests.
@@ -92,4 +95,60 @@ func TestSummaryLine(t *testing.T) {
 	require.Equal(t,
 		"expected last config sequence: 5, 2 out of 4 assemblers committed a block with last config sequence 5",
 		line)
+}
+
+// TestAgreedConfigBlock asserts a block is returned only when the given quorum
+// of assemblers report the identical block (by header hash) at the expected
+// sequence.
+func TestAgreedConfigBlock(t *testing.T) {
+	t.Parallel()
+
+	// blockX and blockY are distinct blocks at the same sequence 5,
+	// as a divergent assembler would serve.
+	blockX := protoutil.NewBlock(5, []byte("x"))
+	blockY := protoutil.NewBlock(5, []byte("y"))
+	at := func(seq uint64, block *cb.Block) assemblerResult {
+		return assemblerResult{lastConfigSequence: seq, configBlock: block, ok: true}
+	}
+
+	t.Run("returns the block once a quorum reports it", func(t *testing.T) {
+		t.Parallel()
+		results := []assemblerResult{at(5, blockX), at(5, blockX), at(5, blockY)}
+		agreed, count := agreedConfigBlock(results, 5, 2)
+		require.NotNil(t, agreed)
+		require.Equal(t, 2, count)
+		require.Equal(t, protoutil.BlockHeaderHash(blockX.GetHeader()), protoutil.BlockHeaderHash(agreed.GetHeader()))
+	})
+
+	t.Run("nil when no block reaches the quorum", func(t *testing.T) {
+		t.Parallel()
+		// Three assemblers at sequence 5 but each on a different block: no block
+		// gathers 2 identical copies.
+		results := []assemblerResult{at(5, blockX), at(5, blockY), at(5, protoutil.NewBlock(5, []byte("z")))}
+		agreed, count := agreedConfigBlock(results, 5, 2)
+		require.Nil(t, agreed)
+		require.Zero(t, count)
+	})
+
+	t.Run("quorum derived from party count may exceed len(results)", func(t *testing.T) {
+		t.Parallel()
+		// Two reachable assemblers agree, but the network has more parties (quorum 3),
+		// so their agreement is not yet enough.
+		results := []assemblerResult{at(5, blockX), at(5, blockX)}
+		agreed, count := agreedConfigBlock(results, 5, 3)
+		require.Nil(t, agreed)
+		require.Zero(t, count)
+	})
+
+	t.Run("ignores results at the wrong sequence or without a block", func(t *testing.T) {
+		t.Parallel()
+		results := []assemblerResult{
+			at(4, blockX),                      // behind: wrong sequence
+			{lastConfigSequence: 5, ok: false}, // unreachable: no block
+			{lastConfigSequence: 5, ok: true},  // committed but nil block
+			at(5, blockX),
+		}
+		agreed, _ := agreedConfigBlock(results, 5, 2)
+		require.Nil(t, agreed) // only one valid copy of blockX
+	})
 }

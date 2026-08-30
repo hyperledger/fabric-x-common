@@ -252,8 +252,7 @@ func (h *Handler) Submit(inputPath, configPath, currentBlockPath string) error {
 		return errors.Wrap(err, "failed to broadcast configuration transaction")
 	}
 
-	f := (cl.NumParties() - 1) / 3
-	return reportBroadcast(statuses, 2*f+1)
+	return reportBroadcast(statuses, 2*cl.FaultThreshold()+1)
 }
 
 // readEnvelope reads and unmarshals a prepared configuration transaction

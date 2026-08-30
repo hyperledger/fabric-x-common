@@ -154,6 +154,12 @@ func (c *Client) NumParties() int {
 	return c.ordererConnInfo.NumParties
 }
 
+// FaultThreshold returns f, the number of faulty parties the network tolerates,
+// derived from the number of parties: f = (n-1)/3.
+func (c *Client) FaultThreshold() int {
+	return (c.ordererConnInfo.NumParties - 1) / 3
+}
+
 // AssemblerEndpoints returns the assembler endpoints the client targets, in
 // config-block order.
 func (c *Client) AssemblerEndpoints() []string {
