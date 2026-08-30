@@ -228,13 +228,12 @@ func (*Handler) Prepare(inputPath, configPath, outputPath string) error {
 // transaction (a common.Envelope) at inputPath and broadcasts it to every
 // router of the network described by the config block at currentBlockPath,
 // using the client identity in the configuration YAML at configPath to sign the
-// connection. It collects the routers' acknowledgements and logs how many
-// routers acknowledged the transaction.
+// connection. It logs each router's outcome and a summary.
 //
-// Submit does not fail on individual router rejections or unreachable routers,
-// including the case where zero routers acknowledged the transaction: each
-// router's outcome is reported by reportBroadcast, and it returns an error only
-// when the broadcast could not be attempted at all (no routers configured).
+// Submit succeeds only when at least 2f+1 of the routers acknowledged the transaction,
+// where f is the number of faulty parties the network tolerates, derived from
+// the number of parties in the config block. Otherwise, it returns an error,
+// so a partial or failed delivery is reported to the caller.
 func (h *Handler) Submit(inputPath, configPath, currentBlockPath string) error {
 	logger.Debugf("tx submit: input=%s config=%s current-block=%s", inputPath, configPath, currentBlockPath)
 
@@ -252,8 +251,9 @@ func (h *Handler) Submit(inputPath, configPath, currentBlockPath string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to broadcast configuration transaction")
 	}
-	reportBroadcast(statuses)
-	return nil
+
+	f := (cl.NumParties() - 1) / 3
+	return reportBroadcast(statuses, 2*f+1)
 }
 
 // readEnvelope reads and unmarshals a prepared configuration transaction
@@ -270,16 +270,28 @@ func readEnvelope(path string) (*cb.Envelope, error) {
 	return envelope, nil
 }
 
-// reportBroadcast logs how many routers acknowledged the transaction, listing
-// first the routers that rejected it or were unreachable.
-func reportBroadcast(statuses []client.RouterStatus) {
+// reportBroadcast logs each router's outcome, then a summary of how
+// many routers acknowledged the transaction against the required quorum. It
+// returns an error when fewer than quorum routers acknowledged, so submission
+// fails on a partial or failed delivery.
+func reportBroadcast(statuses []client.RouterStatus, quorum int) error {
 	for _, status := range statuses {
 		if status.Err != nil {
-			logger.Warnf("router %s failed to acknowledge: %v", status.Endpoint, status.Err)
+			logger.Warnf("router %s did not acknowledge the configuration transaction: %v",
+				status.Endpoint, status.Err)
+		} else {
+			logger.Infof("router %s acknowledged the configuration transaction", status.Endpoint)
 		}
 	}
-	logger.Infof("configuration transaction acknowledged by %d of %d routers",
-		countAcks(statuses), len(statuses))
+
+	acked := countAcks(statuses)
+	if acked < quorum {
+		return errors.Newf("configuration transaction acknowledged by %d of %d routers, below the quorum of %d",
+			acked, len(statuses), quorum)
+	}
+	logger.Infof("configuration transaction acknowledged by %d of %d routers, quorum of %d reached",
+		acked, len(statuses), quorum)
+	return nil
 }
 
 // countAcks returns the number of routers that acknowledged the transaction,

@@ -64,7 +64,7 @@ func TestRunTimeoutSomeBehind(t *testing.T) {
 	configPath, blockPath := newFollowInputs(t, "test-channel", endpoints)
 
 	out := captureStdout(t, func() {
-		require.NoError(t, follow.New().Run(configPath, blockPath, time.Nanosecond))
+		require.NoError(t, follow.New().Run(configPath, blockPath, 500*time.Millisecond))
 	})
 
 	require.Equal(t, 2, strings.Count(out, "committed"))
@@ -82,7 +82,7 @@ func TestRunAssemblerUnreachable(t *testing.T) {
 	configPath, blockPath := newFollowInputs(t, "test-channel", endpoints)
 
 	out := captureStdout(t, func() {
-		require.NoError(t, follow.New().Run(configPath, blockPath, time.Nanosecond))
+		require.NoError(t, follow.New().Run(configPath, blockPath, 500*time.Millisecond))
 	})
 
 	require.Equal(t, 1, strings.Count(out, "committed"))

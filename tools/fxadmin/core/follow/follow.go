@@ -9,6 +9,7 @@ SPDX-License-Identifier: Apache-2.0
 package follow
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -123,10 +124,15 @@ func pollAll(cl *client.Client, endpoints []string, expectedSequence uint64, tim
 
 // pollAssembler polls one assembler's last config sequence until it reaches
 // expected, or the deadline passes, returning the last sequence it observed.
+// Each query is bounded by the remaining time until deadline, so a hung
+// assembler cannot block past the command's timeout, and the sleep between polls
+// is capped to the remaining time.
 func pollAssembler(cl *client.Client, endpoint string, expected uint64, deadline time.Time) assemblerResult {
 	result := assemblerResult{endpoint: endpoint}
 	for {
-		ledger, err := cl.FetchLedgerStatus(endpoint)
+		ctx, cancel := context.WithDeadline(context.Background(), deadline)
+		ledger, err := cl.FetchLedgerStatus(ctx, endpoint)
+		cancel()
 		if err != nil {
 			logger.Debugf("follow: assembler %s: %v", endpoint, err)
 		} else {
@@ -138,10 +144,11 @@ func pollAssembler(cl *client.Client, endpoint string, expected uint64, deadline
 			}
 		}
 
-		if time.Now().After(deadline) {
+		remaining := time.Until(deadline)
+		if remaining <= 0 {
 			return result
 		}
-		time.Sleep(pollInterval)
+		time.Sleep(min(pollInterval, remaining))
 	}
 }
 

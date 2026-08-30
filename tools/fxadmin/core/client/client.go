@@ -22,6 +22,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/common/util"
@@ -135,6 +136,12 @@ func (c *Client) ChannelID() string {
 	return c.ordererConnInfo.ChannelID
 }
 
+// NumParties returns the number of parties in the network the client targets,
+// as read from the config block's ARMA shared config.
+func (c *Client) NumParties() int {
+	return c.ordererConnInfo.NumParties
+}
+
 // AssemblerEndpoints returns the assembler endpoints the client targets, in
 // config-block order.
 func (c *Client) AssemblerEndpoints() []string {
@@ -155,7 +162,7 @@ func (c *Client) FetchBlock(seek *ab.SeekInfo) (*cb.Block, error) {
 
 	var errs []error
 	for _, endpoint := range c.ordererConnInfo.AssemblerEndpoints {
-		block, err := c.fetchBlockFromEndpoint(endpoint, envelope)
+		block, err := c.fetchBlockFromEndpoint(context.Background(), endpoint, envelope)
 		if err == nil {
 			return block, nil
 		}
@@ -176,13 +183,14 @@ type LedgerStatus struct {
 // assembler's newest block (whose number is the ledger's last block), follows its
 // last-config index to the config block, and reads that block's sequence. Unlike
 // FetchBlock, it targets one endpoint and does not fail over, so callers (e.g.
-// `fxadmin follow`) can track each assembler's ledger independently.
-func (c *Client) FetchLedgerStatus(endpoint string) (LedgerStatus, error) {
+// `fxadmin follow`) can track each assembler's ledger independently. ctx bounds
+// the whole operation, including both underlying block fetches.
+func (c *Client) FetchLedgerStatus(ctx context.Context, endpoint string) (LedgerStatus, error) {
 	newestEnvelope, err := c.createSignedDeliverSeekEnvelope(seek.Newest())
 	if err != nil {
 		return LedgerStatus{}, err
 	}
-	newest, err := c.fetchBlockFromEndpoint(endpoint, newestEnvelope)
+	newest, err := c.fetchBlockFromEndpoint(ctx, endpoint, newestEnvelope)
 	if err != nil {
 		return LedgerStatus{}, err
 	}
@@ -200,7 +208,7 @@ func (c *Client) FetchLedgerStatus(endpoint string) (LedgerStatus, error) {
 		if err != nil {
 			return LedgerStatus{}, err
 		}
-		if configBlock, err = c.fetchBlockFromEndpoint(endpoint, configEnvelope); err != nil {
+		if configBlock, err = c.fetchBlockFromEndpoint(ctx, endpoint, configEnvelope); err != nil {
 			return LedgerStatus{}, err
 		}
 	}
@@ -260,16 +268,38 @@ func (c *Client) createSignedDeliverSeekEnvelope(seek *ab.SeekInfo) (*cb.Envelop
 	return envelope, nil
 }
 
+// dial opens a gRPC connection to endpoint, bounded by both ctx and the
+// configured DialTimeout, so a caller's deadline is honored while a single dial
+// is still capped. It mirrors comm.ClientConfig.Dial but derives its context
+// from ctx instead of context.Background().
+func (c *Client) dial(ctx context.Context, endpoint string) (*grpc.ClientConn, error) {
+	dialOpts, err := c.clientConfig.DialOptions()
+	if err != nil {
+		return nil, err
+	}
+	dialCtx, cancel := context.WithTimeout(ctx, c.clientConfig.DialTimeout)
+	defer cancel()
+	//nolint:staticcheck // grpc.DialContext mirrors comm.ClientConfig.Dial.
+	conn, err := grpc.DialContext(dialCtx, endpoint, dialOpts...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create new connection")
+	}
+	return conn, nil
+}
+
 // fetchBlockFromEndpoint opens a Deliver stream to endpoint, sends the seek envelope, and
-// receives exactly one block.
-func (c *Client) fetchBlockFromEndpoint(endpoint string, envelope *cb.Envelope) (*cb.Block, error) {
-	conn, err := c.clientConfig.Dial(endpoint)
+// receives exactly one block. ctx bounds both the dial and the RPC (capped by
+// rpcTimeout).
+func (c *Client) fetchBlockFromEndpoint(
+	ctx context.Context, endpoint string, envelope *cb.Envelope,
+) (*cb.Block, error) {
+	conn, err := c.dial(ctx, endpoint)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to dial assembler %s", endpoint)
 	}
 	defer func() { _ = conn.Close() }()
 
-	ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
+	ctx, cancel := context.WithTimeout(ctx, rpcTimeout)
 	defer cancel()
 
 	stream, err := ab.NewAtomicBroadcastClient(conn).Deliver(ctx)
