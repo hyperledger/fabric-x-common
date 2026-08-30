@@ -38,7 +38,9 @@ import (
 //
 //nolint:paralleltest
 func TestRunAllAssemblersCommitted(t *testing.T) {
-	endpoints := []string{serveAssembler(t, 1), serveAssembler(t, 1), serveAssembler(t, 1)}
+	endpoints := []string{
+		serveAssembler(t, 1), serveAssembler(t, 1), serveAssembler(t, 1), serveAssembler(t, 1),
+	}
 	configPath, blockPath := newFollowInputs(t, "test-channel", endpoints)
 	outputPath := filepath.Join(t.TempDir(), "next_config.pb")
 
@@ -47,9 +49,9 @@ func TestRunAllAssemblersCommitted(t *testing.T) {
 	})
 
 	require.Contains(t, out, "LAST BLOCK")
-	require.Equal(t, 3, strings.Count(out, "committed"))
+	require.Equal(t, 4, strings.Count(out, "committed"))
 	committedRows := regexp.MustCompile(`\s10\s+1\s+committed`).FindAllString(out, -1)
-	require.Len(t, committedRows, 3)
+	require.Len(t, committedRows, 4)
 	require.NotContains(t, out, "behind")
 	require.NotContains(t, out, "unreachable")
 
@@ -63,19 +65,21 @@ func TestRunAllAssemblersCommitted(t *testing.T) {
 //
 //nolint:paralleltest
 func TestRunTimeoutSomeBehind(t *testing.T) {
-	// Two assemblers already serve the new config sequence 1; one is still at the
-	// current sequence 0, so it never reaches the expected sequence.
-	endpoints := []string{serveAssembler(t, 1), serveAssembler(t, 1), serveAssembler(t, 0)}
+	// Three of four assemblers already serve the new config sequence 1; the fourth
+	// is still at the current sequence 0, so it never reaches the expected sequence.
+	endpoints := []string{
+		serveAssembler(t, 1), serveAssembler(t, 1), serveAssembler(t, 1), serveAssembler(t, 0),
+	}
 	configPath, blockPath := newFollowInputs(t, "test-channel", endpoints)
 	outputPath := filepath.Join(t.TempDir(), "next_config.pb")
 
-	// With 3 parties the quorum is f+1 = 1, so the two committed assemblers still
-	// agree on the next config block; it is written despite the third being behind.
+	// With 4 parties the quorum is f+1 = 2, so the three committed assemblers still
+	// agree on the next config block; it is written despite the fourth being behind.
 	out := captureStdout(t, func() {
 		require.NoError(t, follow.New().Run(configPath, blockPath, outputPath, 500*time.Millisecond))
 	})
 
-	require.Equal(t, 2, strings.Count(out, "committed"))
+	require.Equal(t, 3, strings.Count(out, "committed"))
 	require.Equal(t, 1, strings.Count(out, "behind"))
 	require.Equal(t, uint64(1), sequenceOfWrittenBlock(t, outputPath))
 }
@@ -85,20 +89,22 @@ func TestRunTimeoutSomeBehind(t *testing.T) {
 //
 //nolint:paralleltest
 func TestRunAssemblerUnreachable(t *testing.T) {
-	// One assembler serves the new config sequence 1; the other has no server
-	// listening, so it can never be reached.
-	endpoints := []string{serveAssembler(t, 1), clienttest.FreeAddress(t)}
+	// Two of four assemblers serve the new config sequence 1; the other two have no
+	// server listening, so they can never be reached.
+	endpoints := []string{
+		serveAssembler(t, 1), serveAssembler(t, 1), clienttest.FreeAddress(t), clienttest.FreeAddress(t),
+	}
 	configPath, blockPath := newFollowInputs(t, "test-channel", endpoints)
 	outputPath := filepath.Join(t.TempDir(), "next_config.pb")
 
-	// With 2 parties the quorum is f+1 = 1, so the one reachable committed
-	// assembler is enough to agree on and write the next config block.
+	// With 4 parties the quorum is f+1 = 2, so the two reachable committed
+	// assemblers are exactly enough to agree on and write the next config block.
 	out := captureStdout(t, func() {
 		require.NoError(t, follow.New().Run(configPath, blockPath, outputPath, 500*time.Millisecond))
 	})
 
-	require.Equal(t, 1, strings.Count(out, "committed"))
-	require.Equal(t, 1, strings.Count(out, "unreachable"))
+	require.Equal(t, 2, strings.Count(out, "committed"))
+	require.Equal(t, 2, strings.Count(out, "unreachable"))
 	require.Equal(t, uint64(1), sequenceOfWrittenBlock(t, outputPath))
 }
 

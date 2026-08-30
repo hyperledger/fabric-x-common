@@ -21,8 +21,8 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
 )
 
@@ -109,8 +109,7 @@ func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout t
 // agreedConfigBlock returns the config block at the expected sequence that a
 // quorum of assemblers reported identically, along with the number of
 // assemblers that reported it. It returns nil when no block reaches quorum
-// copies. Blocks are compared by their header hash, which commits to the block
-// number, previous hash, and data hash.
+// copies. Blocks are compared by their full marshaled bytes.
 func agreedConfigBlock(results []assemblerResult, expected uint64, quorum int) (*cb.Block, int) {
 	counts := make(map[string]int)
 	blocks := make(map[string]*cb.Block)
@@ -118,7 +117,12 @@ func agreedConfigBlock(results []assemblerResult, expected uint64, quorum int) (
 		if !result.ok || result.lastConfigSequence != expected || result.configBlock == nil {
 			continue
 		}
-		key := string(protoutil.BlockHeaderHash(result.configBlock.GetHeader()))
+		marshaled, err := proto.Marshal(result.configBlock)
+		if err != nil {
+			logger.Debugf("follow: skipping unmarshalable config block from %s: %v", result.endpoint, err)
+			continue
+		}
+		key := string(marshaled)
 		counts[key]++
 		blocks[key] = result.configBlock
 		if counts[key] >= quorum {

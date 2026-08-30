@@ -69,7 +69,11 @@ func (h *Handler) Block(configPath, currentBlockPath, reference, outputPath stri
 	if err != nil {
 		return err
 	}
-	return client.WriteBlock(block, outputPath)
+	if err := client.WriteBlock(block, outputPath); err != nil {
+		return err
+	}
+	fmt.Printf("block %d written to %s\n", block.GetHeader().GetNumber(), outputPath)
+	return nil
 }
 
 // Config implements `fxadmin ledger config <reference>`, fetching the last
@@ -102,7 +106,11 @@ func (h *Handler) Config(configPath, currentBlockPath, reference, outputPath str
 			return err
 		}
 	}
-	return client.WriteBlock(configBlock, outputPath)
+	if err := client.WriteBlock(configBlock, outputPath); err != nil {
+		return err
+	}
+	fmt.Printf("block %d written to %s\n", configBlock.GetHeader().GetNumber(), outputPath)
+	return nil
 }
 
 // newOrdererClient loads the user configuration and the current config block, then
