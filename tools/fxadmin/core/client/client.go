@@ -173,10 +173,12 @@ func (c *Client) FetchBlock(seek *ab.SeekInfo) (*cb.Block, error) {
 }
 
 // LedgerStatus summarizes a single assembler's ledger: the number of its newest
-// block (its height indicator) and the config sequence of its last config block.
+// block (its height indicator), the config sequence of its last config block,
+// and the last config block itself.
 type LedgerStatus struct {
 	LastBlockNumber    uint64
 	LastConfigSequence uint64
+	ConfigBlock        *cb.Block
 }
 
 // FetchLedgerStatus returns the ledger status of a single assembler. It seeks the
@@ -217,7 +219,7 @@ func (c *Client) FetchLedgerStatus(ctx context.Context, endpoint string) (Ledger
 	if err != nil {
 		return LedgerStatus{}, err
 	}
-	return LedgerStatus{LastBlockNumber: lastBlock, LastConfigSequence: sequence}, nil
+	return LedgerStatus{LastBlockNumber: lastBlock, LastConfigSequence: sequence, ConfigBlock: configBlock}, nil
 }
 
 // RouterStatus is the outcome of broadcasting an envelope to a single router.

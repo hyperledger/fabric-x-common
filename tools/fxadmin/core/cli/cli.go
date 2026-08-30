@@ -247,7 +247,10 @@ func (c *CLI) addFollowCommand() {
 		ExistingFile()
 	timeout := follow.Flag(flagTimeout, "How long to pull blocks from the assemblers before reporting results.").
 		Required().Duration()
+	output := follow.
+		Flag(flagOutput, "Path to write the agreed next config block to, for use as the next --current-block.").
+		Required().String()
 	c.register(follow, func() error {
-		return c.handlers.Follow.Run(*config, *currentBlock, *timeout)
+		return c.handlers.Follow.Run(*config, *currentBlock, *output, *timeout)
 	})
 }

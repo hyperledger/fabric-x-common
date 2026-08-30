@@ -11,15 +11,20 @@ package follow
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"text/tabwriter"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
+	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
 )
 
@@ -54,8 +59,16 @@ func New() *Handler {
 // elapses, and prints a per-assembler summary. A config update changes at most
 // one assembler, so the endpoints in the current block still reach the rest;
 // assemblers that cannot be reached are reported as unreachable.
-func (h *Handler) Run(configPath, currentBlockPath string, timeout time.Duration) error {
-	logger.Debugf("follow: config=%s current-block=%s timeout=%s", configPath, currentBlockPath, timeout)
+//
+// Once at least f+1 assemblers report the identical next config block (f being
+// the number of faulty parties the network tolerates), that block is trusted —
+// f+1 matching copies guarantee at least one came from an honest assembler — and
+// written to outputPath, ready to be the --current-block of the next
+// reconfiguration. Run returns an error if no such agreement is reached before
+// the timeout.
+func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout time.Duration) error {
+	logger.Debugf("follow: config=%s current-block=%s output=%s timeout=%s",
+		configPath, currentBlockPath, outputPath, timeout)
 
 	block, err := client.ReadConfigBlock(currentBlockPath)
 	if err != nil {
@@ -80,6 +93,59 @@ func (h *Handler) Run(configPath, currentBlockPath string, timeout time.Duration
 			timeout, pending, len(results), expected)
 	}
 	_, _ = fmt.Print(formatSummary(results, expected, timeout))
+
+	quorum := faultThreshold(cl.NumParties()) + 1
+	agreed, count := agreedConfigBlock(results, expected)
+	if agreed == nil {
+		return errors.Newf("no config block at last config sequence %d was agreed by a quorum of %d assemblers",
+			expected, quorum)
+	}
+	if err := writeBlock(agreed, outputPath); err != nil {
+		return err
+	}
+	logger.Infof("config block at last config sequence %d agreed by %d assemblers (quorum %d), written to %s",
+		expected, count, quorum, outputPath)
+	return nil
+}
+
+// faultThreshold returns f, the number of faulty parties a BFT network of n
+// parties tolerates.
+func faultThreshold(n int) int {
+	return (n - 1) / 3
+}
+
+// agreedConfigBlock returns the config block at the expected sequence that f+1
+// of assemblers reported identically, along with the number of
+// assemblers that reported it. It returns nil when no block reaches f+1 copies.
+// Blocks are compared by their header hash, which commits to the block number,
+// previous hash, and data hash.
+func agreedConfigBlock(results []assemblerResult, expected uint64) (*cb.Block, int) {
+	quorum := faultThreshold(len(results)) + 1
+	counts := make(map[string]int)
+	blocks := make(map[string]*cb.Block)
+	for _, result := range results {
+		if !result.ok || result.lastConfigSequence != expected || result.configBlock == nil {
+			continue
+		}
+		key := string(protoutil.BlockHeaderHash(result.configBlock.GetHeader()))
+		counts[key]++
+		blocks[key] = result.configBlock
+		if counts[key] >= quorum {
+			return blocks[key], counts[key]
+		}
+	}
+	return nil, 0
+}
+
+// writeBlock marshals block and writes it to path.
+func writeBlock(block *cb.Block, path string) error {
+	content, err := proto.Marshal(block)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal agreed config block")
+	}
+	if err := os.WriteFile(path, content, 0o600); err != nil {
+		return errors.Wrapf(err, "failed to write config block to %q", path)
+	}
 	return nil
 }
 
@@ -96,12 +162,14 @@ func notCommitted(results []assemblerResult, expected uint64) int {
 }
 
 // assemblerResult is the ledger status observed at a single assembler: its last
-// block number (ledger height indicator) and last config sequence. ok is false
-// when the assembler never reported a status before the deadline.
+// block number (ledger height indicator), last config sequence, and last config
+// block. ok is false when the assembler never reported a status before the
+// deadline.
 type assemblerResult struct {
 	endpoint           string
 	lastBlockNumber    uint64
 	lastConfigSequence uint64
+	configBlock        *cb.Block
 	ok                 bool
 }
 
@@ -138,6 +206,7 @@ func pollAssembler(cl *client.Client, endpoint string, expected uint64, deadline
 		} else {
 			result.lastBlockNumber = ledger.LastBlockNumber
 			result.lastConfigSequence = ledger.LastConfigSequence
+			result.configBlock = ledger.ConfigBlock
 			result.ok = true
 			if ledger.LastConfigSequence >= expected {
 				return result
