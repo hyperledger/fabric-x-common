@@ -11,7 +11,6 @@ package follow
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"text/tabwriter"
@@ -22,7 +21,6 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
@@ -100,7 +98,7 @@ func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout t
 		return errors.Newf("no config block at last config sequence %d was agreed by a quorum of %d assemblers",
 			expected, quorum)
 	}
-	if err := writeBlock(agreed, outputPath); err != nil {
+	if err := client.WriteBlock(agreed, outputPath); err != nil {
 		return err
 	}
 	logger.Infof("config block at last config sequence %d agreed by %d assemblers (quorum %d), written to %s",
@@ -135,18 +133,6 @@ func agreedConfigBlock(results []assemblerResult, expected uint64) (*cb.Block, i
 		}
 	}
 	return nil, 0
-}
-
-// writeBlock marshals block and writes it to path.
-func writeBlock(block *cb.Block, path string) error {
-	content, err := proto.Marshal(block)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal agreed config block")
-	}
-	if err := os.WriteFile(path, content, 0o600); err != nil {
-		return errors.Wrapf(err, "failed to write config block to %q", path)
-	}
-	return nil
 }
 
 // notCommitted returns how many assemblers had not committed a block at the

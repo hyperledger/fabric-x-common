@@ -109,6 +109,18 @@ func ReadConfigBlock(path string) (*cb.Block, error) {
 	return block, nil
 }
 
+// WriteBlock marshals block and writes it to path.
+func WriteBlock(block *cb.Block, path string) error {
+	content, err := proto.Marshal(block)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal block")
+	}
+	if err := os.WriteFile(path, content, 0o600); err != nil {
+		return errors.Wrapf(err, "failed to write block to %q", path)
+	}
+	return nil
+}
+
 // SequenceFromBlock returns the config sequence recorded in a config block's
 // configuration envelope. It reads the sequence field directly rather than
 // building a channel config bundle, so it needs no BCCSP.
