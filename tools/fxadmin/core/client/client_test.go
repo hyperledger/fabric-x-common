@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package client
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -227,7 +228,7 @@ func TestFetchLedgerStatus(t *testing.T) {
 		clientConfig:    comm.ClientConfig{DialTimeout: 5 * time.Second},
 	}
 
-	ledger, err := c.FetchLedgerStatus(endpoint)
+	ledger, err := c.FetchLedgerStatus(context.Background(), endpoint)
 	require.NoError(t, err)
 	require.Equal(t, uint64(104), ledger.LastBlockNumber)
 	require.Equal(t, uint64(5), ledger.LastConfigSequence)
@@ -243,8 +244,31 @@ func TestFetchLedgerStatusUnreachable(t *testing.T) {
 		clientConfig:    comm.ClientConfig{DialTimeout: 2 * time.Second},
 	}
 
-	_, err := c.FetchLedgerStatus(test.FreeAddress(t))
+	_, err := c.FetchLedgerStatus(context.Background(), test.FreeAddress(t))
 	require.Error(t, err)
+}
+
+// TestFetchLedgerStatusHonorsContextDeadline asserts that the context deadline
+// bounds the call: against an address whose TCP connect hangs, the call returns
+// when the (short) context deadline elapses rather than blocking for the much
+// larger dial timeout.
+func TestFetchLedgerStatusHonorsContextDeadline(t *testing.T) {
+	t.Parallel()
+
+	c := &Client{
+		ordererConnInfo: &ordererconn.Info{},
+		// A large dial timeout: if the context were ignored, the call would block
+		// for this long instead of the context deadline below.
+		clientConfig: comm.ClientConfig{DialTimeout: time.Minute},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+
+	start := time.Now()
+	_, err := c.FetchLedgerStatus(ctx, "203.0.113.1:7051")
+	require.Error(t, err)
+	require.Less(t, time.Since(start), 10*time.Second)
 }
 
 func TestNewClientConfig(t *testing.T) {
