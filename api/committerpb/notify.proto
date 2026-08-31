@@ -22,7 +22,7 @@ service Notifier {
 
     // StreamAllTransactions allows clients to subscribe to all committed transactions
     // with optional filtering by namespace and status.
-    rpc StreamAllTransactions (StreamAllRequest) returns (stream TxEventBatch);
+    rpc StreamAllTransactions (StreamAllRequest) returns (stream BlockEvent);
 }
 
 // NotificationRequest is sent by the clients to subscribe to events.
@@ -74,13 +74,19 @@ message StreamAllRequest {
     bool include_metadata = 5;
 }
 
-// TxEventBatch contains a batch of transaction events from a single block.
-message TxEventBatch {
+// BlockEvent contains a batch of transaction events from a single block.
+message BlockEvent {
     // The block number from which these transactions originated.
     uint64 block_number = 1;
 
     // List of transaction events (may be filtered based on request).
     repeated TxEvent events = 2;
+
+    // The hash of the block from which these transactions originated.
+    bytes block_hash = 3;
+
+    // The hash of the previous block.
+    bytes prev_block_hash = 4;
 }
 
 // TxEvent represents a single transaction event.

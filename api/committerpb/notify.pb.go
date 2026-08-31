@@ -288,31 +288,35 @@ func (x *StreamAllRequest) GetIncludeMetadata() bool {
 	return false
 }
 
-// TxEventBatch contains a batch of transaction events from a single block.
-type TxEventBatch struct {
+// BlockEvent contains a batch of transaction events from a single block.
+type BlockEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The block number from which these transactions originated.
 	BlockNumber uint64 `protobuf:"varint,1,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
 	// List of transaction events (may be filtered based on request).
-	Events        []*TxEvent `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	Events []*TxEvent `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	// The hash of the block from which these transactions originated.
+	BlockHash []byte `protobuf:"bytes,3,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty"`
+	// The hash of the previous block.
+	PrevBlockHash []byte `protobuf:"bytes,4,opt,name=prev_block_hash,json=prevBlockHash,proto3" json:"prev_block_hash,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *TxEventBatch) Reset() {
-	*x = TxEventBatch{}
+func (x *BlockEvent) Reset() {
+	*x = BlockEvent{}
 	mi := &file_api_committerpb_notify_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TxEventBatch) String() string {
+func (x *BlockEvent) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TxEventBatch) ProtoMessage() {}
+func (*BlockEvent) ProtoMessage() {}
 
-func (x *TxEventBatch) ProtoReflect() protoreflect.Message {
+func (x *BlockEvent) ProtoReflect() protoreflect.Message {
 	mi := &file_api_committerpb_notify_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -324,21 +328,35 @@ func (x *TxEventBatch) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TxEventBatch.ProtoReflect.Descriptor instead.
-func (*TxEventBatch) Descriptor() ([]byte, []int) {
+// Deprecated: Use BlockEvent.ProtoReflect.Descriptor instead.
+func (*BlockEvent) Descriptor() ([]byte, []int) {
 	return file_api_committerpb_notify_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *TxEventBatch) GetBlockNumber() uint64 {
+func (x *BlockEvent) GetBlockNumber() uint64 {
 	if x != nil {
 		return x.BlockNumber
 	}
 	return 0
 }
 
-func (x *TxEventBatch) GetEvents() []*TxEvent {
+func (x *BlockEvent) GetEvents() []*TxEvent {
 	if x != nil {
 		return x.Events
+	}
+	return nil
+}
+
+func (x *BlockEvent) GetBlockHash() []byte {
+	if x != nil {
+		return x.BlockHash
+	}
+	return nil
+}
+
+func (x *BlockEvent) GetPrevBlockHash() []byte {
+	if x != nil {
+		return x.PrevBlockHash
 	}
 	return nil
 }
@@ -450,10 +468,14 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\rfilter_status\x18\x02 \x03(\x0e2\x13.committerpb.StatusR\ffilterStatus\x125\n" +
 	"\x17include_read_write_sets\x18\x03 \x01(\bR\x14includeReadWriteSets\x121\n" +
 	"\x14include_endorsements\x18\x04 \x01(\bR\x13includeEndorsements\x12)\n" +
-	"\x10include_metadata\x18\x05 \x01(\bR\x0fincludeMetadata\"_\n" +
-	"\fTxEventBatch\x12!\n" +
+	"\x10include_metadata\x18\x05 \x01(\bR\x0fincludeMetadata\"\xa4\x01\n" +
+	"\n" +
+	"BlockEvent\x12!\n" +
 	"\fblock_number\x18\x01 \x01(\x04R\vblockNumber\x12,\n" +
-	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\"\xf5\x01\n" +
+	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\x12\x1d\n" +
+	"\n" +
+	"block_hash\x18\x03 \x01(\fR\tblockHash\x12&\n" +
+	"\x0fprev_block_hash\x18\x04 \x01(\fR\rprevBlockHash\"\xf5\x01\n" +
 	"\aTxEvent\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status\x12:\n" +
@@ -461,10 +483,10 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"namespaces\x18\x03 \x03(\v2\x1a.applicationpb.TxNamespaceR\n" +
 	"namespaces\x12?\n" +
 	"\fendorsements\x18\x04 \x03(\v2\x1b.applicationpb.EndorsementsR\fendorsements\x12\x1a\n" +
-	"\bmetadata\x18\x05 \x03(\fR\bmetadata2\xc2\x01\n" +
+	"\bmetadata\x18\x05 \x03(\fR\bmetadata2\xc0\x01\n" +
 	"\bNotifier\x12a\n" +
-	"\x16OpenNotificationStream\x12 .committerpb.NotificationRequest\x1a!.committerpb.NotificationResponse(\x010\x01\x12S\n" +
-	"\x15StreamAllTransactions\x12\x1d.committerpb.StreamAllRequest\x1a\x19.committerpb.TxEventBatch0\x01B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"\x16OpenNotificationStream\x12 .committerpb.NotificationRequest\x1a!.committerpb.NotificationResponse(\x010\x01\x12Q\n" +
+	"\x15StreamAllTransactions\x12\x1d.committerpb.StreamAllRequest\x1a\x17.committerpb.BlockEvent0\x01B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_notify_proto_rawDescOnce sync.Once
@@ -484,7 +506,7 @@ var file_api_committerpb_notify_proto_goTypes = []any{
 	(*NotificationResponse)(nil),       // 1: committerpb.NotificationResponse
 	(*RejectedTxIds)(nil),              // 2: committerpb.RejectedTxIds
 	(*StreamAllRequest)(nil),           // 3: committerpb.StreamAllRequest
-	(*TxEventBatch)(nil),               // 4: committerpb.TxEventBatch
+	(*BlockEvent)(nil),                 // 4: committerpb.BlockEvent
 	(*TxEvent)(nil),                    // 5: committerpb.TxEvent
 	(*TxIDsBatch)(nil),                 // 6: committerpb.TxIDsBatch
 	(*durationpb.Duration)(nil),        // 7: google.protobuf.Duration
@@ -500,7 +522,7 @@ var file_api_committerpb_notify_proto_depIdxs = []int32{
 	8,  // 2: committerpb.NotificationResponse.tx_status_events:type_name -> committerpb.TxStatus
 	2,  // 3: committerpb.NotificationResponse.rejected_tx_ids:type_name -> committerpb.RejectedTxIds
 	9,  // 4: committerpb.StreamAllRequest.filter_status:type_name -> committerpb.Status
-	5,  // 5: committerpb.TxEventBatch.events:type_name -> committerpb.TxEvent
+	5,  // 5: committerpb.BlockEvent.events:type_name -> committerpb.TxEvent
 	10, // 6: committerpb.TxEvent.ref:type_name -> committerpb.TxRef
 	9,  // 7: committerpb.TxEvent.status:type_name -> committerpb.Status
 	11, // 8: committerpb.TxEvent.namespaces:type_name -> applicationpb.TxNamespace
@@ -508,7 +530,7 @@ var file_api_committerpb_notify_proto_depIdxs = []int32{
 	0,  // 10: committerpb.Notifier.OpenNotificationStream:input_type -> committerpb.NotificationRequest
 	3,  // 11: committerpb.Notifier.StreamAllTransactions:input_type -> committerpb.StreamAllRequest
 	1,  // 12: committerpb.Notifier.OpenNotificationStream:output_type -> committerpb.NotificationResponse
-	4,  // 13: committerpb.Notifier.StreamAllTransactions:output_type -> committerpb.TxEventBatch
+	4,  // 13: committerpb.Notifier.StreamAllTransactions:output_type -> committerpb.BlockEvent
 	12, // [12:14] is the sub-list for method output_type
 	10, // [10:12] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name

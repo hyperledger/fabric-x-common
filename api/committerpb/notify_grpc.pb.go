@@ -37,7 +37,7 @@ type NotifierClient interface {
 	OpenNotificationStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[NotificationRequest, NotificationResponse], error)
 	// StreamAllTransactions allows clients to subscribe to all committed transactions
 	// with optional filtering by namespace and status.
-	StreamAllTransactions(ctx context.Context, in *StreamAllRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[TxEventBatch], error)
+	StreamAllTransactions(ctx context.Context, in *StreamAllRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[BlockEvent], error)
 }
 
 type notifierClient struct {
@@ -61,13 +61,13 @@ func (c *notifierClient) OpenNotificationStream(ctx context.Context, opts ...grp
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Notifier_OpenNotificationStreamClient = grpc.BidiStreamingClient[NotificationRequest, NotificationResponse]
 
-func (c *notifierClient) StreamAllTransactions(ctx context.Context, in *StreamAllRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[TxEventBatch], error) {
+func (c *notifierClient) StreamAllTransactions(ctx context.Context, in *StreamAllRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[BlockEvent], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &Notifier_ServiceDesc.Streams[1], Notifier_StreamAllTransactions_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StreamAllRequest, TxEventBatch]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StreamAllRequest, BlockEvent]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (c *notifierClient) StreamAllTransactions(ctx context.Context, in *StreamAl
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Notifier_StreamAllTransactionsClient = grpc.ServerStreamingClient[TxEventBatch]
+type Notifier_StreamAllTransactionsClient = grpc.ServerStreamingClient[BlockEvent]
 
 // NotifierServer is the server API for Notifier service.
 // All implementations must embed UnimplementedNotifierServer
@@ -89,7 +89,7 @@ type NotifierServer interface {
 	OpenNotificationStream(grpc.BidiStreamingServer[NotificationRequest, NotificationResponse]) error
 	// StreamAllTransactions allows clients to subscribe to all committed transactions
 	// with optional filtering by namespace and status.
-	StreamAllTransactions(*StreamAllRequest, grpc.ServerStreamingServer[TxEventBatch]) error
+	StreamAllTransactions(*StreamAllRequest, grpc.ServerStreamingServer[BlockEvent]) error
 	mustEmbedUnimplementedNotifierServer()
 }
 
@@ -103,7 +103,7 @@ type UnimplementedNotifierServer struct{}
 func (UnimplementedNotifierServer) OpenNotificationStream(grpc.BidiStreamingServer[NotificationRequest, NotificationResponse]) error {
 	return status.Error(codes.Unimplemented, "method OpenNotificationStream not implemented")
 }
-func (UnimplementedNotifierServer) StreamAllTransactions(*StreamAllRequest, grpc.ServerStreamingServer[TxEventBatch]) error {
+func (UnimplementedNotifierServer) StreamAllTransactions(*StreamAllRequest, grpc.ServerStreamingServer[BlockEvent]) error {
 	return status.Error(codes.Unimplemented, "method StreamAllTransactions not implemented")
 }
 func (UnimplementedNotifierServer) mustEmbedUnimplementedNotifierServer() {}
@@ -139,11 +139,11 @@ func _Notifier_StreamAllTransactions_Handler(srv interface{}, stream grpc.Server
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(NotifierServer).StreamAllTransactions(m, &grpc.GenericServerStream[StreamAllRequest, TxEventBatch]{ServerStream: stream})
+	return srv.(NotifierServer).StreamAllTransactions(m, &grpc.GenericServerStream[StreamAllRequest, BlockEvent]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Notifier_StreamAllTransactionsServer = grpc.ServerStreamingServer[TxEventBatch]
+type Notifier_StreamAllTransactionsServer = grpc.ServerStreamingServer[BlockEvent]
 
 // Notifier_ServiceDesc is the grpc.ServiceDesc for Notifier service.
 // It's only intended for direct use with grpc.RegisterService,
