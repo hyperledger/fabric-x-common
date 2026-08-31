@@ -23,6 +23,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
 	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/util"
+	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 	"github.com/hyperledger/fabric-x-common/tools/cryptogen"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client/test"
@@ -466,6 +467,13 @@ func TestPrepare(t *testing.T) {
 	creator, err := identity.Serialize()
 	require.NoError(t, err)
 	require.Equal(t, creator, signatureHeader.GetCreator())
+
+	// The channel header carries a transaction ID derived from the signature
+	// header's nonce and creator.
+	require.NotEmpty(t, channelHeader.GetTxId())
+	require.Equal(t,
+		protoutil.ComputeTxID(signatureHeader.GetNonce(), signatureHeader.GetCreator()),
+		channelHeader.GetTxId())
 
 	require.Equal(t, endorsed.GetConfigUpdate(), wrapped.GetConfigUpdate())
 }
