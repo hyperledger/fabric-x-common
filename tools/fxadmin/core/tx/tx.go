@@ -205,8 +205,7 @@ func (*Handler) Prepare(inputPath, configPath, outputPath string) error {
 		return errors.Wrapf(err, "failed to load submitting client signing identity for MSP %q", config.MSP.LocalMspID)
 	}
 
-	tx, err := protoutil.CreateSignedEnvelope(
-		cb.HeaderType_CONFIG_UPDATE, configUpdate.GetChannelId(), client, env, 0, 0)
+	tx, err := createConfigTx(configUpdate.GetChannelId(), client, env)
 	if err != nil {
 		return errors.Wrap(err, "failed to create configuration transaction")
 	}
@@ -222,6 +221,34 @@ func (*Handler) Prepare(inputPath, configPath, outputPath string) error {
 	logger.Infof("prepared configuration transaction from %s signed by %s to %s",
 		inputPath, config.MSP.LocalMspID, outputPath)
 	return nil
+}
+
+// createConfigTx wraps the endorsed ConfigUpdateEnvelope in a CONFIG_UPDATE
+// common.Envelope for channelID, signed by client. It stamps the channel header with a
+// transaction ID, so the prepared transaction carries a TxId.
+func createConfigTx(
+	channelID string, submitter msp.SigningIdentity, env *cb.ConfigUpdateEnvelope,
+) (*cb.Envelope, error) {
+	signatureHeader, err := protoutil.NewSignatureHeader(submitter)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create signature header")
+	}
+	channelHeader := protoutil.MakeChannelHeader(cb.HeaderType_CONFIG_UPDATE, 0, channelID, 0)
+	protoutil.SetTxID(channelHeader, signatureHeader)
+
+	payload := &cb.Payload{
+		Header: protoutil.MakePayloadHeader(channelHeader, signatureHeader),
+		Data:   protoutil.MarshalOrPanic(env),
+	}
+	payloadBytes, err := proto.Marshal(payload)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal configuration transaction payload")
+	}
+	signature, err := submitter.Sign(payloadBytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to sign configuration transaction")
+	}
+	return &cb.Envelope{Payload: payloadBytes, Signature: signature}, nil
 }
 
 // Submit implements `fxadmin tx submit`. It reads the prepared configuration
