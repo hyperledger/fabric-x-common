@@ -109,6 +109,18 @@ func ReadConfigBlock(path string) (*cb.Block, error) {
 	return block, nil
 }
 
+// WriteBlock marshals block and writes it to path.
+func WriteBlock(block *cb.Block, path string) error {
+	content, err := proto.Marshal(block)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal block")
+	}
+	if err := os.WriteFile(path, content, 0o600); err != nil {
+		return errors.Wrapf(err, "failed to write block to %q", path)
+	}
+	return nil
+}
+
 // SequenceFromBlock returns the config sequence recorded in a config block's
 // configuration envelope. It reads the sequence field directly rather than
 // building a channel config bundle, so it needs no BCCSP.
@@ -142,6 +154,12 @@ func (c *Client) NumParties() int {
 	return c.ordererConnInfo.NumParties
 }
 
+// FaultThreshold returns f, the number of faulty parties the network tolerates,
+// derived from the number of parties: f = (n-1)/3.
+func (c *Client) FaultThreshold() int {
+	return (c.ordererConnInfo.NumParties - 1) / 3
+}
+
 // AssemblerEndpoints returns the assembler endpoints the client targets, in
 // config-block order.
 func (c *Client) AssemblerEndpoints() []string {
@@ -173,10 +191,12 @@ func (c *Client) FetchBlock(seek *ab.SeekInfo) (*cb.Block, error) {
 }
 
 // LedgerStatus summarizes a single assembler's ledger: the number of its newest
-// block (its height indicator) and the config sequence of its last config block.
+// block (its height indicator), the config sequence of its last config block,
+// and the last config block itself.
 type LedgerStatus struct {
 	LastBlockNumber    uint64
 	LastConfigSequence uint64
+	ConfigBlock        *cb.Block
 }
 
 // FetchLedgerStatus returns the ledger status of a single assembler. It seeks the
@@ -217,7 +237,7 @@ func (c *Client) FetchLedgerStatus(ctx context.Context, endpoint string) (Ledger
 	if err != nil {
 		return LedgerStatus{}, err
 	}
-	return LedgerStatus{LastBlockNumber: lastBlock, LastConfigSequence: sequence}, nil
+	return LedgerStatus{LastBlockNumber: lastBlock, LastConfigSequence: sequence, ConfigBlock: configBlock}, nil
 }
 
 // RouterStatus is the outcome of broadcasting an envelope to a single router.

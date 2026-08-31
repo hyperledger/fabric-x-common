@@ -34,6 +34,7 @@ const (
 	fileEndorsement2 = "endorsed_config_update2.pb"
 	fileEndorsed     = "endorsed_config_update.pb"
 	fileConfigTx     = "config_tx.pb"
+	fileNextConfig   = "next_config.pb"
 )
 
 // call records the handler that was invoked and the values it received, so a
@@ -120,8 +121,8 @@ func (f fakeTx) Send(inputPath, configPath, currentBlockPath, outputPath string)
 
 type fakeFollow struct{ invoked *call }
 
-func (f fakeFollow) Run(configPath, currentBlockPath string, timeout time.Duration) error {
-	*f.invoked = call{handler: "Follow", args: []string{configPath, currentBlockPath}, timeout: timeout}
+func (f fakeFollow) Run(configPath, currentBlockPath, outputPath string, timeout time.Duration) error {
+	*f.invoked = call{handler: "Follow", args: []string{configPath, currentBlockPath, outputPath}, timeout: timeout}
 	return nil
 }
 
@@ -239,10 +240,13 @@ func TestRunRoutesToHandler(t *testing.T) {
 			wantArgs:    []string{endorsed, admin, currBlock, fileConfigTx},
 		},
 		{
-			name:        "follow",
-			args:        []string{cmdFollow, flagConfig, admin, flagCurrentBlock, currBlock, "--timeout", "30s"},
+			name: "follow",
+			args: []string{
+				cmdFollow, flagConfig, admin, flagCurrentBlock, currBlock,
+				"--timeout", "30s", flagOutput, fileNextConfig,
+			},
 			wantHandler: "Follow",
-			wantArgs:    []string{admin, currBlock},
+			wantArgs:    []string{admin, currBlock, fileNextConfig},
 			wantTimeout: 30 * time.Second,
 		},
 	} {
@@ -295,8 +299,11 @@ func TestParseErrors(t *testing.T) {
 			wantErr: "file",
 		},
 		{
-			name:    "bad duration for follow",
-			args:    []string{cmdFollow, flagConfig, admin, flagCurrentBlock, currBlock, "--timeout", "notaduration"},
+			name: "bad duration for follow",
+			args: []string{
+				cmdFollow, flagConfig, admin, flagCurrentBlock, currBlock,
+				"--timeout", "notaduration", flagOutput, fileNextConfig,
+			},
 			wantErr: "invalid duration",
 		},
 	} {

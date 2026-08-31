@@ -47,7 +47,7 @@ type TxHandler interface {
 
 // FollowHandler executes `fxadmin follow`.
 type FollowHandler interface {
-	Run(configPath, currentBlockPath string, timeout time.Duration) error
+	Run(configPath, currentBlockPath, outputPath string, timeout time.Duration) error
 }
 
 // Handlers groups the per-command handlers the CLI dispatches to. It is

@@ -11,14 +11,11 @@ package ledger
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
@@ -72,7 +69,11 @@ func (h *Handler) Block(configPath, currentBlockPath, reference, outputPath stri
 	if err != nil {
 		return err
 	}
-	return writeBlock(block, outputPath)
+	if err := client.WriteBlock(block, outputPath); err != nil {
+		return err
+	}
+	fmt.Printf("block %d written to %s\n", block.GetHeader().GetNumber(), outputPath)
+	return nil
 }
 
 // Config implements `fxadmin ledger config <reference>`, fetching the last
@@ -105,24 +106,15 @@ func (h *Handler) Config(configPath, currentBlockPath, reference, outputPath str
 			return err
 		}
 	}
-	return writeBlock(configBlock, outputPath)
+	if err := client.WriteBlock(configBlock, outputPath); err != nil {
+		return err
+	}
+	fmt.Printf("block %d written to %s\n", configBlock.GetHeader().GetNumber(), outputPath)
+	return nil
 }
 
 // newOrdererClient loads the user configuration and the current config block, then
 // assembles an orderer client for the network the block describes.
 func (h *Handler) newOrdererClient(configPath, currentBlockPath string) (*client.Client, error) {
 	return client.LoadFromFiles(configPath, currentBlockPath, h.csp)
-}
-
-// writeBlock marshals block and writes it to path.
-func writeBlock(block *cb.Block, path string) error {
-	content, err := proto.Marshal(block)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal block")
-	}
-	if err := os.WriteFile(path, content, 0o600); err != nil {
-		return errors.Wrapf(err, "failed to write block to %q", path)
-	}
-	fmt.Printf("block %d written to %s\n", block.GetHeader().GetNumber(), path)
-	return nil
 }
