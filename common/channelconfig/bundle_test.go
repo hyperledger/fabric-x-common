@@ -16,6 +16,20 @@ import (
 	cc "github.com/hyperledger/fabric-x-common/common/capabilities"
 )
 
+const (
+	org1Name = "org1"
+	org2Name = "org2"
+	org3Name = "org3"
+
+	org1MSPID = "org1msp"
+	org2MSPID = "org2msp"
+	org3MSPID = "org3msp"
+
+	org1Address = "org1-address"
+	org2Address = "org2-address"
+	org3Address = "org3-address"
+)
+
 func TestValidateNew(t *testing.T) {
 	t.Run("DisappearingOrdererConfig", func(t *testing.T) {
 		cb := &Bundle{
@@ -129,9 +143,9 @@ func TestValidateNew(t *testing.T) {
 						Capabilities: &cb.Capabilities{},
 					},
 					orgs: map[string]OrdererOrg{
-						"org1": &OrdererOrgConfig{OrganizationConfig: &OrganizationConfig{mspID: "org1msp"}},
-						"org2": &OrdererOrgConfig{OrganizationConfig: &OrganizationConfig{mspID: "org2msp"}},
-						"org3": &OrdererOrgConfig{OrganizationConfig: &OrganizationConfig{mspID: "org3msp"}},
+						org1Name: ordererOrgWithEndpoint(org1MSPID, org1Address),
+						org2Name: ordererOrgWithEndpoint(org2MSPID, org2Address),
+						org3Name: ordererOrgWithEndpoint(org3MSPID, org3Address),
 					},
 				},
 				protos: &ChannelProtos{
@@ -150,8 +164,8 @@ func TestValidateNew(t *testing.T) {
 						Capabilities: &cb.Capabilities{},
 					},
 					orgs: map[string]OrdererOrg{
-						"org1": &OrdererOrgConfig{OrganizationConfig: &OrganizationConfig{mspID: "org1msp"}},
-						"org3": &OrdererOrgConfig{OrganizationConfig: &OrganizationConfig{mspID: "org2msp"}},
+						org1Name: ordererOrgWithEndpoint(org1MSPID, org1Address),
+						org3Name: ordererOrgWithEndpoint(org2MSPID, org3Address),
 					},
 				},
 				protos: &ChannelProtos{
@@ -247,42 +261,33 @@ func TestValidateNew(t *testing.T) {
 }
 
 func TestValidateNewWithConsensusMigration(t *testing.T) {
-	t.Run("ConsensusTypeMigration Green Path", func(t *testing.T) {
-		for _, sysChan := range []bool{false, true} {
-			b0 := generateMigrationBundle(sysChan, "kafka", ab.ConsensusType_STATE_NORMAL)
-			b1 := generateMigrationBundle(sysChan, "kafka", ab.ConsensusType_STATE_NORMAL)
-			err := b0.ValidateNew(b1)
-			require.NoError(t, err)
+	t.Parallel()
+	t.Run("ConsensusTypeMigration Is Disabled", func(t *testing.T) {
+		t.Parallel()
+		b0 := generateMigrationBundle("kafka", ab.ConsensusType_STATE_NORMAL)
+		b1 := generateMigrationBundle("kafka", ab.ConsensusType_STATE_NORMAL)
+		err := b0.ValidateNew(b1)
+		require.NoError(t, err)
 
-			b2 := generateMigrationBundle(sysChan, "kafka", ab.ConsensusType_STATE_MAINTENANCE)
-			err = b1.ValidateNew(b2)
-			require.NoError(t, err)
+		b2 := generateMigrationBundle("kafka", ab.ConsensusType_STATE_MAINTENANCE)
+		err = b1.ValidateNew(b2)
+		require.NoError(t, err)
 
-			b3 := generateMigrationBundle(sysChan, "etcdraft", ab.ConsensusType_STATE_MAINTENANCE)
-			err = b2.ValidateNew(b3)
-			require.NoError(t, err)
-
-			b4 := generateMigrationBundle(sysChan, "etcdraft", ab.ConsensusType_STATE_NORMAL)
-			err = b3.ValidateNew(b4)
-			require.NoError(t, err)
-
-			b5 := generateMigrationBundle(sysChan, "etcdraft", ab.ConsensusType_STATE_NORMAL)
-			err = b4.ValidateNew(b5)
-			require.NoError(t, err)
-		}
+		b3 := generateMigrationBundle("etcdraft", ab.ConsensusType_STATE_MAINTENANCE)
+		err = b2.ValidateNew(b3)
+		require.EqualError(t, err, "attempted to change consensus type from kafka to etcdraft")
 	})
 
 	t.Run("ConsensusTypeMigration Abort Path", func(t *testing.T) {
-		for _, sysChan := range []bool{false, true} {
-			b1 := generateMigrationBundle(sysChan, "kafka", ab.ConsensusType_STATE_NORMAL)
-			b2 := generateMigrationBundle(sysChan, "kafka", ab.ConsensusType_STATE_MAINTENANCE)
-			err := b1.ValidateNew(b2)
-			require.NoError(t, err)
+		t.Parallel()
+		b1 := generateMigrationBundle("kafka", ab.ConsensusType_STATE_NORMAL)
+		b2 := generateMigrationBundle("kafka", ab.ConsensusType_STATE_MAINTENANCE)
+		err := b1.ValidateNew(b2)
+		require.NoError(t, err)
 
-			b3 := generateMigrationBundle(sysChan, "kafka", ab.ConsensusType_STATE_NORMAL)
-			err = b2.ValidateNew(b3)
-			require.NoError(t, err)
-		}
+		b3 := generateMigrationBundle("kafka", ab.ConsensusType_STATE_NORMAL)
+		err = b2.ValidateNew(b3)
+		require.NoError(t, err)
 	})
 }
 
@@ -410,7 +415,7 @@ func TestValidateNewWithOrgEndpoints(t *testing.T) {
 	})
 }
 
-func generateMigrationBundle(sysChan bool, cType string, cState ab.ConsensusType_State) *Bundle {
+func generateMigrationBundle(cType string, cState ab.ConsensusType_State) *Bundle {
 	b := &Bundle{
 		channelConfig: &ChannelConfig{
 			ordererConfig: &OrdererConfig{
@@ -434,10 +439,6 @@ func generateMigrationBundle(sysChan bool, cType string, cState ab.ConsensusType
 				},
 			},
 		},
-	}
-
-	if sysChan {
-		b.channelConfig.consortiumsConfig = &ConsortiumsConfig{}
 	}
 
 	return b
@@ -515,4 +516,12 @@ func TestPrevalidation(t *testing.T) {
 
 		require.NoError(t, err)
 	})
+}
+
+// ordererOrgWithEndpoint builds an orderer org config with the given MSP ID and a single endpoint.
+func ordererOrgWithEndpoint(mspID, address string) *OrdererOrgConfig {
+	return &OrdererOrgConfig{
+		OrganizationConfig: &OrganizationConfig{mspID: mspID},
+		protos:             &OrdererOrgProtos{Endpoints: &cb.OrdererAddresses{Addresses: []string{address}}},
+	}
 }
