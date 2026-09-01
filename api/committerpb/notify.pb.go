@@ -201,8 +201,8 @@ func (x *RejectedTxIds) GetReason() string {
 	return ""
 }
 
-// StreamAllRequest is sent by clients to subscribe to all committed transactions.
-type StreamAllRequest struct {
+// StreamBlocksRequest is sent by clients to subscribe to all committed transactions.
+type StreamBlocksRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Filter by namespace IDs (OR logic: transaction touches ANY of these namespaces).
 	// Empty list means no namespace filtering (all namespaces included).
@@ -223,20 +223,20 @@ type StreamAllRequest struct {
 	sizeCache       protoimpl.SizeCache
 }
 
-func (x *StreamAllRequest) Reset() {
-	*x = StreamAllRequest{}
+func (x *StreamBlocksRequest) Reset() {
+	*x = StreamBlocksRequest{}
 	mi := &file_api_committerpb_notify_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StreamAllRequest) String() string {
+func (x *StreamBlocksRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StreamAllRequest) ProtoMessage() {}
+func (*StreamBlocksRequest) ProtoMessage() {}
 
-func (x *StreamAllRequest) ProtoReflect() protoreflect.Message {
+func (x *StreamBlocksRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_committerpb_notify_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -248,40 +248,40 @@ func (x *StreamAllRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StreamAllRequest.ProtoReflect.Descriptor instead.
-func (*StreamAllRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use StreamBlocksRequest.ProtoReflect.Descriptor instead.
+func (*StreamBlocksRequest) Descriptor() ([]byte, []int) {
 	return file_api_committerpb_notify_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *StreamAllRequest) GetFilterNamespaces() []string {
+func (x *StreamBlocksRequest) GetFilterNamespaces() []string {
 	if x != nil {
 		return x.FilterNamespaces
 	}
 	return nil
 }
 
-func (x *StreamAllRequest) GetFilterStatus() []Status {
+func (x *StreamBlocksRequest) GetFilterStatus() []Status {
 	if x != nil {
 		return x.FilterStatus
 	}
 	return nil
 }
 
-func (x *StreamAllRequest) GetIncludeReadWriteSets() bool {
+func (x *StreamBlocksRequest) GetIncludeReadWriteSets() bool {
 	if x != nil {
 		return x.IncludeReadWriteSets
 	}
 	return false
 }
 
-func (x *StreamAllRequest) GetIncludeEndorsements() bool {
+func (x *StreamBlocksRequest) GetIncludeEndorsements() bool {
 	if x != nil {
 		return x.IncludeEndorsements
 	}
 	return false
 }
 
-func (x *StreamAllRequest) GetIncludeMetadata() bool {
+func (x *StreamBlocksRequest) GetIncludeMetadata() bool {
 	if x != nil {
 		return x.IncludeMetadata
 	}
@@ -462,8 +462,8 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\x0frejected_tx_ids\x18\x03 \x01(\v2\x1a.committerpb.RejectedTxIdsR\rrejectedTxIds\">\n" +
 	"\rRejectedTxIds\x12\x15\n" +
 	"\x06tx_ids\x18\x01 \x03(\tR\x05txIds\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"\x8e\x02\n" +
-	"\x10StreamAllRequest\x12+\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"\x91\x02\n" +
+	"\x13StreamBlocksRequest\x12+\n" +
 	"\x11filter_namespaces\x18\x01 \x03(\tR\x10filterNamespaces\x128\n" +
 	"\rfilter_status\x18\x02 \x03(\x0e2\x13.committerpb.StatusR\ffilterStatus\x125\n" +
 	"\x17include_read_write_sets\x18\x03 \x01(\bR\x14includeReadWriteSets\x121\n" +
@@ -483,10 +483,10 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"namespaces\x18\x03 \x03(\v2\x1a.applicationpb.TxNamespaceR\n" +
 	"namespaces\x12?\n" +
 	"\fendorsements\x18\x04 \x03(\v2\x1b.applicationpb.EndorsementsR\fendorsements\x12\x1a\n" +
-	"\bmetadata\x18\x05 \x03(\fR\bmetadata2\xc0\x01\n" +
+	"\bmetadata\x18\x05 \x03(\fR\bmetadata2\xba\x01\n" +
 	"\bNotifier\x12a\n" +
-	"\x16OpenNotificationStream\x12 .committerpb.NotificationRequest\x1a!.committerpb.NotificationResponse(\x010\x01\x12Q\n" +
-	"\x15StreamAllTransactions\x12\x1d.committerpb.StreamAllRequest\x1a\x17.committerpb.BlockEvent0\x01B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"\x16OpenNotificationStream\x12 .committerpb.NotificationRequest\x1a!.committerpb.NotificationResponse(\x010\x01\x12K\n" +
+	"\fStreamBlocks\x12 .committerpb.StreamBlocksRequest\x1a\x17.committerpb.BlockEvent0\x01B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_notify_proto_rawDescOnce sync.Once
@@ -505,7 +505,7 @@ var file_api_committerpb_notify_proto_goTypes = []any{
 	(*NotificationRequest)(nil),        // 0: committerpb.NotificationRequest
 	(*NotificationResponse)(nil),       // 1: committerpb.NotificationResponse
 	(*RejectedTxIds)(nil),              // 2: committerpb.RejectedTxIds
-	(*StreamAllRequest)(nil),           // 3: committerpb.StreamAllRequest
+	(*StreamBlocksRequest)(nil),        // 3: committerpb.StreamBlocksRequest
 	(*BlockEvent)(nil),                 // 4: committerpb.BlockEvent
 	(*TxEvent)(nil),                    // 5: committerpb.TxEvent
 	(*TxIDsBatch)(nil),                 // 6: committerpb.TxIDsBatch
@@ -521,16 +521,16 @@ var file_api_committerpb_notify_proto_depIdxs = []int32{
 	7,  // 1: committerpb.NotificationRequest.timeout:type_name -> google.protobuf.Duration
 	8,  // 2: committerpb.NotificationResponse.tx_status_events:type_name -> committerpb.TxStatus
 	2,  // 3: committerpb.NotificationResponse.rejected_tx_ids:type_name -> committerpb.RejectedTxIds
-	9,  // 4: committerpb.StreamAllRequest.filter_status:type_name -> committerpb.Status
+	9,  // 4: committerpb.StreamBlocksRequest.filter_status:type_name -> committerpb.Status
 	5,  // 5: committerpb.BlockEvent.events:type_name -> committerpb.TxEvent
 	10, // 6: committerpb.TxEvent.ref:type_name -> committerpb.TxRef
 	9,  // 7: committerpb.TxEvent.status:type_name -> committerpb.Status
 	11, // 8: committerpb.TxEvent.namespaces:type_name -> applicationpb.TxNamespace
 	12, // 9: committerpb.TxEvent.endorsements:type_name -> applicationpb.Endorsements
 	0,  // 10: committerpb.Notifier.OpenNotificationStream:input_type -> committerpb.NotificationRequest
-	3,  // 11: committerpb.Notifier.StreamAllTransactions:input_type -> committerpb.StreamAllRequest
+	3,  // 11: committerpb.Notifier.StreamBlocks:input_type -> committerpb.StreamBlocksRequest
 	1,  // 12: committerpb.Notifier.OpenNotificationStream:output_type -> committerpb.NotificationResponse
-	4,  // 13: committerpb.Notifier.StreamAllTransactions:output_type -> committerpb.BlockEvent
+	4,  // 13: committerpb.Notifier.StreamBlocks:output_type -> committerpb.BlockEvent
 	12, // [12:14] is the sub-list for method output_type
 	10, // [10:12] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
