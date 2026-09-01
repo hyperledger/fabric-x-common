@@ -99,8 +99,8 @@ func TestSummaryLine(t *testing.T) {
 }
 
 // TestAgreedConfigBlock asserts a block is returned only when the given quorum
-// of assemblers report the identical block (by full bytes) at the expected
-// sequence.
+// of assemblers report the same block — compared by header and data, ignoring
+// the per-assembler signature metadata — at the expected sequence.
 //
 //nolint:paralleltest
 func TestAgreedConfigBlock(t *testing.T) {
@@ -117,8 +117,10 @@ func TestAgreedConfigBlock(t *testing.T) {
 		require.True(t, proto.Equal(blockX, agreed))
 	})
 
-	t.Run("blocks differing only in metadata do not agree", func(t *testing.T) {
-		// Two blocks with identical headers and data but different metadata.
+	t.Run("blocks differing only in metadata agree", func(t *testing.T) {
+		// Two assemblers commit the same config block but carry different signature
+		// metadata (different order/subset of orderer signatures), as real
+		// assemblers do. They must still agree, since agreement ignores metadata.
 		signedA := protoutil.NewBlock(5, []byte("h"))
 		signedA.Metadata = &cb.BlockMetadata{Metadata: [][]byte{[]byte("sig-A")}}
 		signedB := protoutil.NewBlock(5, []byte("h"))
@@ -127,6 +129,13 @@ func TestAgreedConfigBlock(t *testing.T) {
 			"sanity: the two blocks share a header hash and differ only in metadata")
 
 		agreed, count := agreedConfigBlock([]assemblerResult{committedAt(5, signedA), committedAt(5, signedB)}, 5, 2)
+		require.NotNil(t, agreed)
+		require.Equal(t, 2, count)
+	})
+
+	t.Run("blocks differing in data do not agree", func(t *testing.T) {
+		// Same sequence but different data must not agree, even at quorum 2.
+		agreed, count := agreedConfigBlock([]assemblerResult{committedAt(5, blockX), committedAt(5, blockY)}, 5, 2)
 		require.Nil(t, agreed)
 		require.Zero(t, count)
 	})

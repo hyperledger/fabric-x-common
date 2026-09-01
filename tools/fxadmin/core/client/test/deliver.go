@@ -64,11 +64,15 @@ func (s *configDeliverStub) Deliver(stream ab.AtomicBroadcast_DeliverServer) err
 
 // ConfigLedger describes the ledger a config-deliver stub emulates: its newest
 // block number, the number of the config block that newest points at, and the
-// config sequence that config block carries.
+// config sequence that config block carries. ConfigSignatureMetadata, when set,
+// is placed in the served config block's SIGNATURES metadata slot; it lets a
+// test emulate assemblers that committed the same config block but carry
+// different orderer-signature metadata, as real assemblers do.
 type ConfigLedger struct {
-	NewestNumber   uint64
-	ConfigIndex    uint64
-	ConfigSequence uint64
+	NewestNumber            uint64
+	ConfigIndex             uint64
+	ConfigSequence          uint64
+	ConfigSignatureMetadata []byte
 }
 
 // StartConfigDeliverServer starts an in-process AtomicBroadcast server emulating
@@ -97,6 +101,9 @@ func ServeConfigDeliver(t *testing.T, lis net.Listener, ledger ConfigLedger) {
 	})
 
 	configBlock := configBlockAtSequence(ledger.ConfigIndex, ledger.ConfigSequence)
+	if ledger.ConfigSignatureMetadata != nil {
+		configBlock.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = ledger.ConfigSignatureMetadata
+	}
 
 	srv := grpc.NewServer()
 	ab.RegisterAtomicBroadcastServer(srv, &configDeliverStub{newest: newest, configBlock: configBlock})

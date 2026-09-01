@@ -59,6 +59,26 @@ func TestRunAllAssemblersCommitted(t *testing.T) {
 	require.Equal(t, uint64(1), sequenceOfWrittenBlock(t, outputPath))
 }
 
+// TestRunAgreesDespiteDifferentSignatureMetadata asserts that assemblers which
+// committed the same next config block but carry different signature
+// metadata - as real assemblers do, still agree, and the block is written.
+// This guards the header+data (metadata-excluding) comparison.
+//
+//nolint:paralleltest
+func TestRunAgreesDespiteDifferentSignatureMetadata(t *testing.T) {
+	// Four assemblers all committed config sequence 1, but each serves the block
+	// with a distinct SIGNATURES metadata payload.
+	endpoints := []string{
+		serveAssemblerWithSigs(t, "sigs-1"), serveAssemblerWithSigs(t, "sigs-2"),
+		serveAssemblerWithSigs(t, "sigs-3"), serveAssemblerWithSigs(t, "sigs-4"),
+	}
+	configPath, blockPath := newFollowInputs(t, "test-channel", endpoints)
+	outputPath := filepath.Join(t.TempDir(), "next_config.pb")
+
+	require.NoError(t, follow.New().Run(configPath, blockPath, outputPath, 30*time.Second))
+	require.Equal(t, uint64(1), sequenceOfWrittenBlock(t, outputPath))
+}
+
 // TestRunTimeoutSomeBehind asserts that when the timeout elapses before every
 // assembler committed the next config block, follow reports the assemblers still
 // at the old sequence as behind and the rest as committed.
@@ -155,6 +175,19 @@ func serveAssembler(t *testing.T, configSequence uint64) string {
 	require.NoError(t, err)
 	clienttest.ServeConfigDeliver(t, lis, clienttest.ConfigLedger{
 		NewestNumber: 10, ConfigIndex: 5, ConfigSequence: configSequence,
+	})
+	return lis.Addr().String()
+}
+
+// serveAssemblerWithSigs is serveAssembler at config sequence 1 but sets the
+// served config block's SIGNATURES metadata to sigs.
+func serveAssemblerWithSigs(t *testing.T, sigs string) string {
+	t.Helper()
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	clienttest.ServeConfigDeliver(t, lis, clienttest.ConfigLedger{
+		NewestNumber: 10, ConfigIndex: 5, ConfigSequence: 1,
+		ConfigSignatureMetadata: []byte(sigs),
 	})
 	return lis.Addr().String()
 }
