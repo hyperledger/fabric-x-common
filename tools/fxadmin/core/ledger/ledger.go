@@ -10,8 +10,6 @@ SPDX-License-Identifier: Apache-2.0
 package ledger
 
 import (
-	"fmt"
-
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
@@ -48,7 +46,7 @@ func (h *Handler) Height(configPath, currentBlockPath string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%d\n", block.GetHeader().GetNumber()+1)
+	logger.Infof("%d\n", block.GetHeader().GetNumber()+1)
 	return nil
 }
 
@@ -72,7 +70,7 @@ func (h *Handler) Block(configPath, currentBlockPath, reference, outputPath stri
 	if err := client.WriteBlock(block, outputPath); err != nil {
 		return err
 	}
-	fmt.Printf("block %d written to %s\n", block.GetHeader().GetNumber(), outputPath)
+	logger.Infof("block %d written to %s\n", block.GetHeader().GetNumber(), outputPath)
 	return nil
 }
 
@@ -109,7 +107,7 @@ func (h *Handler) Config(configPath, currentBlockPath, reference, outputPath str
 	if err := client.WriteBlock(configBlock, outputPath); err != nil {
 		return err
 	}
-	fmt.Printf("block %d written to %s\n", configBlock.GetHeader().GetNumber(), outputPath)
+	logger.Infof("block %d written to %s\n", configBlock.GetHeader().GetNumber(), outputPath)
 	return nil
 }
 

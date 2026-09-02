@@ -189,7 +189,7 @@ func TestRunRoutesToHandler(t *testing.T) {
 		},
 		{
 			name:        "decode",
-			args:        []string{"decode", "--block", currBlock, flagOutput, "current_config.json"},
+			args:        []string{"decode", currBlock, flagOutput, "current_config.json"},
 			wantHandler: "Decode",
 			wantArgs:    []string{currBlock, "current_config.json"},
 		},

@@ -21,7 +21,6 @@ const (
 	flagConfig       = "config"
 	flagCurrentBlock = "current-block"
 	flagOutput       = "output"
-	flagBlock        = "block"
 	flagTimeout      = "timeout"
 )
 
@@ -123,7 +122,8 @@ func (c *CLI) addLedgerCommands() {
 // embedded in a binary config block and writes it as JSON for editing.
 func (c *CLI) addDecodeCommand() {
 	decode := c.app.Command("decode", "Extract the common.Config from a config block into editable JSON.")
-	block := decode.Flag(flagBlock, "Path to the protobuf config block file to decode.").Required().ExistingFile()
+	block := decode.Arg("config_block.pb", "Path to the protobuf config block file to decode.").
+		Required().ExistingFile()
 	output := decode.Flag(flagOutput, "Path to the output common.Config JSON file.").Required().String()
 	c.register(decode, func() error {
 		return c.handlers.Decode.Run(*block, *output)
