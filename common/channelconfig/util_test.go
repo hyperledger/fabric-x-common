@@ -72,7 +72,7 @@ func createCfgBlockWithSupportedCapabilities(t *testing.T) *cb.Block {
 		ModPolicy: AdminsPolicyKey,
 	}
 	topCapabilities := make(map[string]bool)
-	topCapabilities[capabilities.ChannelV1_1] = true
+	topCapabilities[capabilities.ChannelV3_0] = true
 	config.ChannelGroup.Values[CapabilitiesKey] = &cb.ConfigValue{
 		Value:     protoutil.MarshalOrPanic(CapabilitiesValue(topCapabilities).Value()),
 		ModPolicy: AdminsPolicyKey,
@@ -89,12 +89,6 @@ func createCfgBlockWithSupportedCapabilities(t *testing.T) *cb.Block {
 		}),
 		ModPolicy: AdminsPolicyKey,
 	}
-	config.ChannelGroup.Values[OrdererAddressesKey] = &cb.ConfigValue{
-		Value: protoutil.MarshalOrPanic(&cb.OrdererAddresses{
-			Addresses: []string{"orderer.example.com"},
-		}),
-		ModPolicy: AdminsPolicyKey,
-	}
 
 	// construct the config for Application group
 	config.ChannelGroup.Groups[ApplicationGroupKey] = protoutil.NewConfigGroup()
@@ -104,7 +98,7 @@ func createCfgBlockWithSupportedCapabilities(t *testing.T) *cb.Block {
 	config.ChannelGroup.Groups[ApplicationGroupKey].Policies[WritersPolicyKey] = &cb.ConfigPolicy{}
 	config.ChannelGroup.Groups[ApplicationGroupKey].Policies[AdminsPolicyKey] = &cb.ConfigPolicy{}
 	appCapabilities := make(map[string]bool)
-	appCapabilities[capabilities.ApplicationV1_1] = true
+	appCapabilities[capabilities.ApplicationV2_5] = true
 	config.ChannelGroup.Groups[ApplicationGroupKey].Values[CapabilitiesKey] = &cb.ConfigValue{
 		Value:     protoutil.MarshalOrPanic(CapabilitiesValue(appCapabilities).Value()),
 		ModPolicy: AdminsPolicyKey,
@@ -142,7 +136,7 @@ func createCfgBlockWithSupportedCapabilities(t *testing.T) *cb.Block {
 	config.ChannelGroup.Groups[OrdererGroupKey].Values[ConsensusTypeKey] = &cb.ConfigValue{
 		Value: protoutil.MarshalOrPanic(
 			&ab.ConsensusType{
-				Type: "solo",
+				Type: "arma",
 			}),
 		ModPolicy: AdminsPolicyKey,
 	}
@@ -200,12 +194,6 @@ func createCfgBlockWithUnsupportedCapabilities(t *testing.T) *cb.Block {
 	config.ChannelGroup.Values[HashingAlgorithmKey] = &cb.ConfigValue{
 		Value: protoutil.MarshalOrPanic(&cb.HashingAlgorithm{
 			Name: defaultHashingAlgorithm,
-		}),
-		ModPolicy: AdminsPolicyKey,
-	}
-	config.ChannelGroup.Values[OrdererAddressesKey] = &cb.ConfigValue{
-		Value: protoutil.MarshalOrPanic(&cb.OrdererAddresses{
-			Addresses: []string{"orderer.example.com"},
 		}),
 		ModPolicy: AdminsPolicyKey,
 	}

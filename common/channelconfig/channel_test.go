@@ -69,16 +69,6 @@ func TestBlockDataHashingStructure(t *testing.T) {
 	require.Equal(t, width, cc.BlockDataHashingStructureWidth(), "Unexpected width returned")
 }
 
-func TestOrdererAddresses(t *testing.T) {
-	cc := &ChannelConfig{protos: &ChannelProtos{OrdererAddresses: &cb.OrdererAddresses{}}}
-	require.Error(t, cc.validateOrdererAddresses(), "Must supply orderer addresses")
-
-	cc = &ChannelConfig{protos: &ChannelProtos{OrdererAddresses: &cb.OrdererAddresses{Addresses: []string{"127.0.0.1:7050"}}}}
-	require.NoError(t, cc.validateOrdererAddresses(), "Invalid orderer address supplied")
-
-	require.Equal(t, "127.0.0.1:7050", cc.OrdererAddresses()[0], "Unexpected orderer address returned")
-}
-
 func TestConsortiumName(t *testing.T) {
 	cc := &ChannelConfig{protos: &ChannelProtos{Consortium: &cb.Consortium{Name: "TestConsortium"}}}
 	require.Equal(t, "TestConsortium", cc.ConsortiumName(), "Unexpected consortium name returned")
