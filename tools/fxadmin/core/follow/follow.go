@@ -58,12 +58,13 @@ func New() *Handler {
 // one assembler, so the endpoints in the current block still reach the rest;
 // assemblers that cannot be reached are reported as unreachable.
 //
-// Once at least f+1 assemblers report the identical next config block (f being
-// the number of faulty parties the network tolerates), that block is trusted —
-// f+1 matching copies guarantee at least one came from an honest assembler — and
+// Once at least f+1 assemblers report the same next config block (f being the
+// number of faulty parties the network tolerates), that block is trusted - f+1
+// matching copies guarantee at least one came from an honest assembler - and
 // written to outputPath, ready to be the --current-block of the next
-// reconfiguration. Run returns an error if no such agreement is reached before
-// the timeout.
+// reconfiguration. Blocks are matched by their header and data only, ignoring
+// the per-assembler signature metadata. Run returns an
+// error if no such agreement is reached before the timeout.
 func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout time.Duration) error {
 	logger.Debugf("follow: config=%s current-block=%s output=%s timeout=%s",
 		configPath, currentBlockPath, outputPath, timeout)
@@ -107,9 +108,11 @@ func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout t
 }
 
 // agreedConfigBlock returns the config block at the expected sequence that a
-// quorum of assemblers reported identically, along with the number of
-// assemblers that reported it. It returns nil when no block reaches quorum
-// copies. Blocks are compared by their full marshaled bytes.
+// quorum of assemblers reported, along with the number of assemblers that
+// reported it. It returns nil when no block reaches quorum copies.
+//
+// Blocks are compared by their header and data only, excluding the block
+// metadata (that includes the orderer signatures over the block).
 func agreedConfigBlock(results []assemblerResult, expected uint64, quorum int) (*cb.Block, int) {
 	counts := make(map[string]int)
 	blocks := make(map[string]*cb.Block)
@@ -117,12 +120,11 @@ func agreedConfigBlock(results []assemblerResult, expected uint64, quorum int) (
 		if !result.ok || result.lastConfigSequence != expected || result.configBlock == nil {
 			continue
 		}
-		marshaled, err := proto.Marshal(result.configBlock)
+		key, err := blockIdentityKey(result.configBlock)
 		if err != nil {
 			logger.Debugf("follow: skipping unmarshalable config block from %s: %v", result.endpoint, err)
 			continue
 		}
-		key := string(marshaled)
 		counts[key]++
 		blocks[key] = result.configBlock
 		if counts[key] >= quorum {
@@ -130,6 +132,18 @@ func agreedConfigBlock(results []assemblerResult, expected uint64, quorum int) (
 		}
 	}
 	return nil, 0
+}
+
+// blockIdentityKey returns a map key that identifies a block by its header and
+// data only, ignoring the (per-assembler) block metadata. It marshals a block
+// carrying just the header and data, so blocks that differ only in metadata map
+// to the same key.
+func blockIdentityKey(block *cb.Block) (string, error) {
+	marshaled, err := proto.Marshal(&cb.Block{Header: block.GetHeader(), Data: block.GetData()})
+	if err != nil {
+		return "", err
+	}
+	return string(marshaled), nil
 }
 
 // notCommitted returns how many assemblers had not committed a block at the
