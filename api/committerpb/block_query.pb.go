@@ -12,10 +12,8 @@
 package committerpb
 
 import (
-	common "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -120,16 +118,11 @@ var File_api_committerpb_block_query_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_block_query_proto_rawDesc = "" +
 	"\n" +
-	"!api/committerpb/block_query.proto\x12\vcommitterpb\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13common/common.proto\x1a\x13common/ledger.proto\"%\n" +
+	"!api/committerpb/block_query.proto\x12\vcommitterpb\"%\n" +
 	"\vBlockNumber\x12\x16\n" +
 	"\x06number\x18\x01 \x01(\x04R\x06number\"\x1b\n" +
 	"\x04TxID\x12\x13\n" +
-	"\x05tx_id\x18\x01 \x01(\tR\x04txId2\xfb\x01\n" +
-	"\x11BlockQueryService\x12C\n" +
-	"\x11GetBlockchainInfo\x12\x16.google.protobuf.Empty\x1a\x16.common.BlockchainInfo\x12;\n" +
-	"\x10GetBlockByNumber\x12\x18.committerpb.BlockNumber\x1a\r.common.Block\x122\n" +
-	"\x0eGetBlockByTxID\x12\x11.committerpb.TxID\x1a\r.common.Block\x120\n" +
-	"\tGetTxByID\x12\x11.committerpb.TxID\x1a\x10.common.EnvelopeB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"\x05tx_id\x18\x01 \x01(\tR\x04txIdB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_block_query_proto_rawDescOnce sync.Once
@@ -145,24 +138,12 @@ func file_api_committerpb_block_query_proto_rawDescGZIP() []byte {
 
 var file_api_committerpb_block_query_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_api_committerpb_block_query_proto_goTypes = []any{
-	(*BlockNumber)(nil),           // 0: committerpb.BlockNumber
-	(*TxID)(nil),                  // 1: committerpb.TxID
-	(*emptypb.Empty)(nil),         // 2: google.protobuf.Empty
-	(*common.BlockchainInfo)(nil), // 3: common.BlockchainInfo
-	(*common.Block)(nil),          // 4: common.Block
-	(*common.Envelope)(nil),       // 5: common.Envelope
+	(*BlockNumber)(nil), // 0: committerpb.BlockNumber
+	(*TxID)(nil),        // 1: committerpb.TxID
 }
 var file_api_committerpb_block_query_proto_depIdxs = []int32{
-	2, // 0: committerpb.BlockQueryService.GetBlockchainInfo:input_type -> google.protobuf.Empty
-	0, // 1: committerpb.BlockQueryService.GetBlockByNumber:input_type -> committerpb.BlockNumber
-	1, // 2: committerpb.BlockQueryService.GetBlockByTxID:input_type -> committerpb.TxID
-	1, // 3: committerpb.BlockQueryService.GetTxByID:input_type -> committerpb.TxID
-	3, // 4: committerpb.BlockQueryService.GetBlockchainInfo:output_type -> common.BlockchainInfo
-	4, // 5: committerpb.BlockQueryService.GetBlockByNumber:output_type -> common.Block
-	4, // 6: committerpb.BlockQueryService.GetBlockByTxID:output_type -> common.Block
-	5, // 7: committerpb.BlockQueryService.GetTxByID:output_type -> common.Envelope
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -181,7 +162,7 @@ func file_api_committerpb_block_query_proto_init() {
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   0,
 		},
 		GoTypes:           file_api_committerpb_block_query_proto_goTypes,
 		DependencyIndexes: file_api_committerpb_block_query_proto_depIdxs,
