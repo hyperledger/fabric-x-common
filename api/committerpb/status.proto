@@ -12,11 +12,6 @@ package committerpb;
 
 import "api/committerpb/ref.proto";
 
-// A batch of TXs' status.
-message TxStatusBatch {
-    repeated TxStatus status = 1;
-}
-
 // The status of a TX.
 message TxStatus {
     TxRef ref = 1;
