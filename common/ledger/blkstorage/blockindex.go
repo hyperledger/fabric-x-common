@@ -84,6 +84,16 @@ func (index *blockIndex) getLastBlockIndexed() (uint64, error) {
 	return decodeBlockNum(blockNumBytes), nil
 }
 
+// serializationNeeds reports what indexBlock below will read out of a serialized block, so
+// that serializeBlock can skip producing the rest. Keep it in step with indexBlock.
+func (index *blockIndex) serializationNeeds() indexNeeds {
+	txIDs := index.isAttributeIndexed(IndexableAttrTxID)
+	return indexNeeds{
+		txOffsets: txIDs || index.isAttributeIndexed(IndexableAttrBlockNumTranNum),
+		txIDs:     txIDs,
+	}
+}
+
 func (index *blockIndex) indexBlock(blockIdxInfo *blockIdxInfo, sync bool) error {
 	// do not index anything
 	if len(index.indexItemsMap) == 0 {
@@ -136,7 +146,9 @@ func (index *blockIndex) indexBlock(blockIdxInfo *blockIdxInfo, sync bool) error
 	if index.isAttributeIndexed(IndexableAttrBlockNumTranNum) {
 		for i, txoffset := range txOffsets {
 			txFlp := newFileLocationPointer(flp.fileSuffixNum, flp.offset, txoffset.loc)
-			logger.Debugf("Adding txLoc [%s] for tx number:[%d] ID: [%s] to blockNumTranNum index", txFlp, i, txoffset.txID)
+			// The txID is deliberately not logged here: it is only extracted when the txID
+			// index is configured, so it would print empty for a blockNumTranNum-only store.
+			logger.Debugf("Adding txLoc [%s] for tx number:[%d] to blockNumTranNum index", txFlp, i)
 			txFlpBytes := txFlp.marshal()
 			batch.Put(constructBlockNumTranNumKey(blkNum, uint64(i)), txFlpBytes)
 		}

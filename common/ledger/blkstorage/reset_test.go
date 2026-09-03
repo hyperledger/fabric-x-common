@@ -85,7 +85,7 @@ func TestResetBlockStore(t *testing.T) {
 	blocks1 := testutil.ConstructTestBlocks(t, 20) // 20 blocks persisted in ~5 block files
 	blocks2 := testutil.ConstructTestBlocks(t, 40) // 40 blocks persisted in ~5 block files
 
-	by, _ := serializeBlock(blocks1[0])
+	by, _ := serializeBlock(blocks1[0], allIndexNeeds)
 	maxFileSie := len(by) * 2
 
 	env := newTestEnv(t, NewConf(blockStoreRootDir, maxFileSie))
@@ -260,7 +260,7 @@ func assertRecordedHeight(t *testing.T, ledgerDir, expectedRecordedHt string) {
 func testutilEstimateTotalSizeOnDisk(t *testing.T, blocks []*common.Block) int {
 	size := 0
 	for _, block := range blocks {
-		by, _ := serializeBlock(block)
+		by, _ := serializeBlock(block, allIndexNeeds)
 		blockBytesSize := len(by)
 		encodedLen := protowire.AppendVarint(nil, uint64(blockBytesSize))
 		size += blockBytesSize + len(encodedLen)

@@ -397,7 +397,7 @@ func TestBlockfileMgrFileRolling(t *testing.T) {
 	blocks := testutil.ConstructTestBlocks(t, 200)
 	size := 0
 	for _, block := range blocks[:100] {
-		by, _ := serializeBlock(block)
+		by, _ := serializeBlock(block, allIndexNeeds)
 		blockBytesSize := len(by)
 		encodedLen := protowire.AppendVarint(nil, uint64(blockBytesSize))
 		size += blockBytesSize + len(encodedLen)
@@ -560,7 +560,7 @@ func TestBlockfileMgrNoSyncAndFlush(t *testing.T) {
 		blocks := testutil.ConstructTestBlocks(t, 20)
 		size := 0
 		for _, block := range blocks[:10] {
-			by, _ := serializeBlock(block)
+			by, _ := serializeBlock(block, allIndexNeeds)
 			blockBytesSize := len(by)
 			encodedLen := protowire.AppendVarint(nil, uint64(blockBytesSize))
 			size += blockBytesSize + len(encodedLen)
