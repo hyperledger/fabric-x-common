@@ -1,0 +1,58 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+
+// AIP-135 models Delete as a resource operation: it expects a `name` field and a
+// `google.api.method_signature` annotation. DeleteDBCloneForSnapshot is not a
+// resource delete -- it drops the database clone belonging to a snapshot that is
+// identified by its transaction ID, and `tx_id` is the _snapshot namespace row
+// key used throughout the committer. Renaming that field to `name` would obscure
+// it, so the three AIP-135 rules are disabled for this file.
+// (-- api-linter: core::0135::method-signature=disabled --)
+// (-- api-linter: core::0135::request-unknown-fields=disabled --)
+// (-- api-linter: core::0135::request-name-required=disabled --)
+
+syntax = "proto3";
+
+option go_package = "github.com/hyperledger/fabric-x-common/api/committerpb";
+
+package committerpb;
+
+import "google/protobuf/empty.proto";
+import "common/common.proto";
+import "common/ledger.proto";
+
+import "api/committerpb/block_query.proto";
+import "api/committerpb/notify.proto";
+
+// SidecarService is the single service backing sidecar client traffic: block
+// queries, event notifications, and snapshot-clone administration. New sidecar
+// RPCs belong here rather than in a new service.
+//
+// Fabric block delivery is deliberately not part of this service. It stays on
+// the Fabric `protos.Deliver` service so Fabric clients can dial the sidecar
+// unchanged; one sidecar object backs both services.
+service SidecarService {
+    // Block store reads. Previously BlockQueryService.
+    rpc GetBlockchainInfo(google.protobuf.Empty) returns (common.BlockchainInfo);
+    rpc GetBlockByNumber(BlockNumber) returns (common.Block);
+    rpc GetBlockByTxID(TxID) returns (common.Block);
+    rpc GetTxByID(TxID) returns (common.Envelope);
+
+    // Event subscriptions. Previously Notifier.
+    rpc OpenNotificationStream(stream NotificationRequest) returns (stream NotificationResponse);
+    rpc StreamBlocks(StreamBlocksRequest) returns (stream BlockEvent);
+
+    // Snapshot-clone administration. The committer answers UNIMPLEMENTED until
+    // the clone-deletion pipeline lands.
+    rpc DeleteDBCloneForSnapshot(DeleteDBCloneForSnapshotRequest) returns (google.protobuf.Empty);
+}
+
+// DeleteDBCloneForSnapshotRequest identifies the snapshot whose database clone is dropped.
+message DeleteDBCloneForSnapshotRequest {
+    // Transaction ID of the snapshot transaction, the _snapshot namespace row key.
+    string tx_id = 1;
+}

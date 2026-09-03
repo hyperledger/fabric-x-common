@@ -483,10 +483,7 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"namespaces\x18\x03 \x03(\v2\x1a.applicationpb.TxNamespaceR\n" +
 	"namespaces\x12?\n" +
 	"\fendorsements\x18\x04 \x03(\v2\x1b.applicationpb.EndorsementsR\fendorsements\x12\x1a\n" +
-	"\bmetadata\x18\x05 \x03(\fR\bmetadata2\xba\x01\n" +
-	"\bNotifier\x12a\n" +
-	"\x16OpenNotificationStream\x12 .committerpb.NotificationRequest\x1a!.committerpb.NotificationResponse(\x010\x01\x12K\n" +
-	"\fStreamBlocks\x12 .committerpb.StreamBlocksRequest\x1a\x17.committerpb.BlockEvent0\x01B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"\bmetadata\x18\x05 \x03(\fR\bmetadataB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_notify_proto_rawDescOnce sync.Once
@@ -527,12 +524,8 @@ var file_api_committerpb_notify_proto_depIdxs = []int32{
 	9,  // 7: committerpb.TxEvent.status:type_name -> committerpb.Status
 	11, // 8: committerpb.TxEvent.namespaces:type_name -> applicationpb.TxNamespace
 	12, // 9: committerpb.TxEvent.endorsements:type_name -> applicationpb.Endorsements
-	0,  // 10: committerpb.Notifier.OpenNotificationStream:input_type -> committerpb.NotificationRequest
-	3,  // 11: committerpb.Notifier.StreamBlocks:input_type -> committerpb.StreamBlocksRequest
-	1,  // 12: committerpb.Notifier.OpenNotificationStream:output_type -> committerpb.NotificationResponse
-	4,  // 13: committerpb.Notifier.StreamBlocks:output_type -> committerpb.BlockEvent
-	12, // [12:14] is the sub-list for method output_type
-	10, // [10:12] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
 	10, // [10:10] is the sub-list for extension extendee
 	0,  // [0:10] is the sub-list for field type_name
@@ -554,7 +547,7 @@ func file_api_committerpb_notify_proto_init() {
 			NumEnums:      0,
 			NumMessages:   6,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   0,
 		},
 		GoTypes:           file_api_committerpb_notify_proto_goTypes,
 		DependencyIndexes: file_api_committerpb_notify_proto_depIdxs,

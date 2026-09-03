@@ -16,15 +16,6 @@ import "api/committerpb/ref.proto";
 import "api/committerpb/status.proto";
 import "api/applicationpb/block_tx.proto";
 
-// The notifier service provides API to subscribe to ledger events and receive asynchronous notifications.
-service Notifier {
-    rpc OpenNotificationStream (stream NotificationRequest) returns (stream NotificationResponse);
-
-    // StreamBlocks allows clients to subscribe to all blocks
-    // with optional filtering by transaction namespace and status.
-    rpc StreamBlocks (StreamBlocksRequest) returns (stream BlockEvent);
-}
-
 // NotificationRequest is sent by the clients to subscribe to events.
 message NotificationRequest {
     optional TxIDsBatch tx_status_request = 1;
