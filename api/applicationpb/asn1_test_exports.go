@@ -77,10 +77,20 @@ func requireASN1Marshal(t *testing.T, txID string, metadata [][]byte, ns *TxName
 	derBytes, err := ns.ASN1Marshal(txID, metadata)
 	require.NoError(t, err)
 
+	derBytesQuick, err := ns.QuickASN1Marshal(txID, metadata)
+	require.NoError(t, err)
+
+	require.Equal(t, derBytes, derBytesQuick)
+
 	actual := &asn1Namespace{}
 	_, err = asn1.Unmarshal(derBytes, actual)
 	require.NoError(t, err)
 	require.Equal(t, translated, actual)
+
+	actualQuick := &asn1Namespace{}
+	_, err = asn1.Unmarshal(derBytesQuick, actualQuick)
+	require.NoError(t, err)
+	require.Equal(t, translated, actualQuick)
 	return derBytes
 }
 

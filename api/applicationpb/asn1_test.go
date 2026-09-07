@@ -319,3 +319,78 @@ func mustRead(t *testing.T, source *rand.Rand, maxSize uint32) []byte {
 	require.Equal(t, size, n)
 	return value
 }
+
+// TestMetadataEdgeCases checks the one input shape FuzzASN1MarshalTxNamespace cannot reach: it always
+// passes a two-element metadata slice, so nil and empty are never compared.
+func TestMetadataEdgeCases(t *testing.T) {
+	t.Parallel()
+	ns := &TxNamespace{NsId: "0", NsVersion: 1}
+	for _, tc := range []struct {
+		name     string
+		metadata [][]byte
+	}{
+		{name: "nil", metadata: nil},
+		{name: "empty non-nil", metadata: [][]byte{}},
+		{name: "one empty element", metadata: [][]byte{{}}},
+		{name: "one element", metadata: [][]byte{[]byte("m")}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			slow, err := ns.ASN1Marshal("tx", tc.metadata)
+			require.NoError(t, err)
+			quick, err := ns.QuickASN1Marshal("tx", tc.metadata)
+			require.NoError(t, err)
+			require.Equal(t, slow, quick, "encoding/asn1=%x quick=%x", slow, quick)
+		})
+	}
+}
+
+// BenchmarkASN1Marshal compares the two encoders at the three shapes QuickASN1Marshal's doc comment
+// quotes: the shape a committer evaluation generates, the same shape with many operations, and one
+// with megabyte keys and values. The large-value case has run-to-run spread of tens of percent, so
+// read it from the median of several -count runs rather than from a single result.
+func BenchmarkASN1Marshal(b *testing.B) {
+	metadata := [][]byte{[]byte("some-metadata-1")}
+	for _, bc := range []struct {
+		name    string
+		rwCount int
+		size    int
+	}{
+		{name: "rw=2/size=32", rwCount: 2, size: 32},
+		{name: "rw=512/size=32", rwCount: 512, size: 32},
+		{name: "rw=2/size=1MB", rwCount: 2, size: 1 << 20},
+	} {
+		ns := benchNamespace(bc.rwCount, bc.size)
+		b.Run(bc.name+"/encoding-asn1", func(b *testing.B) {
+			b.ReportAllocs()
+			for range b.N {
+				if _, err := ns.ASN1Marshal("some-tx-id", metadata); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(bc.name+"/quick", func(b *testing.B) {
+			b.ReportAllocs()
+			for range b.N {
+				if _, err := ns.QuickASN1Marshal("some-tx-id", metadata); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}
+
+// benchNamespace builds a namespace of rwCount read-writes, each with a key and a value of size
+// bytes.
+func benchNamespace(rwCount, size int) *TxNamespace {
+	ns := &TxNamespace{NsId: "0", NsVersion: 1, ReadWrites: make([]*ReadWrite, rwCount)}
+	for i := range ns.ReadWrites {
+		version := uint64(i)
+		ns.ReadWrites[i] = &ReadWrite{
+			Key:     make([]byte, size),
+			Value:   make([]byte, size),
+			Version: &version,
+		}
+	}
+	return ns
+}
