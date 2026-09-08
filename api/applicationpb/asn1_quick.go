@@ -129,9 +129,15 @@ func writeSize(w *Write) int {
 	return tlvSize(len(w.Key)) + tlvSize(len(w.Value))
 }
 
-// tlvSize returns the encoded size of a TLV whose value occupies valueSize bytes.
+// tlvSize returns the encoded size of a TLV -- a tag-length-value triplet -- whose value occupies
+// valueSize bytes. The length's own size has to agree with what appendTLVHeader emits below: one
+// byte in the short format, and one plus the length's own bytes in the long one.
 func tlvSize(valueSize int) int {
-	return 1 + lengthSize(valueSize) + valueSize
+	lengthSize := 1
+	if valueSize >= 128 {
+		lengthSize += byteLen(valueSize)
+	}
+	return 1 + lengthSize + valueSize
 }
 
 // appendTLVBytes appends a TLV with an OCTET STRING tag.
@@ -160,35 +166,25 @@ func appendTLVPositiveInteger(buf []byte, value uint64) []byte {
 //   - tag (byte).
 //   - length (variable size length of the value).
 //   - value (the value's bytes, appended by the caller).
-func appendTLVHeader(buf []byte, tag byte, valueSize int) []byte {
-	return appendLength(append(buf, tag), valueSize)
-}
-
-// appendLength uses a variable size number according to the ASN.1 scheme.
-// The MSB indicates whether the short or long format is used.
+//
+// The length is a variable size number, whose MSB indicates whether the short or long format is
+// used.
 //   - [0] short  Single byte where the remaining bits encode the length (max 127).
 //   - [1] long   The remaining bits of the first byte encode the size of the encoded length,
 //     followed by the said number of bytes encoding the length in big-endian.
-func appendLength(buf []byte, l int) []byte {
-	if l < 128 {
+func appendTLVHeader(buf []byte, tag byte, valueSize int) []byte {
+	buf = append(buf, tag)
+	if valueSize < 128 {
 		// [0] short - MSB is already zero.
-		return append(buf, byte(l)) //nolint:gosec // bounded by the branch.
+		return append(buf, byte(valueSize)) //nolint:gosec // bounded by the branch.
 	}
 
 	var tmp [8]byte
-	binary.BigEndian.PutUint64(tmp[:], uint64(l))
-	size := byteLen(l)
+	binary.BigEndian.PutUint64(tmp[:], uint64(valueSize))
+	size := byteLen(valueSize)
 	// [1] long - We add the encoding size and mark the MSB to indicate we use the long format.
 	//nolint:gosec // size is at most 8, so the tag byte cannot overflow.
 	return append(append(buf, 0x80|byte(size)), tmp[len(tmp)-size:]...)
-}
-
-// lengthSize returns the number of bytes appendLength emits for the given length.
-func lengthSize(l int) int {
-	if l < 128 {
-		return 1
-	}
-	return 1 + byteLen(l)
 }
 
 // byteLen returns the number of bytes the big-endian encoding of a non-negative l occupies.
