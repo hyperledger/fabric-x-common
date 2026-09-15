@@ -25,6 +25,7 @@ message SnapshotState {
         COMPLETED = 3;
         FAILED = 4;
         CHECKPOINTED = 5;
+        ABORTED = 6;
     }
 
     // Reference identifying snapshot transaction and its position in the block.

@@ -57,12 +57,14 @@ const (
 	Status_MALFORMED_MISSING_SIGNATURE               Status = 113 // Number of signatures does not match the number of namespaces.
 	Status_MALFORMED_NAMESPACE_POLICY_INVALID        Status = 114 // Invalid namespace policy.
 	Status_MALFORMED_CONFIG_TX_INVALID               Status = 115 // Invalid configuration transaction.
-	Status_MALFORMED_SNAPSHOT_NOT_MARKER_ONLY        Status = 116 // _snapshot TX has a non-empty read-write set; only a marker-only _snapshot (entirely empty read-write set) is valid.
+	Status_MALFORMED_SNAPSHOT_NOT_MARKER_ONLY        Status = 116 // _snapshot TX is neither a marker-only snapshot request (entirely empty read-write set) nor an abort snapshot TX (exactly one read-write, no reads, no blind writes).
 	Status_MALFORMED_CHECKPOINT_INVALID_KEY          Status = 117 // _checkpoint TX read-write key does not decode as a valid TxHeight.
 	Status_MALFORMED_SYSTEM_TX_NOT_STANDALONE        Status = 118 // System TX must be standalone and cannot be mixed with other namespaces.
 	Status_REJECTED_SNAPSHOT_IN_PROGRESS             Status = 119 // Another snapshot is still being hashed / awaiting its checkpoint (a prior _snapshot row is not yet CHECKPOINTED).
 	Status_REJECTED_SNAPSHOT_NO_CHECKPOINT           Status = 120 // A prior snapshot exists that was never checkpointed, so a new snapshot cannot be accepted.
 	Status_REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK      Status = 121 // More than one snapshot TX appeared in the same block; only the first is processed and the rest are rejected regardless of the first's outcome.
+	Status_MALFORMED_SNAPSHOT_INVALID_ABORT_KEY      Status = 122 // An abort snapshot TX's read-write key does not decode as an abort key naming a snapshot's block number.
+	Status_REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT  Status = 123 // An abort snapshot TX names a block that is not the snapshot awaiting its checkpoint, or that snapshot's lifecycle is already closed (CHECKPOINTED/ABORTED).
 )
 
 // Enum value maps for Status.
@@ -94,6 +96,8 @@ var (
 		119: "REJECTED_SNAPSHOT_IN_PROGRESS",
 		120: "REJECTED_SNAPSHOT_NO_CHECKPOINT",
 		121: "REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK",
+		122: "MALFORMED_SNAPSHOT_INVALID_ABORT_KEY",
+		123: "REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT",
 	}
 	Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED":                        0,
@@ -122,6 +126,8 @@ var (
 		"REJECTED_SNAPSHOT_IN_PROGRESS":             119,
 		"REJECTED_SNAPSHOT_NO_CHECKPOINT":           120,
 		"REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK":      121,
+		"MALFORMED_SNAPSHOT_INVALID_ABORT_KEY":      122,
+		"REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT":  123,
 	}
 )
 
@@ -212,7 +218,7 @@ const file_api_committerpb_status_proto_rawDesc = "" +
 	"\x1capi/committerpb/status.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\"]\n" +
 	"\bTxStatus\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status*\xf0\x06\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status*\xc8\a\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tCOMMITTED\x10\x01\x12\x1d\n" +
@@ -239,7 +245,9 @@ const file_api_committerpb_status_proto_rawDesc = "" +
 	"\"MALFORMED_SYSTEM_TX_NOT_STANDALONE\x10v\x12!\n" +
 	"\x1dREJECTED_SNAPSHOT_IN_PROGRESS\x10w\x12#\n" +
 	"\x1fREJECTED_SNAPSHOT_NO_CHECKPOINT\x10x\x12(\n" +
-	"$REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK\x10yB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"$REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK\x10y\x12(\n" +
+	"$MALFORMED_SNAPSHOT_INVALID_ABORT_KEY\x10z\x12,\n" +
+	"(REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT\x10{B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_status_proto_rawDescOnce sync.Once
