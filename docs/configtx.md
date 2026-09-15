@@ -797,6 +797,7 @@ SharedConfig (binary protobuf)
 |   |   +-- host                 Router hostname
 |   |   +-- port                 Router port
 |   |   +-- tls_cert             Router TLS certificate
+|   |   +-- sign_cert            Router signing certificate
 |   +-- BatchersConfig[]         One or more batcher nodes (sharded)
 |   |   +-- shardID              Shard this batcher handles
 |   |   +-- host                 Batcher hostname
@@ -812,6 +813,7 @@ SharedConfig (binary protobuf)
 |       +-- host                 Assembler hostname
 |       +-- port                 Assembler port
 |       +-- tls_cert             Assembler TLS certificate
+|       +-- sign_cert            Assembler signing certificate
 |
 +-- ConsensusConfig              SmartBFT consensus parameters
 |   +-- SmartBFTConfig
