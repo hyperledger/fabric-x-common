@@ -385,3 +385,188 @@ func assertLogContains(t *testing.T, r *floggingtest.Recorder, ss ...string) {
 		require.NotEmpty(t, r.EntriesContaining(s))
 	}
 }
+
+func deferredTestSetup(satisfies, verify error) (*mocks.Identity, []mspi.Identity) {
+	id := msppb.NewIdentity("org1", []byte("identity1"))
+	sd := []*protoutil.SignedData{
+		{Data: []byte("data1"), Identity: id, Signature: []byte("signature1")},
+		{Data: []byte("data1"), Identity: id, Signature: []byte("signature1")},
+	}
+
+	fIDDs := &mocks.IdentityDeserializer{}
+	fID := &mocks.Identity{}
+	fID.SatisfiesPrincipalReturns(satisfies)
+	fID.VerifyReturns(verify)
+	fID.GetIdentifierReturns(&mspi.IdentityIdentifier{Id: "id", Mspid: "mspid"})
+	fIDDs.DeserializeIdentityReturns(fID, nil)
+
+	return fID, SignatureSetToDeferredVerificationIdentities(sd, fIDDs)
+}
+
+func TestSignatureSetToDeferredVerificationIdentitiesDefersTheVerification(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - convert a signature set of two entries from one signer
+	// - the set is deduplicated to a single identity
+	// - the conversion verifies no signature
+	fID, ids := deferredTestSetup(nil, nil)
+
+	require.Len(t, ids, 1)
+	require.Equal(t, "id", ids[0].GetIdentifier().Id)
+	require.Equal(t, "mspid", ids[0].GetIdentifier().Mspid)
+	require.Zero(t, fID.VerifyCallCount())
+}
+
+func TestSignatureSetToDeferredVerificationIdentitiesVerifiesOnceWhenAPrincipalMatches(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - convert a signature set whose signer satisfies the principal it is offered
+	// - offering a principal verifies the signature, over the payload and signature in the set
+	// - offering two more principals does not verify it again
+	fID, ids := deferredTestSetup(nil, nil)
+
+	require.NoError(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}))
+	require.Equal(t, 1, fID.VerifyCallCount())
+
+	data, sig := fID.VerifyArgsForCall(0)
+	require.Equal(t, []byte("data1"), data)
+	require.Equal(t, []byte("signature1"), sig)
+
+	require.NoError(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}))
+	require.NoError(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}))
+	require.Equal(t, 1, fID.VerifyCallCount())
+}
+
+func TestSignatureSetToDeferredVerificationIdentitiesDoesNotVerifyWhenNoPrincipalMatches(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - convert a signature set whose signer satisfies no principal it is offered
+	// - both principals offered are refused
+	// - no signature is verified
+	fID, ids := deferredTestSetup(errors.New("mango"), nil)
+
+	require.EqualError(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}), "mango")
+	require.EqualError(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}), "mango")
+	require.Zero(t, fID.VerifyCallCount())
+}
+
+func TestSignatureSetToDeferredVerificationIdentitiesRefusesAnInvalidSignature(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - convert a signature set whose signer satisfies its principal but signed badly
+	// - the principal is refused with the verification error, and again on a second offer
+	// - the signature is verified only once
+	fID, ids := deferredTestSetup(nil, errors.New("papaya"))
+
+	require.ErrorContains(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}), "signature verification failed: papaya")
+	require.ErrorContains(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}), "signature verification failed: papaya")
+	require.Equal(t, 1, fID.VerifyCallCount())
+}
+
+func TestSignatureSetToDeferredVerificationIdentitiesSkipsAnIdentityItCannotDeserialize(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - convert a signature set whose identity cannot be deserialized
+	// - no identity is returned
+	fIDDs := &mocks.IdentityDeserializer{}
+	fIDDs.DeserializeIdentityReturns(nil, errors.New("guava"))
+
+	ids := SignatureSetToDeferredVerificationIdentities([]*protoutil.SignedData{
+		{Data: []byte("data1"), Identity: msppb.NewIdentity("org1", []byte("identity1")), Signature: []byte("sig")},
+	}, fIDDs)
+
+	require.Empty(t, ids)
+}
+
+func TestSignatureSetToDeferredVerificationIdentitiesVerifiesEachIdentityOnce(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - convert a signature set of three entries from three different signers, each appearing once
+	// - the middle signer carries an invalid signature, the other two are valid
+	// - offer every identity a principal it satisfies, twice each
+	// - each identity is verified exactly once, over its own payload and signature
+	// - each identity keeps its own outcome: the middle one is refused, the others accepted
+	const signers = 3
+
+	sd := make([]*protoutil.SignedData, 0, signers)
+	fakes := make([]*mocks.Identity, 0, signers)
+	fIDDs := &mocks.IdentityDeserializer{}
+
+	for i := range signers {
+		fID := &mocks.Identity{}
+		fID.SatisfiesPrincipalReturns(nil)
+		fID.GetIdentifierReturns(&mspi.IdentityIdentifier{Id: strconv.Itoa(i), Mspid: "mspid"})
+		if i == 1 {
+			fID.VerifyReturns(errors.New("mango"))
+		}
+		fakes = append(fakes, fID)
+		fIDDs.DeserializeIdentityReturnsOnCall(i, fID, nil)
+
+		sd = append(sd, &protoutil.SignedData{
+			Data:      []byte("data" + strconv.Itoa(i)),
+			Identity:  msppb.NewIdentity("org1", []byte("identity"+strconv.Itoa(i))),
+			Signature: []byte("signature" + strconv.Itoa(i)),
+		})
+	}
+
+	ids := SignatureSetToDeferredVerificationIdentities(sd, fIDDs)
+	require.Len(t, ids, signers)
+	for _, fID := range fakes {
+		require.Zero(t, fID.VerifyCallCount())
+	}
+
+	for range 2 {
+		require.NoError(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}))
+		require.ErrorContains(t, ids[1].SatisfiesPrincipal(&msp.MSPPrincipal{}), "signature verification failed: mango")
+		require.NoError(t, ids[2].SatisfiesPrincipal(&msp.MSPPrincipal{}))
+	}
+
+	for i, fID := range fakes {
+		require.Equal(t, 1, fID.VerifyCallCount(), "identity %d", i)
+		data, sig := fID.VerifyArgsForCall(0)
+		require.Equal(t, []byte("data"+strconv.Itoa(i)), data)
+		require.Equal(t, []byte("signature"+strconv.Itoa(i)), sig)
+	}
+}
+
+func TestSignatureSetToDeferredVerificationIdentitiesDeduplicatesBeforeVerifying(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - convert a signature set carrying one signer twice, the first entry signed badly and the
+	//   second signed well
+	// - the set is deduplicated to the first entry, so the good signature is never reached
+	// - offering the identity a principal is refused, and only the bad signature was verified
+	// - this is the deliberate difference from SignatureSetToValidIdentities, which records a signer
+	//   only after its signature verifies and so would have passed on the second entry
+	id := msppb.NewIdentity("org1", []byte("identity1"))
+	sd := []*protoutil.SignedData{
+		{Data: []byte("data1"), Identity: id, Signature: []byte("bad signature")},
+		{Data: []byte("data1"), Identity: id, Signature: []byte("good signature")},
+	}
+
+	fIDDs := &mocks.IdentityDeserializer{}
+	invalid, valid := &mocks.Identity{}, &mocks.Identity{}
+	for i, fID := range []*mocks.Identity{invalid, valid} {
+		fID.SatisfiesPrincipalReturns(nil)
+		fID.GetIdentifierReturns(&mspi.IdentityIdentifier{Id: "id", Mspid: "mspid"})
+		fIDDs.DeserializeIdentityReturnsOnCall(i, fID, nil)
+	}
+	invalid.VerifyReturns(errors.New("mango"))
+	valid.VerifyReturns(nil)
+
+	ids := SignatureSetToDeferredVerificationIdentities(sd, fIDDs)
+	require.Len(t, ids, 1)
+
+	require.ErrorContains(t, ids[0].SatisfiesPrincipal(&msp.MSPPrincipal{}), "signature verification failed: mango")
+	require.Equal(t, 1, invalid.VerifyCallCount())
+	_, sig := invalid.VerifyArgsForCall(0)
+	require.Equal(t, []byte("bad signature"), sig)
+	require.Zero(t, valid.VerifyCallCount())
+}
