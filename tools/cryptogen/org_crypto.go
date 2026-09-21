@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package cryptogen
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"os"
@@ -255,8 +256,9 @@ func (c *orgCryptoTree) generateUsers() []NodeSpec {
 			ou = AdminOU
 		}
 		users = append(users, NodeSpec{
-			CommonName:         fmt.Sprintf("%s@%s", spec.Name, orgName),
-			PublicKeyAlgorithm: publicKeyAlg,
+			CommonName: fmt.Sprintf("%s@%s", spec.Name, orgName),
+			// the user's own algorithm wins over the org-wide one.
+			PublicKeyAlgorithm: cmp.Or(spec.PublicKeyAlgorithm, publicKeyAlg),
 			OrganizationalUnit: ou,
 		})
 	}
@@ -311,10 +313,9 @@ func (c *orgCryptoTree) overwriteNodesAdminCert(adminUserNames ...string) error 
 	return nil
 }
 
+// overwriteAdminCerts rebuilds the given admincerts directory from scratch, so that admins
+// dropped from the config lose their authority instead of lingering in an existing directory.
 func (c *orgCryptoTree) overwriteAdminCerts(adminCertsDir string, adminUserNames ...string) error {
-	if allAdminCertsExist(adminCertsDir, adminUserNames) {
-		return nil
-	}
 	// delete the contents of admincerts
 	err := os.RemoveAll(adminCertsDir)
 	if err != nil {
@@ -334,15 +335,6 @@ func (c *orgCryptoTree) overwriteAdminCerts(adminCertsDir string, adminUserNames
 		}
 	}
 	return nil
-}
-
-func allAdminCertsExist(adminCertsDir string, adminUserNames []string) bool {
-	for _, name := range adminUserNames {
-		if _, err := os.Stat(filepath.Join(adminCertsDir, name+"-cert.pem")); os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
 }
 
 func (c *orgCryptoTree) generateNodes(nodes []NodeSpec, p nodeParameters) error {
