@@ -12,6 +12,7 @@ package committerpb;
 
 import "google/protobuf/duration.proto";
 
+import "common/common.proto";
 import "api/committerpb/ref.proto";
 import "api/committerpb/status.proto";
 import "api/applicationpb/block_tx.proto";
@@ -67,17 +68,13 @@ message StreamBlocksRequest {
 
 // BlockEvent contains a batch of transaction events from a single block.
 message BlockEvent {
-    // The block number from which these transactions originated.
-    uint64 block_number = 1;
+    // The header of the block from which these transactions originated.
+    // It carries the block number, the previous block hash and the data hash.
+    // The block hash can be computed from it with protoutil.BlockHeaderHash.
+    common.BlockHeader header = 1;
 
     // List of transaction events (may be filtered based on request).
     repeated TxEvent events = 2;
-
-    // The hash of the block from which these transactions originated.
-    bytes block_hash = 3;
-
-    // The hash of the previous block.
-    bytes prev_block_hash = 4;
 }
 
 // TxEvent represents a single transaction event.

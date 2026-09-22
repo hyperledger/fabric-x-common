@@ -12,6 +12,7 @@
 package committerpb
 
 import (
+	common "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	applicationpb "github.com/hyperledger/fabric-x-common/api/applicationpb"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -291,14 +292,12 @@ func (x *StreamBlocksRequest) GetIncludeMetadata() bool {
 // BlockEvent contains a batch of transaction events from a single block.
 type BlockEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The block number from which these transactions originated.
-	BlockNumber uint64 `protobuf:"varint,1,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
+	// The header of the block from which these transactions originated.
+	// It carries the block number, the previous block hash and the data hash.
+	// The block hash can be computed from it with protoutil.BlockHeaderHash.
+	Header *common.BlockHeader `protobuf:"bytes,1,opt,name=header,proto3" json:"header,omitempty"`
 	// List of transaction events (may be filtered based on request).
-	Events []*TxEvent `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
-	// The hash of the block from which these transactions originated.
-	BlockHash []byte `protobuf:"bytes,3,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty"`
-	// The hash of the previous block.
-	PrevBlockHash []byte `protobuf:"bytes,4,opt,name=prev_block_hash,json=prevBlockHash,proto3" json:"prev_block_hash,omitempty"`
+	Events        []*TxEvent `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -333,30 +332,16 @@ func (*BlockEvent) Descriptor() ([]byte, []int) {
 	return file_api_committerpb_notify_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *BlockEvent) GetBlockNumber() uint64 {
+func (x *BlockEvent) GetHeader() *common.BlockHeader {
 	if x != nil {
-		return x.BlockNumber
+		return x.Header
 	}
-	return 0
+	return nil
 }
 
 func (x *BlockEvent) GetEvents() []*TxEvent {
 	if x != nil {
 		return x.Events
-	}
-	return nil
-}
-
-func (x *BlockEvent) GetBlockHash() []byte {
-	if x != nil {
-		return x.BlockHash
-	}
-	return nil
-}
-
-func (x *BlockEvent) GetPrevBlockHash() []byte {
-	if x != nil {
-		return x.PrevBlockHash
 	}
 	return nil
 }
@@ -451,7 +436,7 @@ var File_api_committerpb_notify_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\n" +
-	"\x1capi/committerpb/notify.proto\x12\vcommitterpb\x1a\x1egoogle/protobuf/duration.proto\x1a\x19api/committerpb/ref.proto\x1a\x1capi/committerpb/status.proto\x1a api/applicationpb/block_tx.proto\"\xaa\x01\n" +
+	"\x1capi/committerpb/notify.proto\x12\vcommitterpb\x1a\x1egoogle/protobuf/duration.proto\x1a\x13common/common.proto\x1a\x19api/committerpb/ref.proto\x1a\x1capi/committerpb/status.proto\x1a api/applicationpb/block_tx.proto\"\xaa\x01\n" +
 	"\x13NotificationRequest\x12H\n" +
 	"\x11tx_status_request\x18\x01 \x01(\v2\x17.committerpb.TxIDsBatchH\x00R\x0ftxStatusRequest\x88\x01\x01\x123\n" +
 	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\atimeoutB\x14\n" +
@@ -468,14 +453,11 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\rfilter_status\x18\x02 \x03(\x0e2\x13.committerpb.StatusR\ffilterStatus\x125\n" +
 	"\x17include_read_write_sets\x18\x03 \x01(\bR\x14includeReadWriteSets\x121\n" +
 	"\x14include_endorsements\x18\x04 \x01(\bR\x13includeEndorsements\x12)\n" +
-	"\x10include_metadata\x18\x05 \x01(\bR\x0fincludeMetadata\"\xa4\x01\n" +
+	"\x10include_metadata\x18\x05 \x01(\bR\x0fincludeMetadata\"g\n" +
 	"\n" +
-	"BlockEvent\x12!\n" +
-	"\fblock_number\x18\x01 \x01(\x04R\vblockNumber\x12,\n" +
-	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\x12\x1d\n" +
-	"\n" +
-	"block_hash\x18\x03 \x01(\fR\tblockHash\x12&\n" +
-	"\x0fprev_block_hash\x18\x04 \x01(\fR\rprevBlockHash\"\xf5\x01\n" +
+	"BlockEvent\x12+\n" +
+	"\x06header\x18\x01 \x01(\v2\x13.common.BlockHeaderR\x06header\x12,\n" +
+	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\"\xf5\x01\n" +
 	"\aTxEvent\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status\x12:\n" +
@@ -509,9 +491,10 @@ var file_api_committerpb_notify_proto_goTypes = []any{
 	(*durationpb.Duration)(nil),        // 7: google.protobuf.Duration
 	(*TxStatus)(nil),                   // 8: committerpb.TxStatus
 	(Status)(0),                        // 9: committerpb.Status
-	(*TxRef)(nil),                      // 10: committerpb.TxRef
-	(*applicationpb.TxNamespace)(nil),  // 11: applicationpb.TxNamespace
-	(*applicationpb.Endorsements)(nil), // 12: applicationpb.Endorsements
+	(*common.BlockHeader)(nil),         // 10: common.BlockHeader
+	(*TxRef)(nil),                      // 11: committerpb.TxRef
+	(*applicationpb.TxNamespace)(nil),  // 12: applicationpb.TxNamespace
+	(*applicationpb.Endorsements)(nil), // 13: applicationpb.Endorsements
 }
 var file_api_committerpb_notify_proto_depIdxs = []int32{
 	6,  // 0: committerpb.NotificationRequest.tx_status_request:type_name -> committerpb.TxIDsBatch
@@ -519,16 +502,17 @@ var file_api_committerpb_notify_proto_depIdxs = []int32{
 	8,  // 2: committerpb.NotificationResponse.tx_status_events:type_name -> committerpb.TxStatus
 	2,  // 3: committerpb.NotificationResponse.rejected_tx_ids:type_name -> committerpb.RejectedTxIds
 	9,  // 4: committerpb.StreamBlocksRequest.filter_status:type_name -> committerpb.Status
-	5,  // 5: committerpb.BlockEvent.events:type_name -> committerpb.TxEvent
-	10, // 6: committerpb.TxEvent.ref:type_name -> committerpb.TxRef
-	9,  // 7: committerpb.TxEvent.status:type_name -> committerpb.Status
-	11, // 8: committerpb.TxEvent.namespaces:type_name -> applicationpb.TxNamespace
-	12, // 9: committerpb.TxEvent.endorsements:type_name -> applicationpb.Endorsements
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	10, // 5: committerpb.BlockEvent.header:type_name -> common.BlockHeader
+	5,  // 6: committerpb.BlockEvent.events:type_name -> committerpb.TxEvent
+	11, // 7: committerpb.TxEvent.ref:type_name -> committerpb.TxRef
+	9,  // 8: committerpb.TxEvent.status:type_name -> committerpb.Status
+	12, // 9: committerpb.TxEvent.namespaces:type_name -> applicationpb.TxNamespace
+	13, // 10: committerpb.TxEvent.endorsements:type_name -> applicationpb.Endorsements
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_api_committerpb_notify_proto_init() }
