@@ -8,15 +8,18 @@ package cauthdsl
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	mb "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/msppb"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/common/policydsl"
+	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
 )
 
@@ -166,4 +169,128 @@ func newSignedData(mspID, cert, data, sign string) []*protoutil.SignedData {
 		Identity: msppb.NewIdentity(mspID, []byte(cert)),
 		Data:     []byte(data), Signature: []byte(sign),
 	}}
+}
+
+// countingIdentity counts the signature verifications performed on the identity it wraps.
+type countingIdentity struct {
+	msp.Identity
+	verifies *int
+}
+
+func (id *countingIdentity) Verify(msg, sig []byte) error {
+	*id.verifies++
+	return id.Identity.Verify(msg, sig)
+}
+
+// countingDeserializer hands out identities that count how often they are verified.
+type countingDeserializer struct {
+	mspID    string
+	idBytes  []byte
+	verifies int
+}
+
+func (d *countingDeserializer) DeserializeIdentity(_ *msppb.Identity) (msp.Identity, error) { //nolint:ireturn
+	return &countingIdentity{
+		Identity: &MockIdentity{MspID: d.mspID, IDBytes: d.idBytes},
+		verifies: &d.verifies,
+	}, nil
+}
+
+func (*countingDeserializer) GetKnownDeserializedIdentity(msp.IdentityIdentifier) msp.Identity { //nolint:ireturn
+	return nil
+}
+
+func (*countingDeserializer) IsWellFormed(*msppb.Identity) error { return nil }
+
+// implicitMetaOverSignaturePolicies builds an implicit meta policy of the given rule with one
+// signature sub-policy per principal, each requiring its own principal.
+func implicitMetaOverSignaturePolicies( //nolint:ireturn // policies.NewImplicitMetaPolicy returns this interface
+	t *testing.T,
+	rule cb.ImplicitMetaPolicy_Rule,
+	principals [][]byte,
+	deserializer msp.IdentityDeserializer,
+) policies.Policy {
+	t.Helper()
+
+	const subPolicyName = "SubPolicy"
+	managers := make(map[string]*policies.ManagerImpl, len(principals))
+	for i, principal := range principals {
+		policy, _, err := NewPolicyProvider(deserializer).NewPolicy(protoutil.MarshalOrPanic(
+			&cb.SignaturePolicyEnvelope{
+				Version:    0,
+				Rule:       policydsl.SignedBy(0),
+				Identities: []*mb.MSPPrincipal{{Principal: principal}},
+			}))
+		require.NoError(t, err)
+		managers[strconv.Itoa(i)] = &policies.ManagerImpl{
+			Policies: map[string]policies.Policy{subPolicyName: policy},
+		}
+	}
+
+	imp, err := policies.NewImplicitMetaPolicy(protoutil.MarshalOrPanic(&cb.ImplicitMetaPolicy{
+		Rule:      rule,
+		SubPolicy: subPolicyName,
+	}), managers)
+	require.NoError(t, err)
+
+	return imp
+}
+
+// signerPrincipal is the principal that the identities countingDeserializer hands out satisfy.
+func signerPrincipal(t *testing.T, d *countingDeserializer) []byte {
+	t.Helper()
+
+	identity, err := d.DeserializeIdentity(nil)
+	require.NoError(t, err)
+	principal, err := identity.Serialize()
+	require.NoError(t, err)
+
+	return principal
+}
+
+func signedDataFromSigner() []*protoutil.SignedData {
+	return []*protoutil.SignedData{{
+		Data:      []byte("data1"),
+		Identity:  msppb.NewIdentity("org1", []byte("identity1")),
+		Signature: []byte("signature1"),
+	}}
+}
+
+func TestImplicitMetaPolicyVerifiesTheSignatureOnlyForTheSubPolicyThatMatches(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - an implicit meta ANY policy over four sub-policies, only the last of which requires the
+	//   signer's principal
+	// - evaluate a signature set carrying that signer once
+	// - the policy is satisfied by that one sub-policy
+	// - the signature is verified once however many sub-policies were tried before it, because a
+	//   sub-policy whose principal does not match never reaches the verification
+	deserializer := &countingDeserializer{mspID: "org1", idBytes: []byte("identity1")}
+	principal := signerPrincipal(t, deserializer)
+	other := []byte("a principal this signer cannot satisfy")
+
+	policy := implicitMetaOverSignaturePolicies(
+		t, cb.ImplicitMetaPolicy_ANY, [][]byte{other, other, other, principal}, deserializer)
+
+	require.NoError(t, policy.EvaluateSignedData(signedDataFromSigner()))
+	require.Equal(t, 1, deserializer.verifies)
+}
+
+func TestImplicitMetaPolicyVerifiesNoSignatureWhenNoPrincipalMatches(t *testing.T) {
+	t.Parallel()
+
+	// Scenario:
+	// - an implicit meta ANY policy over four sub-policies, none requiring the signer's principal
+	// - evaluate a signature set carrying that signer once
+	// - every sub-policy is tried and none is satisfied, so the policy is refused
+	// - no signature is verified at all, because no principal ever matched
+	deserializer := &countingDeserializer{mspID: "org1", idBytes: []byte("identity1")}
+	other := []byte("a principal this signer cannot satisfy")
+
+	policy := implicitMetaOverSignaturePolicies(
+		t, cb.ImplicitMetaPolicy_ANY, [][]byte{other, other, other, other}, deserializer)
+
+	require.Error(t, policy.EvaluateSignedData(signedDataFromSigner()))
+	require.Zero(t, deserializer.verifies)
 }
