@@ -9,6 +9,7 @@ package cli_test
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -21,13 +22,23 @@ import (
 const (
 	cmdLedger = "ledger"
 	cmdFollow = "follow"
+	cmdModify = "modify"
 	subHeight = "height"
+	subRemove = "remove"
+	subAdd    = "add"
+	subApp    = "app"
+	subParty  = "party"
 
 	flagConfig       = "--config"
 	flagCurrentBlock = "--current-block"
 	flagOutput       = "--output"
+	flagBlock        = "--block"
+	flagOrg          = "--org"
+	flagParty        = "--party"
+	flagCert         = "--cert"
 
 	refLatest = "latest"
+	orgPeer1  = "peer1"
 
 	fileConfigUpdate = "config_update.pb"
 	fileEndorsement1 = "endorsed_config_update1.pb"
@@ -55,6 +66,7 @@ func newHandlers(invoked *call) cli.Handlers {
 		Update: fakeUpdate{invoked},
 		Tx:     fakeTx{invoked},
 		Follow: fakeFollow{invoked},
+		Modify: fakeModify{invoked},
 	}
 }
 
@@ -88,6 +100,14 @@ func (f fakeUpdate) Run(currentPath, modifiedPath, currentBlockPath, outputPath 
 	*f.invoked = call{
 		handler: "ComputeUpdate",
 		args:    []string{currentPath, modifiedPath, currentBlockPath, outputPath},
+	}
+	return nil
+}
+
+func (f fakeUpdate) RunFromBlocks(currentBlockPath, nextBlockPath, outputPath string) error {
+	*f.invoked = call{
+		handler: "ComputeUpdatePB",
+		args:    []string{currentBlockPath, nextBlockPath, outputPath},
 	}
 	return nil
 }
@@ -126,6 +146,65 @@ func (f fakeFollow) Run(configPath, currentBlockPath, outputPath string, timeout
 	return nil
 }
 
+type fakeModify struct{ invoked *call }
+
+func (f fakeModify) AppAdd(orgPath, blockPath string) error {
+	*f.invoked = call{handler: "ModifyAppAdd", args: []string{orgPath, blockPath}}
+	return nil
+}
+
+func (f fakeModify) AppRemove(org, blockPath string) error {
+	*f.invoked = call{handler: "ModifyAppRemove", args: []string{org, blockPath}}
+	return nil
+}
+
+func (f fakeModify) AppKnownCertsAdd(org string, certPaths []string, blockPath string) error {
+	*f.invoked = certCall("ModifyAppKnownCertsAdd", org, certPaths, blockPath)
+	return nil
+}
+
+func (f fakeModify) AppKnownCertsRemove(org string, certPaths []string, blockPath string) error {
+	*f.invoked = certCall("ModifyAppKnownCertsRemove", org, certPaths, blockPath)
+	return nil
+}
+
+// certCall records a known-certs invocation as {org, certPaths…, blockPath}.
+func certCall(handler, org string, certPaths []string, blockPath string) call {
+	args := make([]string, 0, len(certPaths)+2)
+	args = append(args, org)
+	args = append(args, certPaths...)
+	args = append(args, blockPath)
+	return call{handler: handler, args: args}
+}
+
+func (f fakeModify) PartyAdd(partyPath, blockPath string) error {
+	*f.invoked = call{handler: "ModifyPartyAdd", args: []string{partyPath, blockPath}}
+	return nil
+}
+
+func (f fakeModify) PartyRemove(partyID uint32, blockPath string) error {
+	*f.invoked = call{handler: "ModifyPartyRemove", args: []string{strconv.FormatUint(uint64(partyID), 10), blockPath}}
+	return nil
+}
+
+func (f fakeModify) PartyNode(ch cli.NodeChange) error {
+	*f.invoked = call{handler: "ModifyPartyNode", args: []string{
+		strconv.FormatUint(uint64(ch.Party), 10), ch.Role, strconv.FormatUint(uint64(ch.Shard), 10),
+		ch.Host, strconv.FormatUint(uint64(ch.Port), 10), ch.TLSCert, ch.SignCert, ch.BlockPath,
+	}}
+	return nil
+}
+
+func (f fakeModify) PartyCA(ch cli.CAChange) error {
+	args := make([]string, 0, len(ch.SignCerts)+len(ch.TLSCerts)+3)
+	args = append(args, ch.Op, strconv.FormatUint(uint64(ch.Party), 10))
+	args = append(args, ch.SignCerts...)
+	args = append(args, ch.TLSCerts...)
+	args = append(args, ch.BlockPath)
+	*f.invoked = call{handler: "ModifyPartyCA", args: args}
+	return nil
+}
+
 // TestRunRoutesToHandler feeds argument vectors through the real command tree
 // and asserts each one selects the expected handler with the expected values.
 // The placeholder tokens are replaced with real temp-file paths so the ExistingFile flag validation passes.
@@ -141,6 +220,11 @@ func TestRunRoutesToHandler(t *testing.T) {
 	endorsement2 := writeTempFile(t, fileEndorsement2)
 	endorsed := writeTempFile(t, fileEndorsed)
 	configTx := writeTempFile(t, fileConfigTx)
+	nextBlock := writeTempFile(t, "next.pb")
+	orgYAML := writeTempFile(t, "org.yaml")
+	partyYAML := writeTempFile(t, "party.yaml")
+	cert1 := writeTempFile(t, "cert1.pem")
+	cert2 := writeTempFile(t, "cert2.pem")
 
 	for _, tc := range []struct {
 		name        string
@@ -206,6 +290,75 @@ func TestRunRoutesToHandler(t *testing.T) {
 			},
 			wantHandler: "ComputeUpdate",
 			wantArgs:    []string{currentJSON, modifiedJSON, currBlock, fileConfigUpdate},
+		},
+		{
+			name: "compute-update block mode",
+			args: []string{
+				"compute-update", "--pb", currBlock, nextBlock, flagOutput, fileConfigUpdate,
+			},
+			wantHandler: "ComputeUpdatePB",
+			wantArgs:    []string{currBlock, nextBlock, fileConfigUpdate},
+		},
+		{
+			name:        "modify app add",
+			args:        []string{cmdModify, subApp, subAdd, flagOrg, orgYAML, flagBlock, nextBlock},
+			wantHandler: "ModifyAppAdd",
+			wantArgs:    []string{orgYAML, nextBlock},
+		},
+		{
+			name:        "modify app remove",
+			args:        []string{cmdModify, subApp, subRemove, "peer2", flagBlock, nextBlock},
+			wantHandler: "ModifyAppRemove",
+			wantArgs:    []string{"peer2", nextBlock},
+		},
+		{
+			name: "modify app known-certs add",
+			args: []string{
+				cmdModify, subApp, "known-certs", subAdd, flagOrg, orgPeer1,
+				flagCert, cert1, flagCert, cert2, flagBlock, nextBlock,
+			},
+			wantHandler: "ModifyAppKnownCertsAdd",
+			wantArgs:    []string{orgPeer1, cert1, cert2, nextBlock},
+		},
+		{
+			name: "modify app known-certs remove",
+			args: []string{
+				cmdModify, subApp, "known-certs", subRemove, flagOrg, orgPeer1, flagCert, cert1, flagBlock, nextBlock,
+			},
+			wantHandler: "ModifyAppKnownCertsRemove",
+			wantArgs:    []string{orgPeer1, cert1, nextBlock},
+		},
+		{
+			name:        "modify party add",
+			args:        []string{cmdModify, subParty, subAdd, flagParty, partyYAML, flagBlock, nextBlock},
+			wantHandler: "ModifyPartyAdd",
+			wantArgs:    []string{partyYAML, nextBlock},
+		},
+		{
+			name:        "modify party remove",
+			args:        []string{cmdModify, subParty, subRemove, "5", flagBlock, nextBlock},
+			wantHandler: "ModifyPartyRemove",
+			wantArgs:    []string{"5", nextBlock},
+		},
+		{
+			name: "modify party node",
+			args: []string{
+				cmdModify, subParty, "node", flagParty, "1", "--role", "batcher", "--shard", "1",
+				"--port", "9014", "--tls-cert", cert1, flagBlock, nextBlock,
+			},
+			wantHandler: "ModifyPartyNode",
+			// party, role, shard, host, port, tls-cert, sign-cert, block
+			wantArgs: []string{"1", "batcher", "1", "", "9014", cert1, "", nextBlock},
+		},
+		{
+			name: "modify party ca add",
+			args: []string{
+				cmdModify, subParty, "ca", subAdd, flagParty, "1",
+				"--sign-cert", cert1, "--tls-cert", cert2, flagBlock, nextBlock,
+			},
+			wantHandler: "ModifyPartyCA",
+			// op, party, sign-certs…, tls-certs…, block
+			wantArgs: []string{"add", "1", cert1, cert2, nextBlock},
 		},
 		{
 			name:        "tx endorse",
