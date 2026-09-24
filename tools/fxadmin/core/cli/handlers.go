@@ -31,9 +31,50 @@ type DecodeHandler interface {
 	Run(blockPath, outputPath string) error
 }
 
-// UpdateHandler executes `fxadmin compute-update`.
+// UpdateHandler executes `fxadmin compute-update` in its two modes: JSON mode
+// (Run) diffs two decoded-config JSON files, block mode (RunFromBlocks, the
+// --pb flag) diffs two config block files.
 type UpdateHandler interface {
 	Run(currentPath, modifiedPath, currentBlockPath, outputPath string) error
+	RunFromBlocks(currentBlockPath, nextBlockPath, outputPath string) error
+}
+
+// NodeChange is a `modify party node` request. It selects one node of a party
+// (Role, plus Shard for a batcher) and carries the fields to change; an empty
+// field is left unchanged.
+type NodeChange struct {
+	Party     uint32
+	Role      string
+	Shard     uint32
+	Host      string
+	Port      uint32
+	TLSCert   string
+	SignCert  string
+	BlockPath string
+}
+
+// CAChange is a `modify party ca add|remove|set` request over a party's CA
+// (SignCerts) and TLS-CA (TLSCerts) certificate lists. Op is the sub-verb.
+// An empty field is left unchanged.
+type CAChange struct {
+	Op        string
+	Party     uint32
+	SignCerts []string
+	TLSCerts  []string
+	BlockPath string
+}
+
+// ModifyHandler executes the `fxadmin modify` subcommands, which apply a
+// structured configuration change directly to a config block file.
+type ModifyHandler interface {
+	AppAdd(orgPath, blockPath string) error
+	AppRemove(org, blockPath string) error
+	AppKnownCertsAdd(org string, certPaths []string, blockPath string) error
+	AppKnownCertsRemove(org string, certPaths []string, blockPath string) error
+	PartyAdd(partyPath, blockPath string) error
+	PartyRemove(partyID uint32, blockPath string) error
+	PartyNode(change NodeChange) error
+	PartyCA(change CAChange) error
 }
 
 // TxHandler executes the `fxadmin tx` subcommands.
@@ -58,6 +99,7 @@ type Handlers struct {
 	Update UpdateHandler
 	Tx     TxHandler
 	Follow FollowHandler
+	Modify ModifyHandler
 }
 
 // validate reports any command handler that was left nil, so a misconfigured
@@ -70,6 +112,7 @@ func (h Handlers) validate() error {
 		"compute-update": isHandlerNil(h.Update),
 		"tx":             isHandlerNil(h.Tx),
 		"follow":         isHandlerNil(h.Follow),
+		"modify":         isHandlerNil(h.Modify),
 	} {
 		if !set {
 			missing = append(missing, name)
