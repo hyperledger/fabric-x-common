@@ -20,7 +20,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 
 	"github.com/hyperledger/fabric-x-common/api/types"
-	"github.com/hyperledger/fabric-x-common/common/capabilities"
 	"github.com/hyperledger/fabric-x-common/common/viperutil"
 	"github.com/hyperledger/fabric-x-common/core/config"
 	"github.com/hyperledger/fabric-x-common/sampleconfig"
@@ -139,10 +138,6 @@ func CreateOrExtendProfileWithCrypto(conf *ConfigBlockParameters) (*configtxgen.
 
 	sourceOrg := *profile.Orderer.Organizations[0]
 
-	if conf.EnableNodeOUs {
-		enableNodeOUsEnforcement(profile)
-	}
-
 	profile.Consortiums = nil
 	profile.Orderer.ConsenterMapping = make([]*configtxgen.Consenter, 0, len(conf.Organizations))
 	profile.Orderer.Organizations = make([]*configtxgen.Organization, 0, len(conf.Organizations))
@@ -191,25 +186,6 @@ func initConfigDefault(conf *ConfigBlockParameters) {
 	}
 	if conf.ChannelID == "" {
 		conf.ChannelID = "chan"
-	}
-}
-
-// enableNodeOUsEnforcement raises the channel capability to V3_0 so that the node-OU based
-// identity classification generated into each MSP's config.yaml is honored (the channel
-// capability selects the MSP version, and only V1_4_3+ enforces admin and orderer OUs).
-// The orderer capability is raised in step because channelconfig.preValidate rejects a config
-// that enables channel capabilities while the orderer group declares none.
-func enableNodeOUsEnforcement(profile *configtxgen.Profile) {
-	if profile.Capabilities == nil {
-		profile.Capabilities = make(map[string]bool)
-	}
-	profile.Capabilities[capabilities.ChannelV3_0] = true
-
-	if profile.Orderer != nil {
-		if profile.Orderer.Capabilities == nil {
-			profile.Orderer.Capabilities = make(map[string]bool)
-		}
-		profile.Orderer.Capabilities[capabilities.OrdererV2_0] = true
 	}
 }
 

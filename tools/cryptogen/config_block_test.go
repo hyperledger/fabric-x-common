@@ -17,7 +17,6 @@ import (
 	"path/filepath"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -560,9 +559,9 @@ func TestCreateOrExtendProfileWithCrypto_Defaults(t *testing.T) {
 // every generated organization from admincerts-based admin authority to node-OU classification:
 // when enabled, each org MSP carries a NodeOUs-enabled config.yaml and an empty admincerts folder;
 // when disabled, admincerts convey admin authority and no config.yaml is written. In both cases the
-// generated block must load into a valid bundle — with node OUs on this only holds when the
-// channel/orderer capabilities that select the enforcing MSP version are raised in step, since an
-// OU-only MSP has no admincerts and would otherwise be left with no admins.
+// generated block must load into a valid bundle. With node OUs on — and no channel capabilities set
+// on this profile — a valid bundle proves channelconfig enforces OUs regardless of capabilities,
+// since an OU-only MSP has no admincerts and would otherwise be left with no admins.
 func TestCreateOrExtendConfigBlockWithCrypto_NodeOUs(t *testing.T) {
 	t.Parallel()
 	for _, tc := range []struct {
@@ -603,8 +602,6 @@ func TestCreateOrExtendConfigBlockWithCrypto_NodeOUs(t *testing.T) {
 			ordererMSP := filepath.Join(target, OrdererOrganizationsDir, ordererOrgName+".com", MSPDir)
 			peerMSP := filepath.Join(target, PeerOrganizationsDir, peerOrgName+".com", MSPDir)
 			if tc.enableNodeOUs {
-				fmt.Printf("dir is: %v\n", target)
-				time.Sleep(10 * time.Minute)
 				requireNodeOUsMode(t, ordererMSP)
 				requireNodeOUsMode(t, peerMSP)
 			} else {
