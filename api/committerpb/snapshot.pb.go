@@ -104,8 +104,11 @@ type SnapshotState struct {
 	Error string `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
 	// Name of the database clone used to compute the snapshot hash.
 	CloneDatabase string `protobuf:"bytes,5,opt,name=clone_database,json=cloneDatabase,proto3" json:"clone_database,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Checkpoint hash that differed from the local snapshot hash.
+	// Empty when no checkpoint mismatch has been recorded.
+	CheckpointHash []byte `protobuf:"bytes,6,opt,name=checkpoint_hash,json=checkpointHash,proto3" json:"checkpoint_hash,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SnapshotState) Reset() {
@@ -173,17 +176,25 @@ func (x *SnapshotState) GetCloneDatabase() string {
 	return ""
 }
 
+func (x *SnapshotState) GetCheckpointHash() []byte {
+	if x != nil {
+		return x.CheckpointHash
+	}
+	return nil
+}
+
 var File_api_committerpb_snapshot_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_snapshot_proto_rawDesc = "" +
 	"\n" +
-	"\x1eapi/committerpb/snapshot.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\"\xc0\x02\n" +
+	"\x1eapi/committerpb/snapshot.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\"\xe9\x02\n" +
 	"\rSnapshotState\x12)\n" +
 	"\x06tx_ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x05txRef\x129\n" +
 	"\x06status\x18\x02 \x01(\x0e2!.committerpb.SnapshotState.StatusR\x06status\x12\x12\n" +
 	"\x04hash\x18\x03 \x01(\fR\x04hash\x12\x14\n" +
 	"\x05error\x18\x04 \x01(\tR\x05error\x12%\n" +
-	"\x0eclone_database\x18\x05 \x01(\tR\rcloneDatabase\"x\n" +
+	"\x0eclone_database\x18\x05 \x01(\tR\rcloneDatabase\x12'\n" +
+	"\x0fcheckpoint_hash\x18\x06 \x01(\fR\x0echeckpointHash\"x\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0f\n" +

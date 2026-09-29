@@ -38,4 +38,7 @@ message SnapshotState {
     string error = 4;
     // Name of the database clone used to compute the snapshot hash.
     string clone_database = 5;
+    // Checkpoint hash that differed from the local snapshot hash.
+    // Empty when no checkpoint mismatch has been recorded.
+    bytes checkpoint_hash = 6;
 }
