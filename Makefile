@@ -21,10 +21,11 @@ go_test           ?= $(go_cmd) test -json -v -timeout 30m
 project_dir       := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 proto_flags       ?=
 fabric_protos_tag ?= $(shell go list -m -f '{{.Version}}' github.com/hyperledger/fabric-protos-go-apiv2)
+protoc_version    ?= $(shell protoc --version 2>/dev/null | awk '{print $$2}')
 
-ifneq ("$(wildcard /usr/include)","")
-    proto_flags += --proto_path="/usr/include"
-endif
+# Shell snippet resolving the directory of a go.mod tool binary, so recipes use the
+# pinned version rather than whatever is installed in PATH.
+go_tool_dir = $$(dirname "$$(go tool -n $(1))")
 
 TOOLS_EXES = configtxgen configtxlator cryptogen
 
@@ -109,14 +110,22 @@ PROTOS_REPO := https://github.com/hyperledger/fabric-protos.git
 PROTOS_DIR := ${BUILD_DIR}/fabric-protos@${fabric_protos_tag}
 # We depend on this specific file to ensure the repo is actually cloned
 PROTOS_SENTINEL := ${PROTOS_DIR}/.git
+# The well-known types (google/protobuf/*.proto) matching the installed protoc.
+# They are platform independent, so the linux archive serves every platform.
+PROTOC_INCLUDE_URL := https://github.com/protocolbuffers/protobuf/releases/download/v${protoc_version}/protoc-${protoc_version}-linux-x86_64.zip
+PROTOC_INCLUDE_DIR := ${BUILD_DIR}/protoc-include@${protoc_version}
+PROTOC_INCLUDE_SENTINEL := ${PROTOC_INCLUDE_DIR}/google/protobuf/descriptor.proto
 
 ## Build protobufs
-proto: FORCE $(PROTOS_SENTINEL)
+proto: FORCE $(PROTOS_SENTINEL) $(PROTOC_INCLUDE_SENTINEL)
 	@echo "Generating protobufs: $(shell find ${project_dir}/api -name '*.proto' -print0 \
     		| xargs -0 -n 1 dirname | xargs -n 1 basename | sort -u)"
 	@protoc \
+		--plugin=protoc-gen-go="$$(go tool -n protoc-gen-go)" \
+		--plugin=protoc-gen-go-grpc="$$(go tool -n protoc-gen-go-grpc)" \
 		-I="${project_dir}" \
 		-I="${PROTOS_DIR}" \
+		-I="${PROTOC_INCLUDE_DIR}" \
 		--go_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
         --go-grpc_opt=Mmsp/msp_config.proto=github.com/hyperledger/fabric-protos-go-apiv2/msp \
 		--go_opt=Mcommon/common.proto=github.com/hyperledger/fabric-protos-go-apiv2/common \
@@ -133,7 +142,7 @@ proto: FORCE $(PROTOS_SENTINEL)
 ## Run protobuf linter
 lint-proto: FORCE $(PROTOS_SENTINEL)
 	@echo "Running protobuf linters..."
-	@api-linter \
+	@go tool api-linter \
 		-I="${project_dir}/api" \
 		-I="${PROTOS_DIR}" \
 		--config .apilinter.yaml \
@@ -148,9 +157,20 @@ $(PROTOS_SENTINEL):
 	@git -c advice.detachedHead=false clone --branch ${fabric_protos_tag} \
 		--single-branch --depth 1 ${PROTOS_REPO} ${PROTOS_DIR}
 
+$(PROTOC_INCLUDE_SENTINEL):
+	@test -n "${protoc_version}" || { echo "protoc not found in PATH"; exit 1; }
+	@echo "Fetching protoc ${protoc_version} well-known types..."
+	@mkdir -p ${BUILD_DIR}
+	@rm -rf ${PROTOC_INCLUDE_DIR} ${PROTOC_INCLUDE_DIR}.zip
+	@curl -fsSL -o ${PROTOC_INCLUDE_DIR}.zip ${PROTOC_INCLUDE_URL}
+	@unzip -q ${PROTOC_INCLUDE_DIR}.zip 'include/*' -d ${PROTOC_INCLUDE_DIR}.tmp
+	@mv ${PROTOC_INCLUDE_DIR}.tmp/include ${PROTOC_INCLUDE_DIR}
+	@rm -rf ${PROTOC_INCLUDE_DIR}.tmp ${PROTOC_INCLUDE_DIR}.zip
+
 ## Generate testing mocks
 mocks: FORCE
-	@COUNTERFEITER_NO_GENERATE_WARNING=true go generate ./...
+	@PATH="$(call go_tool_dir,counterfeiter):$(call go_tool_dir,protoc-gen-go):$(call go_tool_dir,protoc-gen-go-grpc):$$PATH" \
+		COUNTERFEITER_NO_GENERATE_WARNING=true go generate ./...
 
 ## Clean build dependencies
 clean-deps:
