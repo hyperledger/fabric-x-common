@@ -35,6 +35,7 @@ const (
 	SnapshotState_COMPLETED          SnapshotState_Status = 3
 	SnapshotState_FAILED             SnapshotState_Status = 4
 	SnapshotState_CHECKPOINTED       SnapshotState_Status = 5
+	SnapshotState_ABORTED            SnapshotState_Status = 6
 )
 
 // Enum value maps for SnapshotState_Status.
@@ -46,6 +47,7 @@ var (
 		3: "COMPLETED",
 		4: "FAILED",
 		5: "CHECKPOINTED",
+		6: "ABORTED",
 	}
 	SnapshotState_Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED": 0,
@@ -54,6 +56,7 @@ var (
 		"COMPLETED":          3,
 		"FAILED":             4,
 		"CHECKPOINTED":       5,
+		"ABORTED":            6,
 	}
 )
 
@@ -174,13 +177,13 @@ var File_api_committerpb_snapshot_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_snapshot_proto_rawDesc = "" +
 	"\n" +
-	"\x1eapi/committerpb/snapshot.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\"\xb3\x02\n" +
+	"\x1eapi/committerpb/snapshot.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\"\xc0\x02\n" +
 	"\rSnapshotState\x12)\n" +
 	"\x06tx_ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x05txRef\x129\n" +
 	"\x06status\x18\x02 \x01(\x0e2!.committerpb.SnapshotState.StatusR\x06status\x12\x12\n" +
 	"\x04hash\x18\x03 \x01(\fR\x04hash\x12\x14\n" +
 	"\x05error\x18\x04 \x01(\tR\x05error\x12%\n" +
-	"\x0eclone_database\x18\x05 \x01(\tR\rcloneDatabase\"k\n" +
+	"\x0eclone_database\x18\x05 \x01(\tR\rcloneDatabase\"x\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0f\n" +
@@ -188,7 +191,8 @@ const file_api_committerpb_snapshot_proto_rawDesc = "" +
 	"\tCOMPLETED\x10\x03\x12\n" +
 	"\n" +
 	"\x06FAILED\x10\x04\x12\x10\n" +
-	"\fCHECKPOINTED\x10\x05B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"\fCHECKPOINTED\x10\x05\x12\v\n" +
+	"\aABORTED\x10\x06B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_snapshot_proto_rawDescOnce sync.Once
