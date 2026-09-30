@@ -101,10 +101,7 @@ func NewChannelConfig(channelGroup *cb.ConfigGroup, bccsp bccsp.BCCSP) (*Channel
 	// The MSP version selects whether OUs are honored, so we floor it to MSPv3_0 (the default
 	// local MSP version) — an MSP that declares NodeOUs then enforces them even when the channel
 	// declares no capabilities, while MSPs without NodeOUs keep using admincerts.
-	mspVersion := channelCapabilities.MSPVersion()
-	if mspVersion < msp.MSPv3_0 {
-		mspVersion = msp.MSPv3_0
-	}
+	mspVersion := max(channelCapabilities.MSPVersion(), msp.MSPv3_0)
 	mspConfigHandler := NewMSPConfigHandler(mspVersion, bccsp)
 
 	var err error
