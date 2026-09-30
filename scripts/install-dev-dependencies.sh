@@ -44,9 +44,8 @@ rm -rf "${download_dir}"
 # Install platform-specific dependencies.
 # asn1c is used to lint ASN.1 schema files.
 if [ "$protoc_os" = "linux" ]; then
-  # libprotobuf-dev is required for "duration" protobuf.
   sudo apt-get update
-  sudo apt-get install -y libprotobuf-dev asn1c
+  sudo apt-get install -y asn1c
 else
   brew install asn1c
 fi
