@@ -21,11 +21,15 @@ go_test           ?= $(go_cmd) test -json -v -timeout 30m
 project_dir       := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 proto_flags       ?=
 fabric_protos_tag ?= $(shell go list -m -f '{{.Version}}' github.com/hyperledger/fabric-protos-go-apiv2)
-protoc_version    ?= $(shell protoc --version 2>/dev/null | awk '{print $$2}')
+# protoc 3.21.x reports "3.21.N" but is released under the tag "v21.N".
+protoc_version    ?= $(shell protoc --version 2>/dev/null | awk '{v=$$2; sub(/^3\.21\./,"21.",v); print v}')
 
 # Shell snippet resolving the directory of a go.mod tool binary, so recipes use the
 # pinned version rather than whatever is installed in PATH.
 go_tool_dir = $$(dirname "$$(go tool -n $(1))")
+
+# PATH for `go generate`, putting the go.mod versions of the generators first.
+mocks_path = $(call go_tool_dir,counterfeiter):$(call go_tool_dir,protoc-gen-go):$(call go_tool_dir,protoc-gen-go-grpc):$$PATH
 
 TOOLS_EXES = configtxgen configtxlator cryptogen
 
@@ -113,7 +117,8 @@ PROTOS_SENTINEL := ${PROTOS_DIR}/.git
 # The well-known types (google/protobuf/*.proto) matching the installed protoc.
 # They are platform independent, so the linux archive serves every platform.
 PROTOC_INCLUDE_URL := https://github.com/protocolbuffers/protobuf/releases/download/v${protoc_version}/protoc-${protoc_version}-linux-x86_64.zip
-PROTOC_INCLUDE_DIR := ${BUILD_DIR}/protoc-include@${protoc_version}
+PROTOC_INCLUDE_ROOT := ${BUILD_DIR}/protoc@${protoc_version}
+PROTOC_INCLUDE_DIR := ${PROTOC_INCLUDE_ROOT}/include
 PROTOC_INCLUDE_SENTINEL := ${PROTOC_INCLUDE_DIR}/google/protobuf/descriptor.proto
 
 ## Build protobufs
@@ -160,18 +165,13 @@ $(PROTOS_SENTINEL):
 $(PROTOC_INCLUDE_SENTINEL):
 	@test -n "${protoc_version}" || { echo "protoc not found in PATH"; exit 1; }
 	@echo "Fetching protoc ${protoc_version} well-known types..."
-	@mkdir -p ${BUILD_DIR}
-	@rm -rf ${PROTOC_INCLUDE_DIR} ${PROTOC_INCLUDE_DIR}.zip
-	@curl -fsSL -o ${PROTOC_INCLUDE_DIR}.zip ${PROTOC_INCLUDE_URL}
-	@unzip -q ${PROTOC_INCLUDE_DIR}.zip 'include/*' -d ${PROTOC_INCLUDE_DIR}.tmp
-	@mv ${PROTOC_INCLUDE_DIR}.tmp/include ${PROTOC_INCLUDE_DIR}
-	@rm -rf ${PROTOC_INCLUDE_DIR}.tmp ${PROTOC_INCLUDE_DIR}.zip
+	@curl -fsSL --create-dirs -o ${PROTOC_INCLUDE_ROOT}/protoc.zip ${PROTOC_INCLUDE_URL}
+	@unzip -qo ${PROTOC_INCLUDE_ROOT}/protoc.zip 'include/*' -d ${PROTOC_INCLUDE_ROOT}
 
 ## Generate testing mocks
 mocks: FORCE
-	@PATH="$(call go_tool_dir,counterfeiter):$(call go_tool_dir,protoc-gen-go):$(call go_tool_dir,protoc-gen-go-grpc):$$PATH" \
-		COUNTERFEITER_NO_GENERATE_WARNING=true go generate ./...
+	@PATH="$(mocks_path)" COUNTERFEITER_NO_GENERATE_WARNING=true go generate ./...
 
 ## Clean build dependencies
 clean-deps:
-	rm -rf ${PROTOS_DIR}
+	rm -rf ${PROTOS_DIR} ${PROTOC_INCLUDE_ROOT}
