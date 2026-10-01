@@ -92,6 +92,15 @@ func (*Handler) Run(currentPath, modifiedPath, currentBlockPath, outputPath stri
 	return nil
 }
 
+// RunFromBlocks implements the block mode of `fxadmin compute-update` (--pb): it
+// computes the ConfigUpdate delta between two config block files — the original
+// block and the "next" block edited by the modify commands. Not implemented yet.
+func (*Handler) RunFromBlocks(currentBlockPath, nextBlockPath, outputPath string) error {
+	logger.Debugf("compute-update --pb: current=%s next=%s output=%s (not implemented)",
+		currentBlockPath, nextBlockPath, outputPath)
+	return errors.New("compute-update block mode (--pb) is not implemented yet")
+}
+
 // channelIDFromBlock reads the config block at path and returns the channel ID
 // from its channel header, which is the channel the ConfigUpdate targets. An
 // empty channel ID is rejected.
