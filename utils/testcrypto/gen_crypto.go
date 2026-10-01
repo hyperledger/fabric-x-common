@@ -23,6 +23,7 @@ type ConfigBlock struct {
 	ChannelID             string
 	OrdererEndpoints      []*types.OrdererEndpoint
 	PeerOrganizationCount uint32
+	EnableNodeOUs         bool
 }
 
 // CreateOrExtendConfigBlockWithCrypto creates a config block with crypto material.
@@ -106,6 +107,7 @@ func CreateOrExtendConfigBlockWithCrypto(targetPath string, conf *ConfigBlock) (
 		BaseProfile:   configtxgen.SampleFabricX,
 		ChannelID:     conf.ChannelID,
 		Organizations: orgs,
+		EnableNodeOUs: conf.EnableNodeOUs,
 	})
 }
 

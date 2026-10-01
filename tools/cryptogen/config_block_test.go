@@ -22,6 +22,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.yaml.in/yaml/v3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/health"
@@ -552,6 +553,86 @@ func TestCreateOrExtendProfileWithCrypto_Defaults(t *testing.T) {
 	// Defaults should have been applied.
 	require.Equal(t, "chan", conf.ChannelID)
 	require.NotEmpty(t, conf.BaseProfile)
+}
+
+// TestCreateOrExtendConfigBlockWithCrypto_NodeOUs verifies that the EnableNodeOUs toggle switches
+// every generated organization from admincerts-based admin authority to node-OU classification:
+// when enabled, each org MSP carries a NodeOUs-enabled config.yaml and an empty admincerts folder;
+// when disabled, admincerts convey admin authority and no config.yaml is written. In both cases the
+// generated block must load into a valid bundle. With node OUs on — and no channel capabilities set
+// on this profile — a valid bundle proves channelconfig enforces OUs regardless of capabilities,
+// since an OU-only MSP has no admincerts and would otherwise be left with no admins.
+func TestCreateOrExtendConfigBlockWithCrypto_NodeOUs(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name          string
+		enableNodeOUs bool
+	}{
+		{name: "node OUs replace admincerts", enableNodeOUs: true},
+		{name: "admincerts without node OUs", enableNodeOUs: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			target := t.TempDir()
+			peerOrgName := "ou-peer-org"
+			block := createBlock(t, ConfigBlockParameters{
+				TargetPath:    target,
+				ChannelID:     "node-ou-chan",
+				EnableNodeOUs: tc.enableNodeOUs,
+				ArmaMetaBytes: []byte("arma"),
+				Organizations: []OrganizationParameters{
+					{
+						Name:   ordererOrgName,
+						Domain: ordererOrgName + ".com",
+						OrdererEndpoints: []*types.OrdererEndpoint{
+							{ID: 1, Host: "localhost", Port: 7050, API: []string{types.Broadcast}},
+						},
+						ConsenterNodes: []Node{{CommonName: "consenter", Hostname: "localhost", SANS: sans}},
+						OrdererNodes:   []Node{{CommonName: "router", Hostname: "localhost", SANS: sans}},
+					},
+					{
+						Name:      peerOrgName,
+						Domain:    peerOrgName + ".com",
+						PeerNodes: peerNodes,
+					},
+				},
+			})
+			readBundle(t, block) // fails unless the generated config loads into a valid bundle.
+
+			ordererMSP := filepath.Join(target, OrdererOrganizationsDir, ordererOrgName+".com", MSPDir)
+			peerMSP := filepath.Join(target, PeerOrganizationsDir, peerOrgName+".com", MSPDir)
+			if tc.enableNodeOUs {
+				requireNodeOUsMode(t, ordererMSP)
+				requireNodeOUsMode(t, peerMSP)
+			} else {
+				requireAdmincertsMode(t, ordererMSP)
+				requireAdmincertsMode(t, peerMSP)
+			}
+		})
+	}
+}
+
+// requireNodeOUsMode asserts that the MSP at mspDir conveys admin authority through node-OU
+// classification: a NodeOUs-enabled config.yaml and an empty admincerts folder.
+func requireNodeOUsMode(t *testing.T, mspDir string) {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join(mspDir, ConfigFile))
+	require.NoError(t, err)
+	var cfg msp.Configuration
+	require.NoError(t, yaml.Unmarshal(data, &cfg))
+	require.NotNil(t, cfg.NodeOUs)
+	require.True(t, cfg.NodeOUs.Enable)
+	require.Empty(t, certNames(t, filepath.Join(mspDir, AdminCertsDir)),
+		"admincerts must be empty when node OUs convey admin authority")
+}
+
+// requireAdmincertsMode asserts that the MSP at mspDir conveys admin authority through admincerts:
+// a populated admincerts folder and no config.yaml.
+func requireAdmincertsMode(t *testing.T, mspDir string) {
+	t.Helper()
+	require.NoFileExists(t, filepath.Join(mspDir, ConfigFile))
+	require.NotEmpty(t, certNames(t, filepath.Join(mspDir, AdminCertsDir)),
+		"admincerts must convey admin authority when node OUs are off")
 }
 
 func TestCreateOrExtendProfileWithCrypto_ExplicitChannelAndProfile(t *testing.T) {
