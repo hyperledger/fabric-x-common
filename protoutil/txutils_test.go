@@ -470,6 +470,33 @@ func TestCreateSignedEnvelopeNilSigner(t *testing.T) {
 	require.True(t, proto.Equal(msg, data), "Payload data does not match expected value")
 }
 
+func TestCreateSignedEnvelopeWithSignatureHeader(t *testing.T) {
+	t.Parallel()
+	id := &mocks.SignerSerializer{}
+	id.SignReturns([]byte("goodsig"), nil)
+	signatureHeader := protoutil.MakeSignatureHeader([]byte("creator"), []byte("server-nonce"))
+
+	env, err := protoutil.CreateSignedEnvelopeWithSignatureHeader(&protoutil.SignedEnvelopeParameters{
+		TxType:          cb.HeaderType_MESSAGE,
+		ChannelID:       "mychannelID",
+		Signer:          id,
+		Data:            &cb.ConfigEnvelope{},
+		TLSCertHash:     []byte("cert-hash"),
+		SignatureHeader: signatureHeader,
+	})
+	require.NoError(t, err)
+	require.Equal(t, []byte("goodsig"), env.Signature)
+
+	payload, err := protoutil.UnmarshalPayload(env.Payload)
+	require.NoError(t, err)
+	shdr, err := protoutil.UnmarshalSignatureHeader(payload.Header.SignatureHeader)
+	require.NoError(t, err)
+	require.True(t, proto.Equal(signatureHeader, shdr), "the given signature header must be the one signed")
+	chdr, err := protoutil.UnmarshalChannelHeader(payload.Header.ChannelHeader)
+	require.NoError(t, err)
+	require.Equal(t, []byte("cert-hash"), chdr.TlsCertHash)
+}
+
 func TestGetSignedProposal(t *testing.T) {
 	var signedProp *pb.SignedProposal
 	var err error
