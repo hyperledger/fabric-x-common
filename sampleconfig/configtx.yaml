@@ -162,6 +162,24 @@ Application: &ApplicationDefaults
         # Users can override these defaults using the ACLs section in their channel definition
         peer/Propose: /Channel/Application/Writers
 
+        # Fabric-X committer's exposed resources, keyed by gRPC full-method name. The committer's
+        # auth service authorizes each call against the policy its method maps to here.
+        /committerpb.QueryService/GetRows: /Channel/Application/Readers
+        /committerpb.QueryService/BeginView: /Channel/Application/Readers
+        /committerpb.QueryService/EndView: /Channel/Application/Readers
+        /committerpb.QueryService/GetNamespacePolicies: /Channel/Application/Readers
+        /committerpb.QueryService/GetConfigTransaction: /Channel/Application/Readers
+        /committerpb.QueryService/GetTransactionStatus: /Channel/Application/Readers
+        /committerpb.SidecarService/GetBlockchainInfo: /Channel/Application/Readers
+        /committerpb.SidecarService/GetBlockByNumber: /Channel/Application/Readers
+        /committerpb.SidecarService/GetBlockByTxID: /Channel/Application/Readers
+        /committerpb.SidecarService/GetTxByID: /Channel/Application/Readers
+        /committerpb.SidecarService/OpenNotificationStream: /Channel/Application/Readers
+        /committerpb.SidecarService/StreamBlocks: /Channel/Application/Readers
+        /protos.Deliver/Deliver: /Channel/Application/Readers
+        /protos.Deliver/DeliverFiltered: /Channel/Application/Readers
+        /protos.Deliver/DeliverWithPrivateData: /Channel/Application/Readers
+
     # Organizations lists the orgs participating on the application side of the
     # network.
     Organizations:
