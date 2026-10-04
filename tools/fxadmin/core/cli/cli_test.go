@@ -16,18 +16,23 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/cli"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
 // Repeated command names, flags, and argument tokens used across the tables.
 const (
-	cmdLedger = "ledger"
-	cmdFollow = "follow"
-	cmdModify = "modify"
-	subHeight = "height"
-	subRemove = "remove"
-	subAdd    = "add"
-	subApp    = "app"
-	subParty  = "party"
+	cmdLedger        = "ledger"
+	cmdFollow        = "follow"
+	cmdModify        = "modify"
+	cmdComputeUpdate = "compute-update"
+	subHeight        = "height"
+	subRemove        = "remove"
+	subAdd           = "add"
+	subApp           = "app"
+	subParty         = "party"
+	subNode          = "node"
+	subCA            = "ca"
+	subSet           = "set"
 
 	flagConfig       = "--config"
 	flagCurrentBlock = "--current-block"
@@ -36,9 +41,16 @@ const (
 	flagOrg          = "--org"
 	flagParty        = "--party"
 	flagCert         = "--cert"
+	flagRole         = "--role"
+	flagShard        = "--shard"
+	flagPort         = "--port"
+	flagSignCert     = "--sign-cert"
+	flagTLSCert      = "--tls-cert"
 
-	refLatest = "latest"
-	orgPeer1  = "peer1"
+	refLatest   = "latest"
+	orgPeer1    = "peer1"
+	roleBatcher = "batcher"
+	roleRouter  = "router"
 
 	fileConfigUpdate = "config_update.pb"
 	fileEndorsement1 = "endorsed_config_update1.pb"
@@ -46,6 +58,12 @@ const (
 	fileEndorsed     = "endorsed_config_update.pb"
 	fileConfigTx     = "config_tx.pb"
 	fileNextConfig   = "next_config.pb"
+
+	errNoCALists = "at least one of --sign-cert or --tls-cert is required"
+	errPortRange = "--port must be between 1 and 65535"
+
+	handlerPartyNode = "ModifyPartyNode"
+	handlerPartyCA   = "ModifyPartyCA"
 )
 
 // call records the handler that was invoked and the values it received, so a
@@ -187,21 +205,21 @@ func (f fakeModify) PartyRemove(partyID uint32, blockPath string) error {
 	return nil
 }
 
-func (f fakeModify) PartyNode(ch cli.NodeChange) error {
-	*f.invoked = call{handler: "ModifyPartyNode", args: []string{
+func (f fakeModify) PartyNode(ch change.Node) error {
+	*f.invoked = call{handler: handlerPartyNode, args: []string{
 		strconv.FormatUint(uint64(ch.Party), 10), ch.Role, strconv.FormatUint(uint64(ch.Shard), 10),
 		ch.Host, strconv.FormatUint(uint64(ch.Port), 10), ch.TLSCert, ch.SignCert, ch.BlockPath,
 	}}
 	return nil
 }
 
-func (f fakeModify) PartyCA(ch cli.CAChange) error {
+func (f fakeModify) PartyCA(ch change.CA) error {
 	args := make([]string, 0, len(ch.SignCerts)+len(ch.TLSCerts)+3)
 	args = append(args, ch.Op, strconv.FormatUint(uint64(ch.Party), 10))
 	args = append(args, ch.SignCerts...)
 	args = append(args, ch.TLSCerts...)
 	args = append(args, ch.BlockPath)
-	*f.invoked = call{handler: "ModifyPartyCA", args: args}
+	*f.invoked = call{handler: handlerPartyCA, args: args}
 	return nil
 }
 
@@ -280,7 +298,7 @@ func TestRunRoutesToHandler(t *testing.T) {
 		{
 			name: "compute-update",
 			args: []string{
-				"compute-update",
+				cmdComputeUpdate,
 				currentJSON,
 				modifiedJSON,
 				flagCurrentBlock,
@@ -294,7 +312,7 @@ func TestRunRoutesToHandler(t *testing.T) {
 		{
 			name: "compute-update block mode",
 			args: []string{
-				"compute-update", "--pb", currBlock, nextBlock, flagOutput, fileConfigUpdate,
+				cmdComputeUpdate, "--pb", currBlock, nextBlock, flagOutput, fileConfigUpdate,
 			},
 			wantHandler: "ComputeUpdatePB",
 			wantArgs:    []string{currBlock, nextBlock, fileConfigUpdate},
@@ -343,22 +361,57 @@ func TestRunRoutesToHandler(t *testing.T) {
 		{
 			name: "modify party node",
 			args: []string{
-				cmdModify, subParty, "node", flagParty, "1", "--role", "batcher", "--shard", "1",
-				"--port", "9014", "--tls-cert", cert1, flagBlock, nextBlock,
+				cmdModify, subParty, subNode, flagParty, "1", flagRole, roleBatcher, flagShard, "1",
+				flagPort, "9014", flagTLSCert, cert1, flagBlock, nextBlock,
 			},
-			wantHandler: "ModifyPartyNode",
+			wantHandler: handlerPartyNode,
 			// party, role, shard, host, port, tls-cert, sign-cert, block
-			wantArgs: []string{"1", "batcher", "1", "", "9014", cert1, "", nextBlock},
+			wantArgs: []string{"1", roleBatcher, "1", "", "9014", cert1, "", nextBlock},
+		},
+		{
+			name: "modify party node batcher with explicit shard 0",
+			args: []string{
+				cmdModify, subParty, subNode, flagParty, "1", flagRole, roleBatcher, flagShard, "0",
+				flagSignCert, cert2, flagBlock, nextBlock,
+			},
+			wantHandler: handlerPartyNode,
+			wantArgs:    []string{"1", roleBatcher, "0", "", "0", "", cert2, nextBlock},
+		},
+		{
+			name: "modify party node non-batcher without shard",
+			args: []string{
+				cmdModify, subParty, subNode, flagParty, "2", flagRole, roleRouter,
+				"--host", "router.example.com", flagBlock, nextBlock,
+			},
+			wantHandler: handlerPartyNode,
+			wantArgs:    []string{"2", roleRouter, "0", "router.example.com", "0", "", "", nextBlock},
+		},
+		{
+			name: "modify party node highest valid port",
+			args: []string{
+				cmdModify, subParty, subNode, flagParty, "1", flagRole, roleRouter,
+				flagPort, "65535", flagBlock, nextBlock,
+			},
+			wantHandler: handlerPartyNode,
+			wantArgs:    []string{"1", roleRouter, "0", "", "65535", "", "", nextBlock},
 		},
 		{
 			name: "modify party ca add",
 			args: []string{
-				cmdModify, subParty, "ca", subAdd, flagParty, "1",
-				"--sign-cert", cert1, "--tls-cert", cert2, flagBlock, nextBlock,
+				cmdModify, subParty, subCA, subAdd, flagParty, "1",
+				flagSignCert, cert1, flagTLSCert, cert2, flagBlock, nextBlock,
 			},
-			wantHandler: "ModifyPartyCA",
+			wantHandler: handlerPartyCA,
 			// op, party, sign-certs…, tls-certs…, block
 			wantArgs: []string{"add", "1", cert1, cert2, nextBlock},
+		},
+		{
+			name: "modify party ca set with only one list",
+			args: []string{
+				cmdModify, subParty, subCA, subSet, flagParty, "1", flagTLSCert, cert2, flagBlock, nextBlock,
+			},
+			wantHandler: handlerPartyCA,
+			wantArgs:    []string{subSet, "1", cert2, nextBlock},
 		},
 		{
 			name:        "tx endorse",
@@ -425,6 +478,8 @@ func TestParseErrors(t *testing.T) {
 
 	admin := writeTempFile(t, "admin.yaml")
 	currBlock := writeTempFile(t, "current_block.pb")
+	currentJSON := writeTempFile(t, "current.json")
+	modifiedJSON := writeTempFile(t, "modified.json")
 
 	for _, tc := range []struct {
 		name    string
@@ -458,6 +513,56 @@ func TestParseErrors(t *testing.T) {
 				"--timeout", "notaduration", flagOutput, fileNextConfig,
 			},
 			wantErr: "invalid duration",
+		},
+		{
+			name:    "compute-update JSON mode without current-block",
+			args:    []string{cmdComputeUpdate, currentJSON, modifiedJSON, flagOutput, fileConfigUpdate},
+			wantErr: "--current-block is required in JSON mode",
+		},
+		{
+			name: "modify party node batcher without shard",
+			args: []string{
+				cmdModify, subParty, subNode, flagParty, "1", flagRole, roleBatcher, flagBlock, currBlock,
+			},
+			wantErr: "--shard is required for --role batcher",
+		},
+		{
+			name: "modify party node shard with non-batcher role",
+			args: []string{
+				cmdModify, subParty, subNode, flagParty, "1", flagRole, roleRouter,
+				flagShard, "1", flagBlock, currBlock,
+			},
+			wantErr: "--shard is only valid with --role batcher",
+		},
+		{
+			name: "modify party node explicit port 0",
+			args: []string{
+				cmdModify, subParty, subNode, flagParty, "1", flagRole, roleRouter, flagPort, "0", flagBlock, currBlock,
+			},
+			wantErr: errPortRange,
+		},
+		{
+			name: "modify party node port above 65535",
+			args: []string{
+				cmdModify, subParty, subNode, flagParty, "1", flagRole, roleRouter,
+				flagPort, "65536", flagBlock, currBlock,
+			},
+			wantErr: errPortRange,
+		},
+		{
+			name:    "modify party ca add without cert lists",
+			args:    []string{cmdModify, subParty, subCA, subAdd, flagParty, "1", flagBlock, currBlock},
+			wantErr: errNoCALists,
+		},
+		{
+			name:    "modify party ca remove without cert lists",
+			args:    []string{cmdModify, subParty, subCA, subRemove, flagParty, "1", flagBlock, currBlock},
+			wantErr: errNoCALists,
+		},
+		{
+			name:    "modify party ca set without cert lists",
+			args:    []string{cmdModify, subParty, subCA, subSet, flagParty, "1", flagBlock, currBlock},
+			wantErr: errNoCALists,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

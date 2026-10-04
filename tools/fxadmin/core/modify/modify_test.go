@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/cli"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
 // TestHandlerNotImplemented asserts every modify command currently returns
@@ -28,6 +28,6 @@ func TestHandlerNotImplemented(t *testing.T) {
 	require.ErrorIs(t, h.AppKnownCertsRemove("peer1", []string{"c.pem"}, "next.pb"), modify.ErrNotImplemented)
 	require.ErrorIs(t, h.PartyAdd("party.yaml", "next.pb"), modify.ErrNotImplemented)
 	require.ErrorIs(t, h.PartyRemove(5, "next.pb"), modify.ErrNotImplemented)
-	require.ErrorIs(t, h.PartyNode(cli.NodeChange{Party: 1, Role: "batcher"}), modify.ErrNotImplemented)
-	require.ErrorIs(t, h.PartyCA(cli.CAChange{Op: "add", Party: 1}), modify.ErrNotImplemented)
+	require.ErrorIs(t, h.PartyNode(change.Node{Party: 1, Role: "batcher"}), modify.ErrNotImplemented)
+	require.ErrorIs(t, h.PartyCA(change.CA{Op: "add", Party: 1}), modify.ErrNotImplemented)
 }

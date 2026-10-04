@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
+
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
 // The CLI is responsible for parsing and validating command-line arguments,
@@ -39,31 +41,6 @@ type UpdateHandler interface {
 	RunFromBlocks(currentBlockPath, nextBlockPath, outputPath string) error
 }
 
-// NodeChange is a `modify party node` request. It selects one node of a party
-// (Role, plus Shard for a batcher) and carries the fields to change; an empty
-// field is left unchanged.
-type NodeChange struct {
-	Party     uint32
-	Role      string
-	Shard     uint32
-	Host      string
-	Port      uint32
-	TLSCert   string
-	SignCert  string
-	BlockPath string
-}
-
-// CAChange is a `modify party ca add|remove|set` request over a party's CA
-// (SignCerts) and TLS-CA (TLSCerts) certificate lists. Op is the sub-verb.
-// An empty field is left unchanged.
-type CAChange struct {
-	Op        string
-	Party     uint32
-	SignCerts []string
-	TLSCerts  []string
-	BlockPath string
-}
-
 // ModifyHandler executes the `fxadmin modify` subcommands, which apply a
 // structured configuration change directly to a config block file.
 type ModifyHandler interface {
@@ -73,8 +50,8 @@ type ModifyHandler interface {
 	AppKnownCertsRemove(org string, certPaths []string, blockPath string) error
 	PartyAdd(partyPath, blockPath string) error
 	PartyRemove(partyID uint32, blockPath string) error
-	PartyNode(change NodeChange) error
-	PartyCA(change CAChange) error
+	PartyNode(ch change.Node) error
+	PartyCA(ch change.CA) error
 }
 
 // TxHandler executes the `fxadmin tx` subcommands.

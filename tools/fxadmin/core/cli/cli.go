@@ -12,8 +12,12 @@ SPDX-License-Identifier: Apache-2.0
 package cli
 
 import (
+	"math"
+
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/cockroachdb/errors"
+
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
 // Flag names shared across commands.
@@ -36,6 +40,9 @@ const (
 	flagTLSCert  = "tls-cert"
 	flagSignCert = "sign-cert"
 )
+
+// roleBatcher is the --role value of a batcher, the only node role addressed by --shard.
+const roleBatcher = "batcher"
 
 // CLI is the fxadmin command-line application. It owns the kingpin command
 // tree and a dispatch table mapping each command to a closure
@@ -162,12 +169,18 @@ func (c *CLI) addComputeUpdateCommand() {
 		Flag(flagCurrentBlock, "JSON mode only: Path to the current config block whose channel ID the update targets.").
 		ExistingFile()
 	output := cmd.Flag(flagOutput, "Path to the output ConfigUpdate protobuf file.").Required().String()
+	// --current-block is optional because block mode does not use it, so JSON
+	// mode requires it here. ExistingFile rejects an empty path, so an empty value
+	// means the flag was omitted.
+	cmd.Validate(func(*kingpin.CmdClause) error {
+		if !*pb && *currentBlock == "" {
+			return errors.Newf("--%s is required in JSON mode (or pass --%s for block mode)", flagCurrentBlock, flagPB)
+		}
+		return nil
+	})
 	c.register(cmd, func() error {
 		if *pb {
 			return c.handlers.Update.RunFromBlocks(*current, *modified, *output)
-		}
-		if *currentBlock == "" {
-			return errors.Newf("--%s is required in JSON mode (or pass --%s for block mode)", flagCurrentBlock, flagPB)
 		}
 		return c.handlers.Update.Run(*current, *modified, *currentBlock, *output)
 	})
@@ -362,15 +375,33 @@ func (c *CLI) addModifyPartyCommands(modify *kingpin.CmdClause) {
 func (c *CLI) addModifyPartyNodeCommand(party *kingpin.CmdClause) {
 	node := party.Command("node", "Change one party node's endpoint and/or certificates (any subset of fields).")
 	partyID := node.Flag(flagParty, "Party ID.").Required().Uint32()
-	role := node.Flag(flagRole, "Node role.").Required().Enum("router", "batcher", "consenter", "assembler")
-	shard := node.Flag(flagShard, "Batcher shard ID (required for --role batcher).").Uint32()
+	role := node.Flag(flagRole, "Node role.").Required().Enum("router", roleBatcher, "consenter", "assembler")
+	var shardSet bool
+	shard := node.Flag(flagShard, "Batcher shard ID (required for, and only valid with, --role batcher).").
+		IsSetByUser(&shardSet).Uint32()
 	host := node.Flag(flagHost, "New host (unchanged if omitted).").String()
-	port := node.Flag(flagPort, "New port (unchanged if omitted).").Uint32()
+	var portSet bool
+	port := node.Flag(flagPort, "New port, 1-65535 (unchanged if omitted).").IsSetByUser(&portSet).Uint32()
 	tlsCert := node.Flag(flagTLSCert, "Path to new TLS certificate (unchanged if omitted).").ExistingFile()
 	signCert := node.Flag(flagSignCert, "Path to new signing certificate (unchanged if omitted).").ExistingFile()
 	block := blockFlag(node)
+	// A batcher is selected by its shard and no other role has one, so --shard is
+	// required exactly when --role is batcher. Whether the flag was given is checked,
+	// not its value, so an explicit --shard 0 is accepted.
+	node.Validate(func(*kingpin.CmdClause) error {
+		if *role == roleBatcher && !shardSet {
+			return errors.Newf("--%s is required for --%s %s", flagShard, flagRole, roleBatcher)
+		}
+		if *role != roleBatcher && shardSet {
+			return errors.Newf("--%s is only valid with --%s %s", flagShard, flagRole, roleBatcher)
+		}
+		if portSet && (*port == 0 || *port > math.MaxUint16) {
+			return errors.Newf("--%s must be between 1 and %d", flagPort, math.MaxUint16)
+		}
+		return nil
+	})
 	c.register(node, func() error {
-		return c.handlers.Modify.PartyNode(NodeChange{
+		return c.handlers.Modify.PartyNode(change.Node{
 			Party:     *partyID,
 			Role:      *role,
 			Shard:     *shard,
@@ -399,8 +430,14 @@ func (c *CLI) registerPartyCAOp(ca *kingpin.CmdClause, op string) {
 	signCerts := cmd.Flag(flagSignCert, "PEM path(s) for the signing-CA list (repeatable).").ExistingFiles()
 	tlsCerts := cmd.Flag(flagTLSCert, "PEM path(s) for the TLS-CA list (repeatable).").ExistingFiles()
 	block := blockFlag(cmd)
+	cmd.Validate(func(*kingpin.CmdClause) error {
+		if len(*signCerts) == 0 && len(*tlsCerts) == 0 {
+			return errors.Newf("at least one of --%s or --%s is required", flagSignCert, flagTLSCert)
+		}
+		return nil
+	})
 	c.register(cmd, func() error {
-		return c.handlers.Modify.PartyCA(CAChange{
+		return c.handlers.Modify.PartyCA(change.CA{
 			Op:        op,
 			Party:     *partyID,
 			SignCerts: *signCerts,

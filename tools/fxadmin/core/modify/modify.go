@@ -19,7 +19,7 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 
-	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/cli"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.modify")
@@ -73,13 +73,13 @@ func (*Handler) PartyRemove(partyID uint32, blockPath string) error {
 }
 
 // PartyNode implements `fxadmin modify party node`.
-func (*Handler) PartyNode(change cli.NodeChange) error {
-	logger.Debugf("modify party node: %+v (not implemented)", change)
+func (*Handler) PartyNode(ch change.Node) error {
+	logger.Debugf("modify party node: %+v (not implemented)", ch)
 	return ErrNotImplemented
 }
 
 // PartyCA implements `fxadmin modify party ca add|remove|set`.
-func (*Handler) PartyCA(change cli.CAChange) error {
-	logger.Debugf("modify party ca: %+v (not implemented)", change)
+func (*Handler) PartyCA(ch change.CA) error {
+	logger.Debugf("modify party ca: %+v (not implemented)", ch)
 	return ErrNotImplemented
 }
