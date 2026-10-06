@@ -12,8 +12,12 @@ SPDX-License-Identifier: Apache-2.0
 package cli
 
 import (
+	"math"
+
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/cockroachdb/errors"
+
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
 // Flag names shared across commands.
@@ -22,7 +26,23 @@ const (
 	flagCurrentBlock = "current-block"
 	flagOutput       = "output"
 	flagTimeout      = "timeout"
+
+	// Flags used by compute-update block mode and the modify commands.
+	flagPB       = "pb"
+	flagBlock    = "block"
+	flagOrg      = "org"
+	flagParty    = "party"
+	flagCert     = "cert"
+	flagRole     = "role"
+	flagShard    = "shard"
+	flagHost     = "host"
+	flagPort     = "port"
+	flagTLSCert  = "tls-cert"
+	flagSignCert = "sign-cert"
 )
+
+// roleBatcher is the --role value of a batcher, the only node role addressed by --shard.
+const roleBatcher = "batcher"
 
 // CLI is the fxadmin command-line application. It owns the kingpin command
 // tree and a dispatch table mapping each command to a closure
@@ -47,6 +67,7 @@ func New(handlers Handlers, version string) *CLI {
 
 	c.addLedgerCommands()
 	c.addDecodeCommand()
+	c.addModifyCommands()
 	c.addComputeUpdateCommand()
 	c.addTxCommands()
 	c.addFollowCommand()
@@ -131,24 +152,36 @@ func (c *CLI) addDecodeCommand() {
 }
 
 // addComputeUpdateCommand wires `fxadmin compute-update`, which computes the
-// ConfigUpdate delta between the original and modified configuration JSON. The
-// channel ID the update targets is read from the current config block supplied with --current-block.
+// ConfigUpdate delta between an original and a modified configuration. In the
+// default JSON mode the two positional arguments are decoded-config JSON files
+// and the channel ID is read from --current-block. In block mode (--pb) they are
+// two config block files (original, next).
 func (c *CLI) addComputeUpdateCommand() {
-	cmd := c.app.Command("compute-update", "Compute the ConfigUpdate delta between two config JSON files.")
-	current := cmd.Arg("current.json", "Original configuration JSON, as decoded from --current-block.").
+	cmd := c.app.Command("compute-update",
+		"Compute the ConfigUpdate delta between two configs (JSON files, or config blocks).")
+	current := cmd.Arg("current", "Original config: JSON (default) or config block (--pb).").
 		Required().ExistingFile()
-	modified := cmd.Arg("modified.json", "Modified configuration JSON (edited copy of current.json).").
+	modified := cmd.Arg("modified", "Modified config: JSON (default) or the edited \"next\" config block (--pb).").
 		Required().ExistingFile()
+	pb := cmd.Flag(flagPB, "Block mode: treat the two arguments as config blocks (original, next) instead of JSON.").
+		Bool()
 	currentBlock := cmd.
-		Flag(
-			flagCurrentBlock,
-			"Path to the current config block whose channel ID the update targets; "+
-				"must be the same channel as current.json and modified.json.",
-		).
-		Required().
+		Flag(flagCurrentBlock, "JSON mode only: Path to the current config block whose channel ID the update targets.").
 		ExistingFile()
 	output := cmd.Flag(flagOutput, "Path to the output ConfigUpdate protobuf file.").Required().String()
+	// --current-block is optional because block mode does not use it, so JSON
+	// mode requires it here. ExistingFile rejects an empty path, so an empty value
+	// means the flag was omitted.
+	cmd.Validate(func(*kingpin.CmdClause) error {
+		if !*pb && *currentBlock == "" {
+			return errors.Newf("--%s is required in JSON mode (or pass --%s for block mode)", flagCurrentBlock, flagPB)
+		}
+		return nil
+	})
 	c.register(cmd, func() error {
+		if *pb {
+			return c.handlers.Update.RunFromBlocks(*current, *modified, *output)
+		}
 		return c.handlers.Update.Run(*current, *modified, *currentBlock, *output)
 	})
 }
@@ -252,5 +285,164 @@ func (c *CLI) addFollowCommand() {
 		Required().String()
 	c.register(follow, func() error {
 		return c.handlers.Follow.Run(*config, *currentBlock, *output, *timeout)
+	})
+}
+
+// addModifyCommands wires `fxadmin modify` and its app/party subcommands, which
+// apply a structured change directly to a config block file,
+// automating the manual decode/hand-edit step.
+func (c *CLI) addModifyCommands() {
+	modify := c.app.Command("modify",
+		"Apply a structured configuration change to a config block file.")
+	c.addModifyAppCommands(modify)
+	c.addModifyPartyCommands(modify)
+}
+
+// blockFlag registers the --block flag common to every modify command: the
+// config block file the command edits in place.
+func blockFlag(cmd *kingpin.CmdClause) *string {
+	return cmd.Flag(flagBlock, "Config block file to edit in place (the \"next\" block).").
+		Required().ExistingFile()
+}
+
+// addModifyAppCommands wires `fxadmin modify app` (add / remove / known-certs).
+func (c *CLI) addModifyAppCommands(modify *kingpin.CmdClause) {
+	app := modify.Command("app", "Add or remove application organizations and their known-certs.")
+
+	add := app.Command("add", "Add an application organization.")
+	addOrg := add.Flag(flagOrg, "Path to the organization definition YAML.").Required().ExistingFile()
+	addBlockFlag := blockFlag(add)
+	c.register(add, func() error {
+		return c.handlers.Modify.AppAdd(*addOrg, *addBlockFlag)
+	})
+
+	remove := app.Command("remove", "Remove an application organization.")
+	removeOrg := remove.Arg("org", "Application organization name to remove.").Required().String()
+	removeBlockFlag := blockFlag(remove)
+	c.register(remove, func() error {
+		return c.handlers.Modify.AppRemove(*removeOrg, *removeBlockFlag)
+	})
+
+	c.addModifyKnownCertsCommands(app)
+}
+
+// addModifyKnownCertsCommands wires `fxadmin modify app known-certs add|remove`.
+func (c *CLI) addModifyKnownCertsCommands(app *kingpin.CmdClause) {
+	known := app.Command("known-certs", "Add or remove entries in an application org's MSP known-certs list.")
+
+	add := known.Command("add", "Add known-certs to an application organization.")
+	addOrg := add.Flag(flagOrg, "Application organization whose known-certs change.").Required().String()
+	addCerts := add.Flag(flagCert, "PEM path to add (repeatable).").Required().ExistingFiles()
+	addBlockFlag := blockFlag(add)
+	c.register(add, func() error {
+		return c.handlers.Modify.AppKnownCertsAdd(*addOrg, *addCerts, *addBlockFlag)
+	})
+
+	remove := known.Command("remove", "Remove known-certs from an application organization.")
+	removeOrg := remove.Flag(flagOrg, "Application organization whose known-certs change.").Required().String()
+	removeCerts := remove.Flag(flagCert, "PEM path to remove (repeatable).").Required().ExistingFiles()
+	removeBlockFlag := blockFlag(remove)
+	c.register(remove, func() error {
+		return c.handlers.Modify.AppKnownCertsRemove(*removeOrg, *removeCerts, *removeBlockFlag)
+	})
+}
+
+// addModifyPartyCommands wires `fxadmin modify party` (add / remove / node / ca).
+func (c *CLI) addModifyPartyCommands(modify *kingpin.CmdClause) {
+	party := modify.Command("party", "Add or remove ARMA parties, or change a party's nodes and CA lists.")
+
+	add := party.Command("add", "Add a new ARMA party and its orderer organization, if it does not already exist.")
+	partyDef := add.Flag(flagParty, "Path to the party definition YAML.").Required().ExistingFile()
+	addBlockFlag := blockFlag(add)
+	c.register(add, func() error {
+		return c.handlers.Modify.PartyAdd(*partyDef, *addBlockFlag)
+	})
+
+	remove := party.Command("remove",
+		"Remove an ARMA party (and its orderer org, unless another party is still associated with it).")
+	partyID := remove.Arg("party-id", "Numeric PartyID to remove.").Required().Uint32()
+	removeBlockFlag := blockFlag(remove)
+	c.register(remove, func() error {
+		return c.handlers.Modify.PartyRemove(*partyID, *removeBlockFlag)
+	})
+
+	c.addModifyPartyNodeCommand(party)
+	c.addModifyPartyCACommands(party)
+}
+
+// addModifyPartyNodeCommand wires `fxadmin modify party node`, which changes any
+// subset of one node's endpoint and certificate fields.
+func (c *CLI) addModifyPartyNodeCommand(party *kingpin.CmdClause) {
+	node := party.Command("node", "Change one party node's endpoint and/or certificates (any subset of fields).")
+	partyID := node.Flag(flagParty, "Party ID.").Required().Uint32()
+	role := node.Flag(flagRole, "Node role.").Required().Enum("router", roleBatcher, "consenter", "assembler")
+	var shardSet bool
+	shard := node.Flag(flagShard, "Batcher shard ID (required for, and only valid with, --role batcher).").
+		IsSetByUser(&shardSet).Uint32()
+	host := node.Flag(flagHost, "New host (unchanged if omitted).").String()
+	var portSet bool
+	port := node.Flag(flagPort, "New port, 1-65535 (unchanged if omitted).").IsSetByUser(&portSet).Uint32()
+	tlsCert := node.Flag(flagTLSCert, "Path to new TLS certificate (unchanged if omitted).").ExistingFile()
+	signCert := node.Flag(flagSignCert, "Path to new signing certificate (unchanged if omitted).").ExistingFile()
+	block := blockFlag(node)
+	// A batcher is selected by its shard and no other role has one, so --shard is
+	// required exactly when --role is batcher. Whether the flag was given is checked,
+	// not its value, so an explicit --shard 0 is accepted.
+	node.Validate(func(*kingpin.CmdClause) error {
+		if *role == roleBatcher && !shardSet {
+			return errors.Newf("--%s is required for --%s %s", flagShard, flagRole, roleBatcher)
+		}
+		if *role != roleBatcher && shardSet {
+			return errors.Newf("--%s is only valid with --%s %s", flagShard, flagRole, roleBatcher)
+		}
+		if portSet && (*port == 0 || *port > math.MaxUint16) {
+			return errors.Newf("--%s must be between 1 and %d", flagPort, math.MaxUint16)
+		}
+		return nil
+	})
+	c.register(node, func() error {
+		return c.handlers.Modify.PartyNode(change.Node{
+			Party:     *partyID,
+			Role:      *role,
+			Shard:     *shard,
+			Host:      *host,
+			Port:      *port,
+			TLSCert:   *tlsCert,
+			SignCert:  *signCert,
+			BlockPath: *block,
+		})
+	})
+}
+
+// addModifyPartyCACommands wires `fxadmin modify party ca add|remove|set` over a
+// party's CA (--sign-cert) and TLS-CA (--tls-cert) certificate lists.
+func (c *CLI) addModifyPartyCACommands(party *kingpin.CmdClause) {
+	ca := party.Command("ca", "Change a party's CA and/or TLS-CA certificate lists.")
+	for _, op := range []string{"add", "remove", "set"} {
+		c.registerPartyCAOp(ca, op)
+	}
+}
+
+// registerPartyCAOp wires one `modify party ca` sub-verb (add, remove, or set).
+func (c *CLI) registerPartyCAOp(ca *kingpin.CmdClause, op string) {
+	cmd := ca.Command(op, "Apply the "+op+" operation to a party's CA / TLS-CA certificate lists.")
+	partyID := cmd.Flag(flagParty, "Party whose CA list(s) change.").Required().Uint32()
+	signCerts := cmd.Flag(flagSignCert, "PEM path(s) for the signing-CA list (repeatable).").ExistingFiles()
+	tlsCerts := cmd.Flag(flagTLSCert, "PEM path(s) for the TLS-CA list (repeatable).").ExistingFiles()
+	block := blockFlag(cmd)
+	cmd.Validate(func(*kingpin.CmdClause) error {
+		if len(*signCerts) == 0 && len(*tlsCerts) == 0 {
+			return errors.Newf("at least one of --%s or --%s is required", flagSignCert, flagTLSCert)
+		}
+		return nil
+	})
+	c.register(cmd, func() error {
+		return c.handlers.Modify.PartyCA(change.CA{
+			Op:        op,
+			Party:     *partyID,
+			SignCerts: *signCerts,
+			TLSCerts:  *tlsCerts,
+			BlockPath: *block,
+		})
 	})
 }

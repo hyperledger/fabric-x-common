@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
+
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
 // The CLI is responsible for parsing and validating command-line arguments,
@@ -31,9 +33,25 @@ type DecodeHandler interface {
 	Run(blockPath, outputPath string) error
 }
 
-// UpdateHandler executes `fxadmin compute-update`.
+// UpdateHandler executes `fxadmin compute-update` in its two modes: JSON mode
+// (Run) diffs two decoded-config JSON files, block mode (RunFromBlocks, the
+// --pb flag) diffs two config block files.
 type UpdateHandler interface {
 	Run(currentPath, modifiedPath, currentBlockPath, outputPath string) error
+	RunFromBlocks(currentBlockPath, nextBlockPath, outputPath string) error
+}
+
+// ModifyHandler executes the `fxadmin modify` subcommands, which apply a
+// structured configuration change directly to a config block file.
+type ModifyHandler interface {
+	AppAdd(orgPath, blockPath string) error
+	AppRemove(org, blockPath string) error
+	AppKnownCertsAdd(org string, certPaths []string, blockPath string) error
+	AppKnownCertsRemove(org string, certPaths []string, blockPath string) error
+	PartyAdd(partyPath, blockPath string) error
+	PartyRemove(partyID uint32, blockPath string) error
+	PartyNode(ch change.Node) error
+	PartyCA(ch change.CA) error
 }
 
 // TxHandler executes the `fxadmin tx` subcommands.
@@ -58,6 +76,7 @@ type Handlers struct {
 	Update UpdateHandler
 	Tx     TxHandler
 	Follow FollowHandler
+	Modify ModifyHandler
 }
 
 // validate reports any command handler that was left nil, so a misconfigured
@@ -70,6 +89,7 @@ func (h Handlers) validate() error {
 		"compute-update": isHandlerNil(h.Update),
 		"tx":             isHandlerNil(h.Tx),
 		"follow":         isHandlerNil(h.Follow),
+		"modify":         isHandlerNil(h.Modify),
 	} {
 		if !set {
 			missing = append(missing, name)
