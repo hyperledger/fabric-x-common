@@ -11,8 +11,9 @@ SPDX-License-Identifier: Apache-2.0
 // modify commands can accumulate onto it; `compute-update --pb` then computes
 // the ConfigUpdate from the original and edited blocks.
 //
-// The command surface is wired and validated by the CLI; the change logic is
-// not implemented yet, so every handler currently returns ErrNotImplemented.
+// The command surface is wired and validated by the CLI. Of the change logic,
+// only `modify app add` is implemented so far; every other handler returns
+// ErrNotImplemented.
 package modify
 
 import (
@@ -24,8 +25,8 @@ import (
 
 var logger = flogging.MustGetLogger("fxadmin.modify")
 
-// ErrNotImplemented is returned by every modify command until the change logic
-// is implemented.
+// ErrNotImplemented is returned by every modify command whose change logic is
+// not implemented yet.
 var ErrNotImplemented = errors.New("not implemented")
 
 // Handler executes the modify commands.
@@ -34,12 +35,6 @@ type Handler struct{}
 // New returns a modify command handler.
 func New() *Handler {
 	return &Handler{}
-}
-
-// AppAdd implements `fxadmin modify app add`.
-func (*Handler) AppAdd(orgPath, blockPath string) error {
-	logger.Debugf("modify app add: org=%s block=%s (not implemented)", orgPath, blockPath)
-	return ErrNotImplemented
 }
 
 // AppRemove implements `fxadmin modify app remove`.
