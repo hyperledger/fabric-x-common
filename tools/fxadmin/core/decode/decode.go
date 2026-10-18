@@ -19,11 +19,8 @@ import (
 
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
-	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/protolator"
-	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 )
 
@@ -76,55 +73,13 @@ func decodeConfig(input io.Reader, output io.Writer) error {
 		return errors.Wrap(err, "failed to read input")
 	}
 
-	config, err := configFromBlock(in)
+	block, err := helpers.UnmarshalConfigBlock(in)
 	if err != nil {
 		return err
 	}
 
-	if err := protolator.DeepMarshalJSON(output, config); err != nil {
+	if err := protolator.DeepMarshalJSON(output, block.Config()); err != nil {
 		return errors.Wrap(err, "failed to encode output")
 	}
 	return nil
-}
-
-// configFromBlock unmarshals a marshaled common.Block and returns the
-// common.Config carried by the configuration transaction in its first envelope.
-// It errors if the block is not a config block.
-func configFromBlock(marshaledBlock []byte) (*cb.Config, error) {
-	block := &cb.Block{}
-	if err := proto.Unmarshal(marshaledBlock, block); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal block input")
-	}
-
-	envelope, err := protoutil.ExtractEnvelope(block, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to extract config envelope from block")
-	}
-
-	payload, err := protoutil.UnmarshalPayload(envelope.Payload)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal config payload")
-	}
-
-	if payload.GetHeader() == nil {
-		return nil, errors.New("block is not a config block: payload has no header")
-	}
-	channelHeader, err := protoutil.UnmarshalChannelHeader(payload.GetHeader().GetChannelHeader())
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal channel header")
-	}
-	if channelHeader.GetType() != int32(cb.HeaderType_CONFIG) {
-		return nil, errors.Newf("block is not a config block: channel header type is %s, want %s",
-			cb.HeaderType(channelHeader.GetType()), cb.HeaderType_CONFIG)
-	}
-
-	configEnvelope, err := protoutil.UnmarshalConfigEnvelope(payload.Data)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal config envelope")
-	}
-
-	if configEnvelope.GetConfig() == nil {
-		return nil, errors.New("block does not carry a config: config envelope has no config")
-	}
-	return configEnvelope.GetConfig(), nil
 }

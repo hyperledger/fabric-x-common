@@ -11,8 +11,8 @@ SPDX-License-Identifier: Apache-2.0
 // modify commands can accumulate onto it; `compute-update --pb` then computes
 // the ConfigUpdate from the original and edited blocks.
 //
-// The command surface is wired and validated by the CLI; the change logic is
-// not implemented yet, so every handler currently returns ErrNotImplemented.
+// The command surface is wired and validated by the CLI. A handler whose change
+// logic is not implemented yet returns ErrNotImplemented.
 package modify
 
 import (
@@ -24,8 +24,8 @@ import (
 
 var logger = flogging.MustGetLogger("fxadmin.modify")
 
-// ErrNotImplemented is returned by every modify command until the change logic
-// is implemented.
+// ErrNotImplemented is returned by every modify command whose change logic is
+// not implemented yet.
 var ErrNotImplemented = errors.New("not implemented")
 
 // Handler executes the modify commands.
@@ -69,12 +69,6 @@ func (*Handler) PartyAdd(partyPath, blockPath string) error {
 // PartyRemove implements `fxadmin modify party remove`.
 func (*Handler) PartyRemove(partyID uint32, blockPath string) error {
 	logger.Debugf("modify party remove: partyID=%d block=%s (not implemented)", partyID, blockPath)
-	return ErrNotImplemented
-}
-
-// PartyNode implements `fxadmin modify party node`.
-func (*Handler) PartyNode(ch change.Node) error {
-	logger.Debugf("modify party node: %+v (not implemented)", ch)
 	return ErrNotImplemented
 }
 
