@@ -11,6 +11,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/cockroachdb/errors"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -180,10 +181,8 @@ func changeNode(orderer *cb.ConfigGroup, nc *nodeChange) error {
 	switch nc.role {
 	case nodeRoleConsenter:
 		return syncConsenter(orderer, nc, fields)
-	case nodeRoleRouter:
-		return syncPartyEndpoint(orderer, nc, types.Broadcast, fields)
-	case nodeRoleAssembler:
-		return syncPartyEndpoint(orderer, nc, types.Deliver, fields)
+	case nodeRoleRouter, nodeRoleAssembler:
+		return syncPartyEndpoint(orderer, nc, fields)
 	default:
 		return nil
 	}
@@ -295,76 +294,65 @@ func recomputeBlockValidation(orderer *cb.ConfigGroup, consenters []*cb.Consente
 	return nil
 }
 
-// endpointMove is the move of a party's endpoint that serves api to the new
-// address of the node behind it.
-type endpointMove struct {
-	party uint32
-	api   string
-	host  string
-	port  int
-	// node names the node, for messages.
-	node string
-}
-
-// syncPartyEndpoint moves the party's endpoint that serves api (broadcast for
-// the router, deliver for the assembler) to the node's new host and port. The
-// endpoint is the one in an orderer org's Endpoints value with the party's ID;
-// every other endpoint is left as it is.
-func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange, api string, fields *nodeFields) error {
+// syncPartyEndpoint points the party's endpoint of the changed node at the
+// node's new host and port: its broadcast endpoint for the router, its deliver
+// endpoint for the assembler. Clients find the ordering service through the
+// orderer orgs' Endpoints values, so the endpoint must follow the node, and the
+// change is rejected if no orderer org lists one for the party.
+func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFields) error {
 	if nc.host == "" && nc.port == 0 {
 		return nil
 	}
-	move := &endpointMove{party: nc.party, api: api, host: *fields.host, port: int(*fields.port), node: nodeName(nc)}
-	found := 0
-	for orgName, org := range orderer.GetGroups() {
-		moved, err := movePartyEndpoint(org, orgName, move)
-		if err != nil {
-			return err
-		}
-		found += moved
+	api := types.Broadcast
+	if nc.role == nodeRoleAssembler {
+		api = types.Deliver
 	}
-	if found != 1 {
-		return errors.Newf("the orderer orgs have %d %s endpoints of party %d, want 1", found, api, nc.party)
+	found := false
+	for orgName, org := range orderer.GetGroups() {
+		moved, err := movePartyEndpoint(org, nc.party, api, fields)
+		if err != nil {
+			return fmt.Errorf("orderer org %q: %w", orgName, err)
+		}
+		found = found || moved
+	}
+	if !found {
+		return errors.Newf("no orderer org has a %s endpoint of party %d", api, nc.party)
 	}
 	return nil
 }
 
-// movePartyEndpoint moves the party's endpoints that serve the move's API in one
-// orderer org's Endpoints value, and returns how many it moved. Such an endpoint
-// must serve that API alone, because an endpoint that serves both APIs cannot
-// follow a single node.
-func movePartyEndpoint(org *cb.ConfigGroup, orgName string, move *endpointMove) (int, error) {
+// movePartyEndpoint points each of the party's endpoints in the org's Endpoints
+// value that serves api, and only api, at the node's host and port, and reports
+// whether it moved any. An endpoint that serves both APIs is not the router's
+// or the assembler's alone, so it is not moved.
+func movePartyEndpoint(org *cb.ConfigGroup, party uint32, api string, fields *nodeFields) (bool, error) {
 	value := org.GetValues()[channelconfig.EndpointsKey]
 	if value == nil {
-		return 0, nil
+		return false, nil
 	}
 	addresses := &cb.OrdererAddresses{}
 	if err := proto.Unmarshal(value.GetValue(), addresses); err != nil {
-		return 0, errors.Wrapf(err, "failed to unmarshal the Endpoints value of orderer org %q", orgName)
+		return false, errors.Wrap(err, "failed to unmarshal the Endpoints value")
 	}
-	moved := 0
+	moved := false
 	for i, address := range addresses.GetAddresses() {
 		endpoint, err := types.ParseOrdererEndpoint(address)
-		if err != nil || endpoint.ID != move.party || !endpoint.SupportsAPI(move.api) {
+		if err != nil || endpoint.ID != party || !slices.Equal(endpoint.API, []string{api}) {
 			continue
 		}
-		if len(endpoint.API) != 1 {
-			return 0, errors.Newf("endpoint %q of orderer org %q serves more than %s, so it cannot follow the %s",
-				address, orgName, move.api, move.node)
-		}
-		endpoint.Host, endpoint.Port = move.host, move.port
+		endpoint.Host, endpoint.Port = *fields.host, int(*fields.port)
 		addresses.Addresses[i] = endpoint.String()
-		moved++
+		moved = true
 	}
-	if moved == 0 {
-		return 0, nil
+	if !moved {
+		return false, nil
 	}
 	content, err := proto.Marshal(addresses)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to marshal the Endpoints value of orderer org %q", orgName)
+		return false, errors.Wrap(err, "failed to marshal the Endpoints value")
 	}
 	value.Value = content
-	return moved, nil
+	return true, nil
 }
 
 // decodeConsensusType decodes the Orderer group's ConsensusType config value

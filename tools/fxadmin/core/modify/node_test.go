@@ -41,6 +41,10 @@ const (
 	nodeTestRouterPort    = 7050
 	nodeTestAssemblerHost = "assembler.org1"
 	nodeTestAssemblerPort = 7060
+	// The party's broadcast (router) and deliver (assembler) endpoints, as its
+	// org's Endpoints value lists them.
+	nodeTestBroadcastEndpoint = "id=1,msp-id=orderer-org-1,broadcast,router.org1:7050"
+	nodeTestDeliverEndpoint   = "id=1,msp-id=orderer-org-1,deliver,assembler.org1:7060"
 
 	// Node roles, as `--role` names them.
 	nodeTestRouter    = "router"
@@ -108,8 +112,8 @@ func TestPartyNode(t *testing.T) {
 	certs.tlsCertPath = writeNodeTestFile(t, certDir, "tls-cert.pem", certs.tlsCert)
 	certs.signCertPath = writeNodeTestFile(t, certDir, "sign-cert.pem", certs.signCert)
 	baseEndpoints := []string{
-		"id=1,msp-id=orderer-org-1,broadcast,router.org1:7050",
-		"id=1,msp-id=orderer-org-1,deliver,assembler.org1:7060",
+		nodeTestBroadcastEndpoint,
+		nodeTestDeliverEndpoint,
 	}
 
 	for _, tc := range []nodeTestCase{
@@ -117,7 +121,7 @@ func TestPartyNode(t *testing.T) {
 			name: "router endpoint", role: nodeTestRouter, host: "router2.org1", port: 7150,
 			wantEndpoints: []string{
 				"id=1,msp-id=orderer-org-1,broadcast,router2.org1:7150",
-				"id=1,msp-id=orderer-org-1,deliver,assembler.org1:7060",
+				nodeTestDeliverEndpoint,
 			},
 		},
 		{
@@ -144,7 +148,7 @@ func TestPartyNode(t *testing.T) {
 		{
 			name: "assembler port only", role: nodeTestAssembler, port: 7160,
 			wantEndpoints: []string{
-				"id=1,msp-id=orderer-org-1,broadcast,router.org1:7050",
+				nodeTestBroadcastEndpoint,
 				"id=1,msp-id=orderer-org-1,deliver,assembler.org1:7160",
 			},
 		},
@@ -194,6 +198,37 @@ func TestPartyNode(t *testing.T) {
 	}
 }
 
+// TestPartyNodeMovesOnlyThePartysEndpoint verifies that moving a router changes
+// only the party's own broadcast endpoint when its org also lists the endpoints
+// of another party.
+func TestPartyNodeMovesOnlyThePartysEndpoint(t *testing.T) {
+	t.Parallel()
+
+	otherBroadcast := "id=2,msp-id=orderer-org-1,broadcast,router.party2:7055"
+	otherDeliver := "id=2,msp-id=orderer-org-1,deliver,assembler.party2:7065"
+	block := withNodeTestEndpoints(t, newNodeTestBlock(t),
+		nodeTestBroadcastEndpoint,
+		nodeTestDeliverEndpoint,
+		otherBroadcast,
+		otherDeliver,
+	)
+	blockPath := writeNodeTestBlock(t, block)
+
+	err := modify.New().PartyNode(change.Node{
+		Party: nodeTestParty, Role: nodeTestRouter, Port: 7150, BlockPath: blockPath,
+	})
+	require.NoError(t, err)
+
+	edited, err := os.ReadFile(blockPath)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"id=1,msp-id=orderer-org-1,broadcast,router.org1:7150",
+		nodeTestDeliverEndpoint,
+		otherBroadcast,
+		otherDeliver,
+	}, nodeTestEndpoints(t, nodeTestOrderer(t, edited)))
+}
+
 // TestPartyNodeRejects covers changes that must fail, and asserts that a failed
 // change leaves the block file unchanged.
 func TestPartyNodeRejects(t *testing.T) {
@@ -208,7 +243,9 @@ func TestPartyNodeRejects(t *testing.T) {
 	// A block whose party's router and assembler share one endpoint serving both APIs.
 	sharedEndpointBlock := withNodeTestEndpoints(t, baseBlock, "id=1,msp-id=orderer-org-1,router.org1:7050")
 	// A block whose org lists no broadcast endpoint of the party.
-	noBroadcastBlock := withNodeTestEndpoints(t, baseBlock, "id=1,msp-id=orderer-org-1,deliver,assembler.org1:7060")
+	noBroadcastBlock := withNodeTestEndpoints(t, baseBlock, nodeTestDeliverEndpoint)
+	// A block whose org lists no deliver endpoint of the party.
+	noDeliverBlock := withNodeTestEndpoints(t, baseBlock, nodeTestBroadcastEndpoint)
 
 	for _, tc := range []struct {
 		name    string
@@ -262,13 +299,19 @@ func TestPartyNodeRejects(t *testing.T) {
 			name:    "router endpoint that also serves deliver",
 			block:   sharedEndpointBlock,
 			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Port: 7150},
-			wantErr: "serves more than broadcast",
+			wantErr: "no orderer org has a broadcast endpoint of party 1",
 		},
 		{
 			name:    "org with no broadcast endpoint of the party",
 			block:   noBroadcastBlock,
 			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Port: 7150},
-			wantErr: "the orderer orgs have 0 broadcast endpoints of party 1, want 1",
+			wantErr: "no orderer org has a broadcast endpoint of party 1",
+		},
+		{
+			name:    "org with no deliver endpoint of the party",
+			block:   noDeliverBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestAssembler, Host: "assembler2.org1"},
+			wantErr: "no orderer org has a deliver endpoint of party 1",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
