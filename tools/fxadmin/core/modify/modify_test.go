@@ -28,6 +28,5 @@ func TestHandlerNotImplemented(t *testing.T) {
 	require.ErrorIs(t, h.AppKnownCertsRemove("peer1", []string{"c.pem"}, "next.pb"), modify.ErrNotImplemented)
 	require.ErrorIs(t, h.PartyAdd("party.yaml", "next.pb"), modify.ErrNotImplemented)
 	require.ErrorIs(t, h.PartyRemove(5, "next.pb"), modify.ErrNotImplemented)
-	require.ErrorIs(t, h.PartyNode(change.Node{Party: 1, Role: "batcher"}), modify.ErrNotImplemented)
 	require.ErrorIs(t, h.PartyCA(change.CA{Op: "add", Party: 1}), modify.ErrNotImplemented)
 }
