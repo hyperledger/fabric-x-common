@@ -32,6 +32,11 @@ import (
 	"github.com/hyperledger/fabric-x-common/utils/testcrypto"
 )
 
+const (
+	routerHost    = "router1.example.com"
+	assemblerHost = "assembler1.example.com"
+)
+
 func enabled() *bool { b := true; return &b }
 
 func TestLoad(t *testing.T) {
@@ -41,10 +46,14 @@ func TestLoad(t *testing.T) {
 		t.Parallel()
 		sharedConfig := &ordererpb.SharedConfig{
 			PartiesConfig: []*ordererpb.PartyConfig{{
-				PartyID:         1,
-				TLSCACerts:      [][]byte{[]byte("ca-1")},
-				RouterConfig:    &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
-				AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
+				PartyID:    1,
+				TLSCACerts: [][]byte{[]byte("ca-1")},
+				RouterConfig: &ordererpb.RouterNodeConfig{
+					NodeConfig: &ordererpb.NodeConfig{Host: routerHost, Port: 8013},
+				},
+				AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+					NodeConfig: &ordererpb.NodeConfig{Host: assemblerHost, Port: 8011},
+				},
 			}},
 		}
 		block, mspDir, mspID := newConfigBlockWithMSP(t, "arma", sharedConfig)
@@ -73,10 +82,14 @@ func TestLoad(t *testing.T) {
 		t.Parallel()
 		sharedConfig := &ordererpb.SharedConfig{
 			PartiesConfig: []*ordererpb.PartyConfig{{
-				PartyID:         1,
-				TLSCACerts:      [][]byte{[]byte("ca-1")},
-				RouterConfig:    &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
-				AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
+				PartyID:    1,
+				TLSCACerts: [][]byte{[]byte("ca-1")},
+				RouterConfig: &ordererpb.RouterNodeConfig{
+					NodeConfig: &ordererpb.NodeConfig{Host: routerHost, Port: 8013},
+				},
+				AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+					NodeConfig: &ordererpb.NodeConfig{Host: assemblerHost, Port: 8011},
+				},
 			}},
 		}
 		block, _, _ := newConfigBlockWithMSP(t, "arma", sharedConfig)
@@ -95,10 +108,14 @@ func TestLoadFromFiles(t *testing.T) {
 
 	sharedConfig := &ordererpb.SharedConfig{
 		PartiesConfig: []*ordererpb.PartyConfig{{
-			PartyID:         1,
-			TLSCACerts:      [][]byte{[]byte("ca-1")},
-			RouterConfig:    &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
-			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
+			PartyID:    1,
+			TLSCACerts: [][]byte{[]byte("ca-1")},
+			RouterConfig: &ordererpb.RouterNodeConfig{
+				NodeConfig: &ordererpb.NodeConfig{Host: routerHost, Port: 8013},
+			},
+			AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+				NodeConfig: &ordererpb.NodeConfig{Host: assemblerHost, Port: 8011},
+			},
 		}},
 	}
 	block, mspDir, mspID := newConfigBlockWithMSP(t, "arma", sharedConfig)
@@ -195,10 +212,14 @@ func TestSequenceFromBlock(t *testing.T) {
 
 	sharedConfig := &ordererpb.SharedConfig{
 		PartiesConfig: []*ordererpb.PartyConfig{{
-			PartyID:         1,
-			TLSCACerts:      [][]byte{[]byte("ca-1")},
-			RouterConfig:    &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
-			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
+			PartyID:    1,
+			TLSCACerts: [][]byte{[]byte("ca-1")},
+			RouterConfig: &ordererpb.RouterNodeConfig{
+				NodeConfig: &ordererpb.NodeConfig{Host: routerHost, Port: 8013},
+			},
+			AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+				NodeConfig: &ordererpb.NodeConfig{Host: assemblerHost, Port: 8011},
+			},
 		}},
 	}
 	block, _, _ := newConfigBlockWithMSP(t, "arma", sharedConfig)
