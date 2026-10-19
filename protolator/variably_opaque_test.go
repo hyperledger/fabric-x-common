@@ -171,9 +171,40 @@ func TestArmaSharedConfigVariablyOpaqueMsg(t *testing.T) {
 					PartiesConfig: []*ordererpb.PartyConfig{
 						{
 							PartyID: 1,
+							RouterConfig: &ordererpb.RouterNodeConfig{
+								NodeConfig: &ordererpb.NodeConfig{
+									Host:     "localhost",
+									Port:     7051,
+									TlsCert:  []byte("router-tls-cert"),
+									SignCert: []byte("router-sign-cert"),
+								},
+							},
+							BatchersConfig: []*ordererpb.BatcherNodeConfig{
+								{
+									NodeConfig: &ordererpb.NodeConfig{
+										Host:     "localhost",
+										Port:     7052,
+										TlsCert:  []byte("batcher-tls-cert"),
+										SignCert: []byte("batcher-sign-cert"),
+									},
+									ShardId: 1,
+								},
+							},
 							ConsenterConfig: &ordererpb.ConsenterNodeConfig{
-								Host: "localhost",
-								Port: 7050,
+								NodeConfig: &ordererpb.NodeConfig{
+									Host:     "localhost",
+									Port:     7050,
+									TlsCert:  []byte("consenter-tls-cert"),
+									SignCert: []byte("consenter-sign-cert"),
+								},
+							},
+							AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+								NodeConfig: &ordererpb.NodeConfig{
+									Host:     "localhost",
+									Port:     7053,
+									TlsCert:  []byte("assembler-tls-cert"),
+									SignCert: []byte("assembler-sign-cert"),
+								},
 							},
 						},
 					},
