@@ -82,11 +82,11 @@ func unmarshalSharedConfig(metadata []byte) (*ordererpb.SharedConfig, error) {
 func infoFromSharedConfig(channelID string, shared *ordererpb.SharedConfig) (*Info, error) {
 	info := &Info{ChannelID: channelID, NumParties: len(shared.GetPartiesConfig())}
 	for _, party := range shared.GetPartiesConfig() {
-		if router := party.GetRouterConfig(); router != nil {
+		if router := party.GetRouterConfig().GetNodeConfig(); router != nil {
 			info.RouterEndpoints = append(info.RouterEndpoints,
 				net.JoinHostPort(router.GetHost(), strconv.Itoa(int(router.GetPort()))))
 		}
-		if assembler := party.GetAssemblerConfig(); assembler != nil {
+		if assembler := party.GetAssemblerConfig().GetNodeConfig(); assembler != nil {
 			info.AssemblerEndpoints = append(info.AssemblerEndpoints,
 				net.JoinHostPort(assembler.GetHost(), strconv.Itoa(int(assembler.GetPort()))))
 		}
