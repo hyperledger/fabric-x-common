@@ -164,8 +164,8 @@ Application: &ApplicationDefaults
 
         # Fabric-X committer's exposed resources, keyed by gRPC full-method name. The committer's
         # auth service authorizes each call against the policy its method maps to here.
-        # In the committer, each resource is mapped to a default policy.
-        # Unless otherwise specified here, all resources use /Channel/Application/Readers.
+        # In the committer, access to each resource is governed by the
+        # /Channel/Application/Readers policy unless otherwise specified here.
         /committerpb.QueryService/GetRows:                  &CommitterReaders /Channel/Application/Readers
         /committerpb.QueryService/BeginView:                *CommitterReaders
         /committerpb.QueryService/EndView:                  *CommitterReaders
