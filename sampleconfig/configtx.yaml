@@ -164,6 +164,8 @@ Application: &ApplicationDefaults
 
         # Fabric-X committer's exposed resources, keyed by gRPC full-method name. The committer's
         # auth service authorizes each call against the policy its method maps to here.
+        # In the committer, each resource is mapped to a default policy.
+        # Unless otherwise specified here, all resources use /Channel/Application/Readers.
         /committerpb.QueryService/GetRows:                  &CommitterReaders /Channel/Application/Readers
         /committerpb.QueryService/BeginView:                *CommitterReaders
         /committerpb.QueryService/EndView:                  *CommitterReaders
@@ -176,9 +178,8 @@ Application: &ApplicationDefaults
         /committerpb.SidecarService/GetTxByID:              *CommitterReaders
         /committerpb.SidecarService/OpenNotificationStream: *CommitterReaders
         /committerpb.SidecarService/StreamBlocks:           *CommitterReaders
+        # The sidecar implements the Deliver API, which is not part of the committer codebase.
         /protos.Deliver/Deliver:                            *CommitterReaders
-        /protos.Deliver/DeliverFiltered:                    *CommitterReaders
-        /protos.Deliver/DeliverWithPrivateData:             *CommitterReaders
 
     # Organizations lists the orgs participating on the application side of the
     # network.
