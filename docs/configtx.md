@@ -21,7 +21,7 @@ SPDX-License-Identifier: Apache-2.0
 6. [Arma Consensus: The Fabric-X Ordering Architecture](#6-arma-consensus-the-fabric-x-ordering-architecture)
 7. [Orderer Endpoints with Party IDs and Separated APIs](#7-orderer-endpoints-with-party-ids-and-separated-apis)
 8. [Policies Deep Dive](#8-policies-deep-dive)
-   - [ACLs (Future)](#85-acls-future)
+   - [ACLs](#85-acls)
 9. [How configtxgen Generates the Genesis Block](#9-how-configtxgen-generates-the-genesis-block)
 10. [Genesis Block Internal Structure](#10-genesis-block-internal-structure)
 11. [The Network Configuration Hierarchy](#11-the-network-configuration-hierarchy)
@@ -828,6 +828,8 @@ SharedConfig (binary protobuf)
 |       +-- CollectTimeout
 |       +-- ... (and more BFT tuning parameters)
 |
++-- MaxPartyID                   Highest party ID allowed (uint32)
+|
 +-- BatchingConfig               Batching parameters
     +-- BatchTimeouts
     |   +-- BatchCreationTimeout       Max time before creating a batch
@@ -871,10 +873,9 @@ OrdererEndpoint
 |
 +-- host       (required)  Hostname or IP address
 +-- port       (required)  Port number
-+-- id         (optional)  Party ID (uint32). Default: unspecified.
++-- id         (required)  Party ID (uint32)
 +-- api        (optional)  Supported APIs: ["broadcast"] and/or ["deliver"]
-|                          Default: both broadcast and deliver.
-+-- msp-id     (optional)  MSP ID of the organization
+                           Default: both broadcast and deliver.
 ```
 
 ### 7.2 Encoding Formats
@@ -906,8 +907,7 @@ OrdererEndpoints:
 ```yaml
 OrdererEndpoints:
   - id=0,broadcast,deliver,orderer-1:7050
-  - id=0,broadcast,host=orderer-1,port=7050    # equivalent
-  - orderer-1:7050                              # simple (no id, all APIs)
+  - id=0,broadcast,deliver,host=orderer-1,port=7050    # equivalent
 ```
 
 ### 7.3 Common Patterns
@@ -1089,23 +1089,43 @@ the policy path that governs it. A failed config update usually points at an
 /Channel/Application/Readers                Application read access
 /Channel/Application/Writers                Application write access
 /Channel/Application/Admins                 Application admin
-/Channel/Application/LifecycleEndorsement   Chaincode lifecycle endorsement
+/Channel/Application/LifecycleEndorsement   Namespace creation endorsement
 /Channel/Application/SnapshotEndorsement    Snapshot transaction authorization
 /Channel/Application/CheckpointEndorsement  Checkpoint transaction authorization
-/Channel/Application/Endorsement            Chaincode execution endorsement
+/Channel/Application/Endorsement            Transaction endorsement
 /Channel/Orderer/<OrgName>/Readers          Per-org orderer policies
 /Channel/Application/<OrgName>/Readers      Per-org application policies
 ```
 
-### 8.5 ACLs (Future)
+### 8.5 ACLs
 
-Access Control Lists (ACLs) will be added in a future Fabric-X release. Today,
-Fabric-X relies on the policy paths above for channel, orderer, application,
-and organization-level authorization decisions.
+Access Control Lists (ACLs) map a resource name to one of the policy paths
+above. They are set in the `ACLs` map of the `Application` section of
+`configtx.yaml`, and `configtxgen` encodes them into the `ACLs` value of the
+`/Channel/Application` group (modified by `Admins`). A policy reference that
+does not start with `/` is qualified as `/Channel/Application/<PolicyRef>`.
 
-Future ACL support will let operators map specific resources or APIs to policy
-paths in `configtx.yaml`, following the Fabric configuration model while
-preserving Fabric-X's single-network governance model.
+Consumers resolve a resource's policy through the application config's
+`APIPolicyMapper().PolicyRefForAPI(resource)`, which returns an empty string
+when the resource has no ACL entry.
+
+The Fabric-X committer's resources are keyed by their gRPC full-method name
+(`/<package>.<Service>/<Method>`). The sample `configtx.yaml` maps every
+`QueryService` and `SidecarService` method, plus the sidecar's
+`/protos.Deliver/Deliver`, to `/Channel/Application/Readers`. A YAML anchor
+keeps the policy in one place. The committer applies
+`/Channel/Application/Readers` to any of its resources that has no entry here.
+
+```yaml
+Application: &ApplicationDefaults
+    ACLs:
+        peer/Propose: /Channel/Application/Writers
+        /committerpb.QueryService/GetRows:        &CommitterReaders /Channel/Application/Readers
+        /committerpb.QueryService/BeginView:      *CommitterReaders
+        /committerpb.SidecarService/StreamBlocks: *CommitterReaders
+        /protos.Deliver/Deliver:                  *CommitterReaders
+        # ... one entry per committer method
+```
 
 ---
 
@@ -1340,9 +1360,10 @@ Block
 ## 11. The Network Configuration Hierarchy
 
 The complete configuration tree embedded in a Fabric-X genesis block (using
-the `SampleFabricX` profile, which overrides the default `OrdererType` to
-`arma` and inherits `BlockValidation: ANY Writers` via
-`Policies: *DefaultOrdererPolicies`):
+a two-org network shaped like the `TwoOrgsSampleFabricX` profile, which
+inherits `FabricXOrdererDefaults` from `SampleFabricX`: `OrdererType: arma`
+and `BlockValidation: ANY Writers` via `Policies: *DefaultOrdererPolicies`.
+Each org runs one ordering party on its own host):
 
 ```
 Channel/                                           (root ConfigGroup)
@@ -1402,6 +1423,21 @@ Channel/                                           (root ConfigGroup)
         |   +-- Endorsement           ImplicitMeta "MAJORITY Endorsement"
         |
         +-- Values/
+        |   +-- ACLs
+        |   |   peer/Propose: /Channel/Application/Writers
+        |   |   /committerpb.QueryService/GetRows: /Channel/Application/Readers
+        |   |   /committerpb.QueryService/BeginView: /Channel/Application/Readers
+        |   |   /committerpb.QueryService/EndView: /Channel/Application/Readers
+        |   |   /committerpb.QueryService/GetNamespacePolicies: /Channel/Application/Readers
+        |   |   /committerpb.QueryService/GetConfigTransaction: /Channel/Application/Readers
+        |   |   /committerpb.QueryService/GetTransactionStatus: /Channel/Application/Readers
+        |   |   /committerpb.SidecarService/GetBlockchainInfo: /Channel/Application/Readers
+        |   |   /committerpb.SidecarService/GetBlockByNumber: /Channel/Application/Readers
+        |   |   /committerpb.SidecarService/GetBlockByTxID: /Channel/Application/Readers
+        |   |   /committerpb.SidecarService/GetTxByID: /Channel/Application/Readers
+        |   |   /committerpb.SidecarService/OpenNotificationStream: /Channel/Application/Readers
+        |   |   /committerpb.SidecarService/StreamBlocks: /Channel/Application/Readers
+        |   |   /protos.Deliver/Deliver: /Channel/Application/Readers
         |
         +-- Groups/
             +-- Org1/
