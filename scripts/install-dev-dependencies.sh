@@ -8,8 +8,8 @@ set -e
 
 # Versions
 protoc_bin_version="35.1"
-golangci_lint_version="v2.13.1"
-mockery_version="v3.7.4"
+golangci_lint_version="v2.15.0"
+mockery_version="v3.8.1"
 
 # Install protoc binary (C++ based, not available via go install)
 download_dir=$(mktemp -d -t "fx_dev_depedencies.XXXX")
