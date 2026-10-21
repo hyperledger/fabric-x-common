@@ -36,7 +36,7 @@ func Execute(ctx context.Context, p *Profile, o func() error, terminalErrors ...
 
 // WaitForCondition repeatedly evaluates the given condition function until it returns true or a timeout occurs.
 // It uses exponential backoff between attempts as defined by the retry profile.
-// Returns nil when the condition is satisfied, or an error if the context is cancelled or max elapsed time is reached.
+// Returns true when the condition is satisfied, or false if the context is cancelled or max elapsed time is reached.
 func WaitForCondition(ctx context.Context, p *Profile, condition func() bool) bool {
 	res, _ := executeWithResult(ctx, p, func() (bool, error) {
 		res := condition()
