@@ -15,6 +15,7 @@ import (
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
+	"github.com/hyperledger/fabric-x-common/tools/fileutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 )
 
@@ -50,7 +51,9 @@ func writeConfigBlock(block *helpers.ConfigBlock, path string) error {
 
 // replaceFile writes content to a temporary file next to path and renames it
 // over path, so path holds either its old or its new content, never a partial
-// write. The new file keeps the permissions of the file it replaces.
+// write. The temporary file is synced before the rename, and the directory
+// after it, so the new content survives a crash. The new file keeps the
+// permissions of the file it replaces.
 func replaceFile(path string, content []byte) error {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -63,19 +66,33 @@ func replaceFile(path string, content []byte) error {
 	// Removing the temporary file is a no-op once it has been renamed over path.
 	defer func() { _ = os.Remove(tmp.Name()) }()
 
-	if _, err := tmp.Write(content); err != nil {
+	if err := writeAndSync(tmp, content, info.Mode().Perm()); err != nil {
 		_ = tmp.Close()
-		return errors.Wrapf(err, "failed to write %q", tmp.Name())
-	}
-	if err := tmp.Chmod(info.Mode().Perm()); err != nil {
-		_ = tmp.Close()
-		return errors.Wrapf(err, "failed to set the permissions of %q", tmp.Name())
+		return err
 	}
 	if err := tmp.Close(); err != nil {
 		return errors.Wrapf(err, "failed to close %q", tmp.Name())
 	}
 	if err := os.Rename(tmp.Name(), path); err != nil {
 		return errors.Wrapf(err, "failed to replace %q", path)
+	}
+	if err := fileutil.SyncParentDir(path); err != nil {
+		return fmt.Errorf("failed to sync the directory of %q: %w", path, err)
+	}
+	return nil
+}
+
+// writeAndSync writes content to file, sets its permissions to perm, and syncs
+// it to disk.
+func writeAndSync(file *os.File, content []byte, perm os.FileMode) error {
+	if _, err := file.Write(content); err != nil {
+		return errors.Wrapf(err, "failed to write %q", file.Name())
+	}
+	if err := file.Chmod(perm); err != nil {
+		return errors.Wrapf(err, "failed to set the permissions of %q", file.Name())
+	}
+	if err := file.Sync(); err != nil {
+		return errors.Wrapf(err, "failed to sync %q", file.Name())
 	}
 	return nil
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/common/policies"
+	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
@@ -32,10 +33,6 @@ const (
 	nodeRoleConsenter = "consenter"
 	nodeRoleAssembler = "assembler"
 )
-
-// armaOrdererType is the ConsensusType of an ARMA ordering service, whose
-// consensus metadata is the ARMA shared config.
-const armaOrdererType = "arma"
 
 // nodeChange is a `modify party node` request with its certificate files read:
 // the node it selects and the values to set. An empty value leaves its field
@@ -136,8 +133,9 @@ func readNodeChange(ch change.Node) (*nodeChange, error) {
 	return nc, nil
 }
 
-// readCertificateFile reads a PEM-encoded X.509 certificate file and returns
-// its content, which is what the shared config stores.
+// readCertificateFile reads the PEM-encoded X.509 certificate at the start of
+// the file at path and returns it PEM-encoded, the form the shared config
+// stores.
 func readCertificateFile(path string) ([]byte, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -150,7 +148,7 @@ func readCertificateFile(path string) ([]byte, error) {
 	if _, err := x509.ParseCertificate(block.Bytes); err != nil {
 		return nil, errors.Wrapf(err, "failed to parse certificate %q", path)
 	}
-	return content, nil
+	return pem.EncodeToMemory(&pem.Block{Type: block.Type, Bytes: block.Bytes}), nil
 }
 
 // changeNode sets the node's fields in the shared config and carries the change
@@ -164,6 +162,7 @@ func changeNode(orderer *cb.ConfigGroup, nc *nodeChange) error {
 	for _, p := range consensusType.sharedConfig.GetPartiesConfig() {
 		if p.GetPartyID() == nc.party {
 			party = p
+			break
 		}
 	}
 	if party == nil {
@@ -182,7 +181,7 @@ func changeNode(orderer *cb.ConfigGroup, nc *nodeChange) error {
 	case nodeRoleConsenter:
 		return syncConsenter(orderer, nc, fields)
 	case nodeRoleRouter, nodeRoleAssembler:
-		return syncPartyEndpoint(orderer, nc, fields)
+		return syncPartyEndpoint(orderer, nc)
 	default:
 		return nil
 	}
@@ -252,6 +251,7 @@ func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFields) 
 	for _, c := range orderers.GetConsenterMapping() {
 		if c.GetId() == nc.party {
 			consenter = c
+			break
 		}
 	}
 	if consenter == nil {
@@ -294,12 +294,12 @@ func recomputeBlockValidation(orderer *cb.ConfigGroup, consenters []*cb.Consente
 	return nil
 }
 
-// syncPartyEndpoint points the party's endpoint of the changed node at the
-// node's new host and port: its broadcast endpoint for the router, its deliver
-// endpoint for the assembler. Clients find the ordering service through the
-// orderer orgs' Endpoints values, so the endpoint must follow the node, and the
-// change is rejected if no orderer org lists one for the party.
-func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFields) error {
+// syncPartyEndpoint applies the change's new host and port to the party's
+// endpoint of the changed node: its broadcast endpoint for the router, its
+// deliver endpoint for the assembler. Clients find the ordering service through
+// the orderer orgs' Endpoints values, so the endpoint must follow the node, and
+// the change is rejected if no orderer org lists one for the party.
+func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange) error {
 	if nc.host == "" && nc.port == 0 {
 		return nil
 	}
@@ -309,7 +309,7 @@ func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFiel
 	}
 	found := false
 	for orgName, org := range orderer.GetGroups() {
-		moved, err := movePartyEndpoint(org, nc.party, api, fields)
+		moved, err := movePartyEndpoint(org, nc, api)
 		if err != nil {
 			return fmt.Errorf("orderer org %q: %w", orgName, err)
 		}
@@ -321,11 +321,15 @@ func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFiel
 	return nil
 }
 
-// movePartyEndpoint points each of the party's endpoints in the org's Endpoints
-// value that serves api, and only api, at the node's host and port, and reports
-// whether it moved any. An endpoint that serves both APIs is not the router's
-// or the assembler's alone, so it is not moved.
-func movePartyEndpoint(org *cb.ConfigGroup, party uint32, api string, fields *nodeFields) (bool, error) {
+// movePartyEndpoint applies the change's new host and port to each of the
+// party's endpoints in the org's Endpoints value that serves api, and only api,
+// and reports whether it moved any. Only the parts the change sets are
+// replaced: an endpoint may hold another host or port than the node's shared
+// config entry (behind a load balancer or NAT), so a port-only change keeps the
+// endpoint's host, and a host-only change keeps its port. An endpoint that
+// serves both APIs is not the router's or the assembler's alone, so it is not
+// moved.
+func movePartyEndpoint(org *cb.ConfigGroup, nc *nodeChange, api string) (bool, error) {
 	value := org.GetValues()[channelconfig.EndpointsKey]
 	if value == nil {
 		return false, nil
@@ -336,11 +340,21 @@ func movePartyEndpoint(org *cb.ConfigGroup, party uint32, api string, fields *no
 	}
 	moved := false
 	for i, address := range addresses.GetAddresses() {
+		// A malformed address might be the very endpoint to move, so skipping it
+		// could leave it pointing at the old node.
 		endpoint, err := types.ParseOrdererEndpoint(address)
-		if err != nil || endpoint.ID != party || !slices.Equal(endpoint.API, []string{api}) {
+		if err != nil {
+			return false, fmt.Errorf("failed to parse endpoint %q: %w", address, err)
+		}
+		if endpoint.ID != nc.party || !slices.Equal(endpoint.API, []string{api}) {
 			continue
 		}
-		endpoint.Host, endpoint.Port = *fields.host, int(*fields.port)
+		if nc.host != "" {
+			endpoint.Host = nc.host
+		}
+		if nc.port != 0 {
+			endpoint.Port = int(nc.port)
+		}
 		addresses.Addresses[i] = endpoint.String()
 		moved = true
 	}
@@ -367,8 +381,8 @@ func decodeConsensusType(orderer *cb.ConfigGroup) (*decodedConsensusType, error)
 	if err := proto.Unmarshal(configValue.GetValue(), consensusType); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal the ConsensusType value")
 	}
-	if consensusType.GetType() != armaOrdererType {
-		return nil, errors.Newf("the orderer type is %q, want %q", consensusType.GetType(), armaOrdererType)
+	if consensusType.GetType() != configtxgen.Arma {
+		return nil, errors.Newf("the orderer type is %q, want %q", consensusType.GetType(), configtxgen.Arma)
 	}
 	sharedConfig := &ordererpb.SharedConfig{}
 	if err := proto.Unmarshal(consensusType.GetMetadata(), sharedConfig); err != nil {
