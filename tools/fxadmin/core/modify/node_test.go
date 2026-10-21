@@ -7,8 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package modify_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -229,6 +231,81 @@ func TestPartyNodeMovesOnlyThePartysEndpoint(t *testing.T) {
 	}, nodeTestEndpoints(t, nodeTestOrderer(t, edited)))
 }
 
+// TestPartyNodeStoresOnlyTheCertificate verifies that when the TLS certificate
+// file also holds the certificate's private key, another certificate, and some
+// text, only the TLS certificate is stored in the block.
+func TestPartyNodeStoresOnlyTheCertificate(t *testing.T) {
+	t.Parallel()
+
+	tlsCert, signCert := newNodeTestCerts(t)
+	privateKey := []byte("-----BEGIN PRIVATE KEY-----\nU0VDUkVUS0VZ\n-----END PRIVATE KEY-----\n")
+	extraText := []byte("extra text\n")
+	tlsCertFile := slices.Concat(tlsCert, privateKey, signCert, extraText)
+	tlsCertPath := writeNodeTestFile(t, t.TempDir(), "tls-cert-and-key.pem", tlsCertFile)
+	blockPath := writeNodeTestBlock(t, newNodeTestBlock(t))
+
+	err := modify.New().PartyNode(change.Node{
+		Party: nodeTestParty, Role: nodeTestConsenter, TLSCert: tlsCertPath, BlockPath: blockPath,
+	})
+	require.NoError(t, err)
+
+	editedBlock, err := os.ReadFile(blockPath)
+	require.NoError(t, err)
+	require.NotContains(t, string(editedBlock), "PRIVATE KEY")
+	require.NotContains(t, string(editedBlock), "extra text")
+	orderer := nodeTestOrderer(t, editedBlock)
+	consenterNode := nodeTestNode(t, nodeTestSharedConfig(t, orderer), nodeTestConsenter, 0)
+	require.Equal(t, tlsCert, consenterNode.GetTlsCert())
+	consenterMapping := nodeTestConsenterOf(t, orderer)
+	require.Equal(t, tlsCert, consenterMapping.GetClientTlsCert())
+	require.Equal(t, tlsCert, consenterMapping.GetServerTlsCert())
+}
+
+// TestPartyNodeChangesOnlyTheGivenEndpointField verifies that a router change
+// sets only the endpoint field it is given: --port keeps the broadcast
+// endpoint's host, and --host keeps its port. The org's broadcast endpoint is set
+// to another host and port than the router's shared config entry (as behind a
+// load balancer or NAT), so a test can tell the two apart.
+func TestPartyNodeChangesOnlyTheGivenEndpointField(t *testing.T) {
+	t.Parallel()
+
+	broadcastEndpoint := "id=1,msp-id=orderer-org-1,broadcast,router.public:443"
+	baseBlock := withNodeTestEndpoints(t, newNodeTestBlock(t), broadcastEndpoint, nodeTestDeliverEndpoint)
+
+	for _, tc := range []struct {
+		name          string
+		newHost       string
+		newPort       uint32
+		wantBroadcast string
+	}{
+		{
+			name:          "port only keeps the endpoint's host",
+			newPort:       8443,
+			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router.public:8443",
+		},
+		{
+			name:          "host only keeps the endpoint's port",
+			newHost:       "router2.public",
+			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router2.public:443",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			blockPath := writeNodeTestBlock(t, baseBlock)
+			err := modify.New().PartyNode(change.Node{
+				Party: nodeTestParty, Role: nodeTestRouter, Host: tc.newHost, Port: tc.newPort, BlockPath: blockPath,
+			})
+			require.NoError(t, err)
+
+			editedBlock, err := os.ReadFile(blockPath)
+			require.NoError(t, err)
+			require.Equal(t, []string{tc.wantBroadcast, nodeTestDeliverEndpoint},
+				nodeTestEndpoints(t, nodeTestOrderer(t, editedBlock)))
+		})
+	}
+}
+
 // TestPartyNodeRejects covers changes that must fail, and asserts that a failed
 // change leaves the block file unchanged.
 func TestPartyNodeRejects(t *testing.T) {
@@ -246,6 +323,11 @@ func TestPartyNodeRejects(t *testing.T) {
 	noBroadcastBlock := withNodeTestEndpoints(t, baseBlock, nodeTestDeliverEndpoint)
 	// A block whose org lists no deliver endpoint of the party.
 	noDeliverBlock := withNodeTestEndpoints(t, baseBlock, nodeTestBroadcastEndpoint)
+	// A block whose org lists, next to the party's endpoints, an address with an
+	// unknown key ("bogus=x") that cannot be parsed.
+	malformedEndpoint := "id=1,bogus=x,router.org1:7050"
+	malformedEndpointBlock := withNodeTestEndpoints(t, baseBlock,
+		nodeTestBroadcastEndpoint, nodeTestDeliverEndpoint, malformedEndpoint)
 
 	for _, tc := range []struct {
 		name    string
@@ -312,6 +394,12 @@ func TestPartyNodeRejects(t *testing.T) {
 			block:   noDeliverBlock,
 			request: change.Node{Party: nodeTestParty, Role: nodeTestAssembler, Host: "assembler2.org1"},
 			wantErr: "no orderer org has a deliver endpoint of party 1",
+		},
+		{
+			name:    "malformed endpoint in the org",
+			block:   malformedEndpointBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Port: 7150},
+			wantErr: fmt.Sprintf("failed to parse endpoint %q", malformedEndpoint),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
