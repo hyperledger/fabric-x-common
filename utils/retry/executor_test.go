@@ -169,6 +169,20 @@ func TestExecuteWithResultTerminalError(t *testing.T) {
 	require.Equal(t, 1, callCount)
 }
 
+func TestWaitForConditionSatisfied(t *testing.T) {
+	t.Parallel()
+
+	callCount := 0
+	require.True(t, WaitForCondition(t.Context(), &Profile{
+		InitialInterval: time.Millisecond,
+		MaxElapsedTime:  new(time.Second),
+	}, func() bool {
+		callCount++
+		return callCount == 3
+	}))
+	require.Equal(t, 3, callCount)
+}
+
 // TestExecuteLogLevel is used to manually verify the log output is using the correct
 // method name when logging.
 //
