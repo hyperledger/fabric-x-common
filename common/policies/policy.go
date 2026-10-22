@@ -358,6 +358,96 @@ func (pm *ManagerImpl) GetPolicy(id string) (Policy, bool) {
 	}, true
 }
 
+// SignatureSetToDeferredVerificationIdentities is the counterpart of
+// SignatureSetToValidIdentities for policies that offer the caller several alternatives. It
+// deserializes each signer but leaves the signature unchecked, returning identities that verify
+// themselves the first time they satisfy a principal the policy actually asked about.
+//
+// A policy tree such as an implicit meta policy over the organizations of a channel evaluates its
+// sub-policies until one is satisfied. Verifying up front makes every attempt pay a full signature
+// verification and discards all but one result, so the cost of admitting a request grows with the
+// number of organizations. Verifying after the principal matched makes it independent of them.
+//
+// Unlike SignatureSetToValidIdentities, which records a signer only once its signature verifies,
+// de-duplication here precedes verification: a set carrying one signer twice keeps the first entry
+// and drops the second, so repeated copies cost one verification rather than one each, and a valid
+// signature that follows an invalid one from the same signer is not reached.
+//
+// The returned identities are not safe for concurrent use, and callers must not treat their
+// presence in the slice as evidence that a signature was checked; only a principal check does that.
+func SignatureSetToDeferredVerificationIdentities(
+	signedData []*protoutil.SignedData,
+	identityDeserializer mspi.IdentityDeserializer,
+) []mspi.Identity {
+	idMap := map[string]struct{}{}
+	identities := make([]mspi.Identity, 0, len(signedData))
+
+	for i, sd := range signedData {
+		identity, err := identityDeserializer.DeserializeIdentity(sd.Identity)
+		if err != nil {
+			logger.Warnw("invalid identity", "error", err.Error(), "identity",
+				protoutil.LogMessageForIdentity(sd.Identity))
+			continue
+		}
+
+		key := identity.GetIdentifier().Mspid + identity.GetIdentifier().Id
+
+		// De-duplicate before the identity is offered to the policy, to ensure that someone cannot
+		// force us to waste time checking the same signature thousands of times.
+		if _, ok := idMap[key]; ok {
+			logger.Warningf("De-duplicating identity [%s] at index %d in signature set", key, i)
+			continue
+		}
+
+		idMap[key] = struct{}{}
+		identities = append(identities, &deferredVerificationIdentity{
+			Identity:  identity,
+			data:      sd.Data,
+			signature: sd.Signature,
+			index:     i,
+		})
+	}
+
+	return identities
+}
+
+// deferredVerificationIdentity checks its signature the first time it satisfies a principal, and
+// remembers the outcome so that a signature is verified at most once however many principals the
+// policy tries it against.
+type deferredVerificationIdentity struct {
+	mspi.Identity
+	data      []byte
+	signature []byte
+	index     int
+	verified  bool
+	verifyErr error
+}
+
+func (id *deferredVerificationIdentity) SatisfiesPrincipal(principal *msp.MSPPrincipal) error {
+	if err := id.Identity.SatisfiesPrincipal(principal); err != nil {
+		return err
+	}
+	return id.verify()
+}
+
+func (id *deferredVerificationIdentity) verify() error {
+	if id.verified {
+		return id.verifyErr
+	}
+
+	id.verified = true
+	// The Identity qualifier is deliberate: naming the embedded method explicitly keeps this call
+	// correct if a Verify method is ever added to the wrapper, which would otherwise recurse.
+	if err := id.Identity.Verify(id.data, id.signature); err != nil { //nolint:staticcheck // QF1008
+		id.verifyErr = fmt.Errorf("signature verification failed: %w", err)
+		logger.Warningf("signature for identity %d is invalid: %s", id.index, err)
+	} else {
+		logger.Debugf("signature for identity %d validated", id.index)
+	}
+
+	return id.verifyErr
+}
+
 // SignatureSetToValidIdentities takes a slice of pointers to signed data,
 // checks the validity of the signature and of the signer and returns a
 // slice of associated identities. The returned identities are deduplicated.
