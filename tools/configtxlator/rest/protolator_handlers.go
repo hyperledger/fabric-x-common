@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -23,8 +22,7 @@ import (
 )
 
 func getMsgType(r *http.Request) (proto.Message, error) {
-	vars := mux.Vars(r)
-	msgName := vars["msgName"] // Will not arrive is unset
+	msgName := r.PathValue("msgName")
 
 	mt, err := protoregistry.GlobalTypes.FindMessageByName(protoreflect.FullName(msgName))
 	if err != nil {
