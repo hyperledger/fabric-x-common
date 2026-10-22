@@ -310,6 +310,11 @@ func (m *BFTCensorshipMonitor) launchHeaderReceivers() error {
 		return errors.New("no endpoints")
 	}
 
+	// Stop() may have been called since the last iteration; receivers launched now would never be stopped.
+	if m.stopFlag {
+		return nil
+	}
+
 	hRcvToCreate := make([]*orderers.Endpoint, 0)
 	now := time.Now()
 	for i, ep := range m.fetchSources {
