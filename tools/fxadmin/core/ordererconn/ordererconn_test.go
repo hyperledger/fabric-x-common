@@ -32,16 +32,24 @@ func TestLoad(t *testing.T) {
 		sharedConfig := &ordererpb.SharedConfig{
 			PartiesConfig: []*ordererpb.PartyConfig{
 				{
-					PartyID:         1,
-					TLSCACerts:      [][]byte{[]byte("ca-1")},
-					RouterConfig:    &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
-					AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
+					PartyID:    1,
+					TLSCACerts: [][]byte{[]byte("ca-1")},
+					RouterConfig: &ordererpb.RouterNodeConfig{
+						NodeConfig: &ordererpb.NodeConfig{Host: "router1.example.com", Port: 8013},
+					},
+					AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+						NodeConfig: &ordererpb.NodeConfig{Host: "assembler1.example.com", Port: 8011},
+					},
 				},
 				{
-					PartyID:         2,
-					TLSCACerts:      [][]byte{[]byte("ca-2a"), []byte("ca-2b")},
-					RouterConfig:    &ordererpb.RouterNodeConfig{Host: "router2.example.com", Port: 8014},
-					AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler2.example.com", Port: 8012},
+					PartyID:    2,
+					TLSCACerts: [][]byte{[]byte("ca-2a"), []byte("ca-2b")},
+					RouterConfig: &ordererpb.RouterNodeConfig{
+						NodeConfig: &ordererpb.NodeConfig{Host: "router2.example.com", Port: 8014},
+					},
+					AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+						NodeConfig: &ordererpb.NodeConfig{Host: "assembler2.example.com", Port: 8012},
+					},
 				},
 			},
 		}
@@ -62,9 +70,11 @@ func TestLoad(t *testing.T) {
 		t.Parallel()
 		sharedConfig := &ordererpb.SharedConfig{
 			PartiesConfig: []*ordererpb.PartyConfig{{
-				PartyID:         1,
-				TLSCACerts:      [][]byte{[]byte("ca-1")},
-				AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: "assembler1.example.com", Port: 8011},
+				PartyID:    1,
+				TLSCACerts: [][]byte{[]byte("ca-1")},
+				AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+					NodeConfig: &ordererpb.NodeConfig{Host: "assembler1.example.com", Port: 8011},
+				},
 			}},
 		}
 		block := newConfigBlock(t, armaChannel, sharedConfig)
@@ -77,9 +87,11 @@ func TestLoad(t *testing.T) {
 		t.Parallel()
 		sharedConfig := &ordererpb.SharedConfig{
 			PartiesConfig: []*ordererpb.PartyConfig{{
-				PartyID:      1,
-				TLSCACerts:   [][]byte{[]byte("ca-1")},
-				RouterConfig: &ordererpb.RouterNodeConfig{Host: "router1.example.com", Port: 8013},
+				PartyID:    1,
+				TLSCACerts: [][]byte{[]byte("ca-1")},
+				RouterConfig: &ordererpb.RouterNodeConfig{
+					NodeConfig: &ordererpb.NodeConfig{Host: "router1.example.com", Port: 8013},
+				},
 			}},
 		}
 		block := newConfigBlock(t, armaChannel, sharedConfig)

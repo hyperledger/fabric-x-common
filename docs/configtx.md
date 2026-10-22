@@ -794,26 +794,14 @@ SharedConfig (binary protobuf)
 |   +-- CACerts[]                CA certificates for this party
 |   +-- TLSCACerts[]             TLS CA certificates for this party
 |   +-- RouterConfig             Router node configuration
-|   |   +-- host                 Router hostname
-|   |   +-- port                 Router port
-|   |   +-- tls_cert             Router TLS certificate
-|   |   +-- sign_cert            Router signing certificate
+|   |   +-- node_config          Router endpoint and certificates (see NodeConfig)
 |   +-- BatchersConfig[]         One or more batcher nodes (sharded)
-|   |   +-- shardID              Shard this batcher handles
-|   |   +-- host                 Batcher hostname
-|   |   +-- port                 Batcher port
-|   |   +-- sign_cert            Batcher signing certificate
-|   |   +-- tls_cert             Batcher TLS certificate
+|   |   +-- node_config          Batcher endpoint and certificates (see NodeConfig)
+|   |   +-- shard_id             Shard this batcher handles
 |   +-- ConsenterConfig          Consenter (BFT consensus) node
-|   |   +-- host                 Consenter hostname
-|   |   +-- port                 Consenter port
-|   |   +-- sign_cert            Consenter signing certificate
-|   |   +-- tls_cert             Consenter TLS certificate
+|   |   +-- node_config          Consenter endpoint and certificates (see NodeConfig)
 |   +-- AssemblerConfig          Assembler (block assembly) node
-|       +-- host                 Assembler hostname
-|       +-- port                 Assembler port
-|       +-- tls_cert             Assembler TLS certificate
-|       +-- sign_cert            Assembler signing certificate
+|       +-- node_config          Assembler endpoint and certificates (see NodeConfig)
 |
 +-- ConsensusConfig              SmartBFT consensus parameters
 |   +-- SmartBFTConfig
@@ -839,6 +827,16 @@ SharedConfig (binary protobuf)
     |   +-- AbsoluteMaxBytes           Hard cap on batch size
     |   +-- PreferredMaxBytes          Soft target (not currently used)
     +-- RequestMaxBytes                Max size of a single request
+```
+
+Every node configuration embeds the same `NodeConfig` message:
+
+```
+NodeConfig
++-- host                         Node hostname or IP
++-- port                         Node port
++-- tls_cert                     Node TLS certificate
++-- sign_cert                    Node signing certificate
 ```
 
 ### 6.3 Arma vs Other Consensus Types
