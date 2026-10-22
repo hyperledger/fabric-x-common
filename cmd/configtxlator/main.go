@@ -17,13 +17,13 @@ import (
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/cockroachdb/errors"
-	"github.com/gorilla/handlers"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/orderer/etcdraft"
 	_ "github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/rs/cors"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -48,7 +48,7 @@ var (
 	start    = app.Command("start", "Start the configtxlator REST server")
 	hostname = start.Flag("hostname", "The hostname or IP on which the REST server will listen").Default("0.0.0.0").String()
 	port     = start.Flag("port", "The port on which the REST server will listen").Default("7059").Int()
-	cors     = start.Flag("CORS", "Allowable CORS domains, e.g. '*' or 'www.example.com' (may be repeated).").Strings()
+	corsFlag = start.Flag("CORS", "Allowable CORS domains, e.g. '*' or 'www.example.com' (may be repeated).").Strings()
 
 	protoEncode       = app.Command("proto_encode", "Converts a JSON document to protobuf.")
 	protoEncodeType   = protoEncode.Flag("type", "The type of protobuf structure to encode to.  For example, 'common.Config'.").Required().String()
@@ -76,7 +76,7 @@ func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	// "start" command
 	case start.FullCommand():
-		startServer(fmt.Sprintf("%s:%d", *hostname, *port), *cors)
+		startServer(fmt.Sprintf("%s:%d", *hostname, *port), *corsFlag)
 	// "proto_encode" command
 	case protoEncode.FullCommand():
 		defer (*protoEncodeSource).Close()
@@ -106,7 +106,7 @@ func main() {
 	}
 }
 
-func startServer(address string, cors []string) {
+func startServer(address string, corsOrigins []string) {
 	var err error
 
 	listener, err := net.Listen("tcp", address)
@@ -114,14 +114,16 @@ func startServer(address string, cors []string) {
 		app.Fatalf("Could not bind to address '%s': %s", address, err)
 	}
 
-	if len(cors) > 0 {
-		origins := handlers.AllowedOrigins(cors)
+	if len(corsOrigins) > 0 {
 		// Note, configtxlator only exposes POST APIs for the time being, this
 		// list will need to be expanded if new non-POST APIs are added
-		methods := handlers.AllowedMethods([]string{http.MethodPost})
-		headers := handlers.AllowedHeaders([]string{"Content-Type"})
-		logger.Infof("Serving HTTP requests on %s with CORS %v", listener.Addr(), cors)
-		err = http.Serve(listener, handlers.CORS(origins, methods, headers)(rest.NewRouter()))
+		c := cors.New(cors.Options{
+			AllowedOrigins: corsOrigins,
+			AllowedMethods: []string{http.MethodPost},
+			AllowedHeaders: []string{"Content-Type"},
+		})
+		logger.Infof("Serving HTTP requests on %s with CORS %v", listener.Addr(), corsOrigins)
+		err = http.Serve(listener, c.Handler(rest.NewRouter())) //nolint:gosec // no timeouts, as before.
 	} else {
 		logger.Infof("Serving HTTP requests on %s", listener.Addr())
 		err = http.Serve(listener, rest.NewRouter())

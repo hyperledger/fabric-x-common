@@ -7,21 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package rest
 
 import (
-	"github.com/gorilla/mux"
+	"net/http"
 )
 
-func NewRouter() *mux.Router {
-	router := mux.NewRouter().StrictSlash(true)
-	router.
-		HandleFunc("/protolator/encode/{msgName}", Encode).
-		Methods("POST")
-
-	router.
-		HandleFunc("/protolator/decode/{msgName}", Decode).
-		Methods("POST")
-	router.
-		HandleFunc("/configtxlator/compute/update-from-configs", ComputeUpdateFromConfigs).
-		Methods("POST")
-
+// NewRouter routes the configtxlator REST API.
+func NewRouter() *http.ServeMux {
+	router := http.NewServeMux()
+	router.HandleFunc("POST /protolator/encode/{msgName}", Encode)
+	router.HandleFunc("POST /protolator/decode/{msgName}", Decode)
+	router.HandleFunc("POST /configtxlator/compute/update-from-configs", ComputeUpdateFromConfigs)
 	return router
 }
