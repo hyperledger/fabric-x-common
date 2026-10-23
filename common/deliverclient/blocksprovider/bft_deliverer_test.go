@@ -8,6 +8,7 @@ package blocksprovider_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"math"
 	"sync"
@@ -136,27 +137,6 @@ func (s *bftDelivererTestSetup) initialize(t *testing.T) {
 
 	s.fakeSigner.SignReturns([]byte("good-sig"), nil)
 
-	s.fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
-		select {
-		case r := <-s.recvStepC:
-			if r == nil {
-				return nil, fmt.Errorf("fake-recv-step-error")
-			}
-			return r, nil
-		case <-s.deliverClientDoneC:
-			return nil, nil
-		}
-	}
-
-	s.fakeDeliverClient.CloseSendStub = func() error {
-		select {
-		case s.recvStepC <- nil:
-		case <-s.deliverClientDoneC:
-		}
-
-		return nil
-	}
-
 	s.fakeDeliverStreamer.DeliverReturns(s.fakeDeliverClient, nil)
 
 	// Censorship monitor creation.
@@ -220,7 +200,7 @@ func (s *bftDelivererTestSetup) initialize(t *testing.T) {
 		CryptoProvider:                  s.fakeCryptoProvider,
 		DoneC:                           make(chan struct{}),
 		Signer:                          s.fakeSigner,
-		DeliverStreamer:                 s.fakeDeliverStreamer,
+		DeliverStreamer:                 &perStreamDeliverStreamer{DeliverStreamer: s.fakeDeliverStreamer, s: s},
 		CensorshipDetectorFactory:       s.fakeCensorshipMonFactory,
 		Logger:                          flogging.MustGetLogger("BFTDeliverer.test"),
 		TLSCertHash:                     []byte("tls-cert-hash"),
@@ -854,7 +834,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		setup.gWithT.Expect(setup.fakeDialer.DialCallCount()).Should(Equal(25))
 
 		t.Log("a Recv() error occurs")
-		setup.fakeDeliverClient.CloseSendStub = nil
 		setup.recvStepC <- nil
 
 		setup.gWithT.Eventually(setup.fakeCensorshipMonFactory.CreateCallCount, eventuallyTO).Should(Equal(26))
@@ -911,7 +890,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		require.Equal(t, 80, setup.fakeSleeper.SleepCallCount())
 
 		t.Log("a Recv() error occurs, more dial attempts")
-		setup.fakeDeliverClient.CloseSendStub = nil
 		setup.recvStepC <- nil
 		setup.gWithT.Eventually(setup.fakeDialer.DialCallCount, eventuallyTO).Should(Equal(161))
 		setup.gWithT.Expect(setup.fakeSleeper.SleepCallCount()).To(Equal(160))
@@ -928,7 +906,6 @@ func TestBFTDeliverer_BlockReception(t *testing.T) {
 		require.Equal(t, 160, setup.fakeSleeper.SleepCallCount())
 
 		t.Log("a Recv() error occurs, more dial attempts")
-		setup.fakeDeliverClient.CloseSendStub = nil
 		setup.recvStepC <- nil
 		setup.gWithT.Eventually(setup.fakeDialer.DialCallCount, eventuallyTO).Should(Equal(241))
 		setup.gWithT.Expect(setup.fakeSleeper.SleepCallCount()).To(Equal(240))
@@ -1235,4 +1212,46 @@ func TestBFTDeliverer_RefreshEndpoints(t *testing.T) {
 	require.Equal(t, 0, setup.fakeSleeper.SleepCallCount())
 
 	setup.stop()
+}
+
+// perStreamDeliverStreamer wraps the fake streamer so that every stream is bound to the context it was opened with.
+// All streams share s.fakeDeliverClient (to record calls) and s.recvStepC (to feed responses), but each stream is
+// unblocked only by cancelling its own context, as with gRPC. Otherwise, tearing down an old stream can steal a
+// response from (or inject an error into) the stream that replaced it.
+type perStreamDeliverStreamer struct {
+	*fake.DeliverStreamer
+	s *bftDelivererTestSetup
+}
+
+//nolint:ireturn // implements blocksprovider.DeliverStreamer.
+func (ds *perStreamDeliverStreamer) Deliver(
+	ctx context.Context, cc *grpc.ClientConn,
+) (orderer.AtomicBroadcast_DeliverClient, error) {
+	client, err := ds.DeliverStreamer.Deliver(ctx, cc)
+	if err != nil {
+		return nil, err
+	}
+	return &perStreamDeliverClient{AtomicBroadcast_DeliverClient: client, ctx: ctx, s: ds.s}, nil
+}
+
+type perStreamDeliverClient struct {
+	orderer.AtomicBroadcast_DeliverClient
+	ctx context.Context //nolint:containedctx // the stream's lifetime is bound to it.
+	s   *bftDelivererTestSetup
+}
+
+func (c *perStreamDeliverClient) Recv() (*orderer.DeliverResponse, error) {
+	_, _ = c.AtomicBroadcast_DeliverClient.Recv() // record the call
+
+	select {
+	case r := <-c.s.recvStepC:
+		if r == nil {
+			return nil, errors.New("fake-recv-step-error")
+		}
+		return r, nil
+	case <-c.ctx.Done():
+		return nil, c.ctx.Err()
+	case <-c.s.deliverClientDoneC:
+		return nil, nil
+	}
 }
