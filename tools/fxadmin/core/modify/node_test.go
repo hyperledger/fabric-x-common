@@ -306,6 +306,30 @@ func TestPartyNodeChangesOnlyTheGivenEndpointField(t *testing.T) {
 	}
 }
 
+// TestPartyNodeIsDeterministic verifies that the same change to the same block
+// gives the same bytes on every run, so an edited block can be diffed and
+// hashed.
+func TestPartyNodeIsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	baseBlock := newNodeTestBlock(t)
+	var firstEditedBlock []byte
+	for range 5 {
+		blockPath := writeNodeTestBlock(t, baseBlock)
+		err := modify.New().PartyNode(change.Node{
+			Party: nodeTestParty, Role: nodeTestRouter, Port: 7150, BlockPath: blockPath,
+		})
+		require.NoError(t, err)
+		editedBlock, err := os.ReadFile(blockPath)
+		require.NoError(t, err)
+		if firstEditedBlock == nil {
+			firstEditedBlock = editedBlock
+			continue
+		}
+		require.Equal(t, firstEditedBlock, editedBlock)
+	}
+}
+
 // TestPartyNodeRejects covers changes that must fail, and asserts that a failed
 // change leaves the block file unchanged.
 func TestPartyNodeRejects(t *testing.T) {

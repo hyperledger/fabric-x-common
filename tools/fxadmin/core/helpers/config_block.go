@@ -79,31 +79,37 @@ func (b *ConfigBlock) Config() *cb.Config {
 	return b.ConfigEnvelope.GetConfig()
 }
 
+// deterministic marshals with a fixed order of map entries. The config's groups,
+// values, and policies are maps, so a plain marshal can encode the same config
+// to different bytes on every run.
+var deterministic = proto.MarshalOptions{Deterministic: true}
+
 // Marshal encodes the config back through every enclosing layer, updating each
-// layer in place, and returns the marshaled block. Only the block's data
-// changes: its header data hash and the signatures over the envelope and the
-// block are left as they were, so an edited block is fit to be read back for
-// its config but not to be submitted.
+// layer in place, and returns the marshaled block. The encoding is
+// deterministic, so the same config always gives the same bytes. Only the
+// block's data changes: its header data hash and the signatures over the
+// envelope and the block are left as they were, so an edited block is fit to be
+// read back for its config but not to be submitted.
 func (b *ConfigBlock) Marshal() ([]byte, error) {
-	configEnvelope, err := proto.Marshal(b.ConfigEnvelope)
+	configEnvelope, err := deterministic.Marshal(b.ConfigEnvelope)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal config envelope")
 	}
 	b.Payload.Data = configEnvelope
 
-	payload, err := proto.Marshal(b.Payload)
+	payload, err := deterministic.Marshal(b.Payload)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal config payload")
 	}
 	b.Envelope.Payload = payload
 
-	envelope, err := proto.Marshal(b.Envelope)
+	envelope, err := deterministic.Marshal(b.Envelope)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal config envelope transaction")
 	}
 	b.Block.Data.Data[0] = envelope
 
-	block, err := proto.Marshal(b.Block)
+	block, err := deterministic.Marshal(b.Block)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal block")
 	}
