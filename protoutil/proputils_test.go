@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hyperledger/fabric-lib-go/bccsp/sw"
@@ -442,16 +443,45 @@ func TestEnvelope(t *testing.T) {
 }
 
 func TestProposalTxID(t *testing.T) {
+	t.Parallel()
 	nonce := []byte{1}
 	creator := []byte{2}
 
 	txid := protoutil.ComputeTxID(nonce, creator)
-	require.NotEmpty(t, txid, "TxID cannot be empty.")
-	require.Nil(t, protoutil.CheckTxID(txid, nonce, creator))
-	require.Error(t, protoutil.CheckTxID("", nonce, creator))
+	require.Len(t, txid, 2*sha256.Size)
+	require.NoError(t, protoutil.CheckTxID(txid, nonce, creator))
 
 	txid = protoutil.ComputeTxID(nil, nil)
-	require.NotEmpty(t, txid, "TxID cannot be empty.")
+	require.Len(t, txid, 2*sha256.Size)
+	require.NoError(t, protoutil.CheckTxID(txid, nil, nil))
+}
+
+func TestCheckTxIDInvalid(t *testing.T) {
+	t.Parallel()
+	nonce := []byte{1}
+	creator := []byte{2}
+	validTxID := protoutil.ComputeTxID(nonce, creator)
+
+	for _, tc := range []struct {
+		name string
+		txid string
+	}{
+		{name: "empty", txid: ""},
+		{name: "wrong txid of valid length", txid: protoutil.ComputeTxID(nonce, []byte{3})},
+		{name: "uppercase", txid: strings.ToUpper(validTxID)},
+		{name: "too short", txid: validTxID[:len(validTxID)-1]},
+		{name: "too long", txid: validTxID + "0"},
+		{name: "oversized", txid: strings.Repeat("a", 1<<20)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			err := protoutil.CheckTxID(tc.txid, nonce, creator)
+			require.ErrorIs(t, err, protoutil.ErrInvalidTxID)
+			if tc.txid != "" {
+				require.NotContains(t, err.Error(), tc.txid)
+			}
+		})
+	}
 }
 
 func TestComputeProposalTxID(t *testing.T) {
@@ -564,4 +594,35 @@ func TestInvokedChaincodeName(t *testing.T) {
 		}))
 		require.EqualError(t, err, "chaincode id is nil")
 	})
+}
+
+func BenchmarkComputeTxID(b *testing.B) {
+	nonce := make([]byte, 24)
+	creator := make([]byte, 1000)
+	b.ReportAllocs()
+	for b.Loop() {
+		protoutil.ComputeTxID(nonce, creator)
+	}
+}
+
+func BenchmarkCheckTxID(b *testing.B) {
+	nonce := make([]byte, 24)
+	creator := make([]byte, 1000)
+	validTxID := protoutil.ComputeTxID(nonce, creator)
+
+	for _, bc := range []struct {
+		name string
+		txid string
+	}{
+		{name: "valid", txid: validTxID},
+		{name: "wrong txid of valid length", txid: strings.Repeat("0", len(validTxID))},
+		{name: "oversized", txid: strings.Repeat("a", 1<<20)},
+	} {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				_ = protoutil.CheckTxID(bc.txid, nonce, creator)
+			}
+		})
+	}
 }

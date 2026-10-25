@@ -99,7 +99,7 @@ skill. Key helpers, all native to this repo: `testcrypto.CreateOrExtendConfigBlo
 ## Error handling
 
 Uses `github.com/cockroachdb/errors`. **`github.com/pkg/errors` is banned by `depguard`** for new
-code — 82 legacy ported files still import it, but do not add new ones.
+code — 81 legacy ported files still import it, but do not add new ones.
 
 1. **Originate or first cross into our code** (a new condition, or an error from a driver /
    `Unmarshal` / gRPC) → `errors.New` / `errors.Newf` / `errors.Wrap` / `errors.Wrapf`. This
