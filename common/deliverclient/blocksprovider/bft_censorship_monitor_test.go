@@ -115,7 +115,7 @@ func TestBFTCensorshipMonitor_NoSources(t *testing.T) {
 		wg.Done()
 	}()
 
-	mon.Stop()
+	// No Stop() here: with no endpoints the monitor fails and stops by itself; an external stop would race with it.
 	wg.Wait()
 	require.EqualError(t, err, "no endpoints")
 }
