@@ -174,7 +174,8 @@ func (m *BFTCensorshipMonitor) Monitor() {
 		case <-time.After(m.timeoutConfig.BlockCensorshipTimeout / 100):
 		}
 
-		// When both cases above are ready, select picks one at random, so check the stop signal explicitly.
+		// Either case above may have fired (select picks at random when both are ready),
+		// so check the stop signal explicitly.
 		select {
 		case <-m.stopCh:
 			m.errorCh <- &ErrStopping{Message: "received a stop signal"}
