@@ -47,7 +47,7 @@ type bftDelivererTestSetup struct {
 	fakeUpdatableBlockVerifier         *fake.UpdatableBlockVerifier
 	fakeSigner                         *mocks.SignerSerializer
 	fakeDeliverStreamer                *fake.DeliverStreamer
-	fakeDeliverClient                  *fake.DeliverClient
+	fakeDeliverClient                  *fake.DeliverClient // records calls only; drive Recv() through recvStepC
 	fakeCensorshipMonFactory           *fake.CensorshipDetectorFactory
 	fakeCensorshipMon                  *fake.CensorshipDetector
 	fakeSleeper                        *fake.Sleeper
@@ -55,9 +55,8 @@ type bftDelivererTestSetup struct {
 	fakeCryptoProvider                 bccsp.BCCSP
 	channelConfig                      *common.Config
 
-	deliverClientDoneC chan struct{} // signals the deliverClient to exit
-	recvStepC          chan *orderer.DeliverResponse
-	endC               chan struct{}
+	recvStepC chan *orderer.DeliverResponse
+	endC      chan struct{}
 
 	mutex         sync.Mutex                 // protects the following fields
 	clientConnSet []*grpc.ClientConn         // client connection set
@@ -83,7 +82,6 @@ func newBFTDelivererTestSetup(t *testing.T) *bftDelivererTestSetup {
 		fakeCensorshipMonFactory:           &fake.CensorshipDetectorFactory{},
 		fakeSleeper:                        &fake.Sleeper{},
 		fakeDurationExceededHandler:        &fake.DurationExceededHandler{},
-		deliverClientDoneC:                 make(chan struct{}),
 		recvStepC:                          make(chan *orderer.DeliverResponse),
 		endC:                               make(chan struct{}),
 	}
@@ -228,13 +226,6 @@ func (s *bftDelivererTestSetup) start() {
 
 func (s *bftDelivererTestSetup) stop() {
 	s.d.Stop()
-
-	select {
-	case <-s.deliverClientDoneC:
-	default:
-		close(s.deliverClientDoneC)
-	}
-
 	<-s.endC
 }
 
@@ -1240,18 +1231,17 @@ type perStreamDeliverClient struct {
 	s   *bftDelivererTestSetup
 }
 
+// Recv records the call on the shared fake, ignoring its stubs and return values; responses come from recvStepC.
 func (c *perStreamDeliverClient) Recv() (*orderer.DeliverResponse, error) {
-	_, _ = c.AtomicBroadcast_DeliverClient.Recv() // record the call
+	_, _ = c.AtomicBroadcast_DeliverClient.Recv()
 
 	select {
 	case r := <-c.s.recvStepC:
 		if r == nil {
-			return nil, errors.New("fake-recv-step-error")
+			return nil, fmt.Errorf("fake-recv-step-error") //nolint:revive // avoid new pkg/errors usage (#222).
 		}
 		return r, nil
 	case <-c.ctx.Done():
 		return nil, c.ctx.Err()
-	case <-c.s.deliverClientDoneC:
-		return nil, nil
 	}
 }

@@ -76,6 +76,23 @@ func TestBFTCensorshipMonitor_StopWithErrors(t *testing.T) {
 }
 
 // Scenario:
+// - stop the monitor, then run a launch pass, as Monitor() may do when Stop() races with its loop
+// - no header receiver is created, so none outlives the monitor.
+func TestBFTCensorshipMonitor_NoLaunchAfterStop(t *testing.T) {
+	t.Parallel()
+	s := newMonitorTestSetup(t, 4)
+	mon := blocksprovider.NewBFTCensorshipMonitor(
+		s.channelID, s.fakeUpdatableBlockVerifier, s.fakeRequester, s.fakeProgressReporter, s.sources, 0,
+		blocksprovider.TimeoutConfig{},
+	)
+	require.NotNil(t, mon)
+
+	mon.Stop()
+	require.NoError(t, blocksprovider.LaunchHeaderReceivers(mon))
+	require.Zero(t, s.fakeRequester.ConnectCallCount())
+}
+
+// Scenario:
 // - start the monitor, with no sources
 // - monitor exits, ensure error channel contains an error
 func TestBFTCensorshipMonitor_NoSources(t *testing.T) {

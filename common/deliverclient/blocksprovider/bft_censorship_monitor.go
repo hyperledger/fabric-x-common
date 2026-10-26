@@ -171,15 +171,23 @@ func (m *BFTCensorshipMonitor) Monitor() {
 
 		select {
 		case <-m.stopCh:
+		case <-time.After(m.timeoutConfig.BlockCensorshipTimeout / 100):
+		}
+
+		// When both cases above are ready, select picks one at random, so check the stop signal explicitly.
+		select {
+		case <-m.stopCh:
 			m.errorCh <- &ErrStopping{Message: "received a stop signal"}
 			return
-		case <-time.After(m.timeoutConfig.BlockCensorshipTimeout / 100):
-			if m.detectBlockCensorship() {
-				m.logger.Warningf("Block censorship detected, block source endpoint: %s", m.fetchSources[m.blockSourceIndex])
-				m.errorCh <- &ErrCensorship{Message: fmt.Sprintf("block censorship detected, endpoint: %s", m.fetchSources[m.blockSourceIndex])}
-				m.Stop()
-				return
-			}
+		default:
+		}
+
+		if m.detectBlockCensorship() {
+			blockSource := m.fetchSources[m.blockSourceIndex]
+			m.logger.Warningf("Block censorship detected, block source endpoint: %s", blockSource)
+			m.errorCh <- &ErrCensorship{Message: fmt.Sprintf("block censorship detected, endpoint: %s", blockSource)}
+			m.Stop()
+			return
 		}
 	}
 }
@@ -311,6 +319,7 @@ func (m *BFTCensorshipMonitor) launchHeaderReceivers() error {
 	}
 
 	// Stop() may have been called since the last iteration; receivers launched now would never be stopped.
+	// Nothing to launch is not a failure: Monitor() reports the stop signal itself.
 	if m.stopFlag {
 		return nil
 	}
