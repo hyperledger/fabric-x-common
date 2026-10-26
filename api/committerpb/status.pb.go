@@ -65,6 +65,7 @@ const (
 	Status_REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK      Status = 121 // More than one snapshot TX appeared in the same block; only the first is processed and the rest are rejected regardless of the first's outcome.
 	Status_MALFORMED_SNAPSHOT_INVALID_ABORT_KEY      Status = 122 // An abort snapshot TX's read-write key does not decode as an abort key naming a snapshot's block number.
 	Status_REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT  Status = 123 // An abort snapshot TX names a block that is not the snapshot awaiting its checkpoint, or that snapshot's lifecycle is already closed (CHECKPOINTED/ABORTED).
+	Status_MALFORMED_CHECKPOINT_INVALID_VALUE        Status = 124 // _checkpoint TX read-write value is neither a 32-byte SHA-256 snapshot digest nor the exact UTF-8 marker "abort".
 )
 
 // Enum value maps for Status.
@@ -98,6 +99,7 @@ var (
 		121: "REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK",
 		122: "MALFORMED_SNAPSHOT_INVALID_ABORT_KEY",
 		123: "REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT",
+		124: "MALFORMED_CHECKPOINT_INVALID_VALUE",
 	}
 	Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED":                        0,
@@ -128,6 +130,7 @@ var (
 		"REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK":      121,
 		"MALFORMED_SNAPSHOT_INVALID_ABORT_KEY":      122,
 		"REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT":  123,
+		"MALFORMED_CHECKPOINT_INVALID_VALUE":        124,
 	}
 )
 
@@ -218,7 +221,7 @@ const file_api_committerpb_status_proto_rawDesc = "" +
 	"\x1capi/committerpb/status.proto\x12\vcommitterpb\x1a\x19api/committerpb/ref.proto\"]\n" +
 	"\bTxStatus\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status*\xc8\a\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status*\xf0\a\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tCOMMITTED\x10\x01\x12\x1d\n" +
@@ -247,7 +250,8 @@ const file_api_committerpb_status_proto_rawDesc = "" +
 	"\x1fREJECTED_SNAPSHOT_NO_CHECKPOINT\x10x\x12(\n" +
 	"$REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK\x10y\x12(\n" +
 	"$MALFORMED_SNAPSHOT_INVALID_ABORT_KEY\x10z\x12,\n" +
-	"(REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT\x10{B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"(REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT\x10{\x12&\n" +
+	"\"MALFORMED_CHECKPOINT_INVALID_VALUE\x10|B8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_status_proto_rawDescOnce sync.Once

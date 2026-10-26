@@ -58,4 +58,5 @@ enum Status {
     REJECTED_DUPLICATE_SNAPSHOT_IN_BLOCK = 121;         // More than one snapshot TX appeared in the same block; only the first is processed and the rest are rejected regardless of the first's outcome.
     MALFORMED_SNAPSHOT_INVALID_ABORT_KEY = 122;         // An abort snapshot TX's read-write key does not decode as an abort key naming a snapshot's block number.
     REJECTED_SNAPSHOT_ABORT_NO_SUCH_SNAPSHOT = 123;     // An abort snapshot TX names a block that is not the snapshot awaiting its checkpoint, or that snapshot's lifecycle is already closed (CHECKPOINTED/ABORTED).
+    MALFORMED_CHECKPOINT_INVALID_VALUE = 124;           // _checkpoint TX read-write value is neither a 32-byte SHA-256 snapshot digest nor the exact UTF-8 marker "abort".
 }
