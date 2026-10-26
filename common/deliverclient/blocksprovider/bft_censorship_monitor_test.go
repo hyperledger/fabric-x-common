@@ -76,9 +76,9 @@ func TestBFTCensorshipMonitor_StopWithErrors(t *testing.T) {
 }
 
 // Scenario:
-// - stop the monitor, then run a launch pass, as Monitor() may do when Stop() races with its loop
-// - no header receiver is created, so none outlives the monitor.
-func TestBFTCensorshipMonitor_NoLaunchAfterStop(t *testing.T) {
+// - stop the monitor before it starts, as when Stop() is called before the Monitor() goroutine runs
+// - the monitor reports the stop without connecting to any source, so no header receiver outlives it.
+func TestBFTCensorshipMonitor_StopBeforeMonitor(t *testing.T) {
 	t.Parallel()
 	s := newMonitorTestSetup(t, 4)
 	mon := blocksprovider.NewBFTCensorshipMonitor(
@@ -88,7 +88,8 @@ func TestBFTCensorshipMonitor_NoLaunchAfterStop(t *testing.T) {
 	require.NotNil(t, mon)
 
 	mon.Stop()
-	require.NoError(t, blocksprovider.LaunchHeaderReceivers(mon))
+	mon.Monitor()
+	require.EqualError(t, <-mon.ErrorsChannel(), "received a stop signal")
 	require.Zero(t, s.fakeRequester.ConnectCallCount())
 }
 
