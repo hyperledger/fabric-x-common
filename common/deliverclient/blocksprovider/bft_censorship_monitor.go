@@ -171,24 +171,15 @@ func (m *BFTCensorshipMonitor) Monitor() {
 
 		select {
 		case <-m.stopCh:
-		case <-time.After(m.timeoutConfig.BlockCensorshipTimeout / 100):
-		}
-
-		// Either case above may have fired (select picks at random when both are ready),
-		// so check the stop signal explicitly.
-		select {
-		case <-m.stopCh:
 			m.errorCh <- &ErrStopping{Message: "received a stop signal"}
 			return
-		default:
-		}
-
-		if m.detectBlockCensorship() {
-			blockSource := m.fetchSources[m.blockSourceIndex]
-			m.logger.Warningf("Block censorship detected, block source endpoint: %s", blockSource)
-			m.errorCh <- &ErrCensorship{Message: fmt.Sprintf("block censorship detected, endpoint: %s", blockSource)}
-			m.Stop()
-			return
+		case <-time.After(m.timeoutConfig.BlockCensorshipTimeout / 100):
+			if m.detectBlockCensorship() {
+				m.logger.Warningf("Block censorship detected, block source endpoint: %s", m.fetchSources[m.blockSourceIndex])
+				m.errorCh <- &ErrCensorship{Message: fmt.Sprintf("block censorship detected, endpoint: %s", m.fetchSources[m.blockSourceIndex])}
+				m.Stop()
+				return
+			}
 		}
 	}
 }
@@ -217,6 +208,11 @@ func (m *BFTCensorshipMonitor) Stop() {
 func (m *BFTCensorshipMonitor) detectBlockCensorship() bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+
+	// The timer may fire just before Stop(); a stopped monitor reports the stop, not censorship.
+	if m.stopFlag {
+		return false
+	}
 
 	now := time.Now()
 	lastBlockNumber, lastBlockTime := m.progressReporter.BlockProgress()
