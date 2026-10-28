@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/cockroachdb/errors"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -23,6 +24,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/common/policies"
 	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
@@ -59,17 +61,17 @@ type nodeFields struct {
 // decodedConsensusType is the Orderer group's ConsensusType config value with
 // its two encoded layers decoded: the ConsensusType it holds, and the ARMA
 // shared config that is the ConsensusType's metadata. It keeps every layer, so
-// that encode can write a changed shared config back into the config value.
-// Orderer group
-// └─ values["ConsensusType"]        configValue    *cb.ConfigValue
+// that encode can write a changed shared config back into the config value:
 //
-//	├─ version, mod_policy
-//	└─ value  (bytes) ─────────► consensusType  *ab.ConsensusType
-//	                                ├─ type: "arma", state
-//	                                └─ metadata (bytes) ─► sharedConfig  *ordererpb.SharedConfig
-//	                                                         ├─ PartiesConfig
-//	                                                         ├─ ConsensusConfig, BatchingConfig
-//	                                                         └─ MaxPartyID
+//	Orderer group
+//	└─ values["ConsensusType"]        configValue    *cb.ConfigValue
+//	     ├─ version, mod_policy
+//	     └─ value  (bytes) ─────────► consensusType  *ab.ConsensusType
+//	                                    ├─ type: "arma", state
+//	                                    └─ metadata (bytes) ─► sharedConfig  *ordererpb.SharedConfig
+//	                                                             ├─ PartiesConfig
+//	                                                             ├─ ConsensusConfig, BatchingConfig
+//	                                                             └─ MaxPartyID
 type decodedConsensusType struct {
 	configValue   *cb.ConfigValue
 	consensusType *ab.ConsensusType
@@ -112,11 +114,14 @@ func (*Handler) PartyNode(ch change.Node) error {
 	return nil
 }
 
-// readNodeChange checks that the request changes at least one field and reads
-// its certificate files.
+// readNodeChange checks that the request changes at least one field and that
+// its host is a plain host name or address, and reads its certificate files.
 func readNodeChange(ch change.Node) (*nodeChange, error) {
 	if ch.Host == "" && ch.Port == 0 && ch.TLSCert == "" && ch.SignCert == "" {
 		return nil, errors.New("nothing to change: no host, port, TLS certificate or signing certificate is given")
+	}
+	if strings.ContainsAny(ch.Host, ":, \t\n") {
+		return nil, errors.Newf("invalid host %q: give the host only, without a port, commas or spaces", ch.Host)
 	}
 	nc := &nodeChange{party: ch.Party, role: ch.Role, shard: ch.Shard, host: ch.Host, port: ch.Port}
 	var err error
@@ -267,7 +272,7 @@ func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFields) 
 	if nc.signCert != nil {
 		consenter.Identity = *fields.signCert
 	}
-	content, err := proto.Marshal(orderers)
+	content, err := helpers.DeterministicMarshal.Marshal(orderers)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal the Orderers value")
 	}
@@ -323,12 +328,8 @@ func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange) error {
 
 // movePartyEndpoint applies the change's new host and port to each of the
 // party's endpoints in the org's Endpoints value that serves api, and only api,
-// and reports whether it moved any. Only the parts the change sets are
-// replaced: an endpoint may hold another host or port than the node's shared
-// config entry (behind a load balancer or NAT), so a port-only change keeps the
-// endpoint's host, and a host-only change keeps its port. An endpoint that
-// serves both APIs is not the router's or the assembler's alone, so it is not
-// moved.
+// and reports whether it moved any. Only the parts the change sets are replaced:
+// --host alone keeps the endpoint's port, and --port alone keeps its host.
 func movePartyEndpoint(org *cb.ConfigGroup, nc *nodeChange, api string) (bool, error) {
 	value := org.GetValues()[channelconfig.EndpointsKey]
 	if value == nil {
@@ -361,7 +362,7 @@ func movePartyEndpoint(org *cb.ConfigGroup, nc *nodeChange, api string) (bool, e
 	if !moved {
 		return false, nil
 	}
-	content, err := proto.Marshal(addresses)
+	content, err := helpers.DeterministicMarshal.Marshal(addresses)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to marshal the Endpoints value")
 	}
@@ -398,12 +399,12 @@ func decodeConsensusType(orderer *cb.ConfigGroup) (*decodedConsensusType, error)
 // encode writes the shared config, with any change made to it, back through the
 // ConsensusType into the config value.
 func (d *decodedConsensusType) encode() error {
-	metadata, err := proto.Marshal(d.sharedConfig)
+	metadata, err := helpers.DeterministicMarshal.Marshal(d.sharedConfig)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal the shared config")
 	}
 	d.consensusType.Metadata = metadata
-	value, err := proto.Marshal(d.consensusType)
+	value, err := helpers.DeterministicMarshal.Marshal(d.consensusType)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal the ConsensusType value")
 	}

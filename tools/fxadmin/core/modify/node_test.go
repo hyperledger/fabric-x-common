@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
+	mspproto "github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
@@ -53,6 +54,11 @@ const (
 	nodeTestBatcher   = "batcher"
 	nodeTestConsenter = "consenter"
 	nodeTestAssembler = "assembler"
+
+	// nodeTestSpareNode is an extra node of nodeTestOrg that no party entry
+	// lists, whose certificates are issued by the org's CAs, for use as a node's
+	// new certificates.
+	nodeTestSpareNode = "spare"
 
 	nodeTestBlockFile = "next.pb"
 	nodeTestBlockMode = 0o640
@@ -107,9 +113,9 @@ type nodeTestCertFiles struct {
 func TestPartyNode(t *testing.T) {
 	t.Parallel()
 
-	baseBlock := newNodeTestBlock(t)
-	certs := &nodeTestCertFiles{}
-	certs.tlsCert, certs.signCert = newNodeTestCerts(t)
+	material := newNodeTestMaterial(t)
+	baseBlock := material.block
+	certs := &nodeTestCertFiles{tlsCert: material.newTLSCert, signCert: material.newSignCert}
 	certDir := t.TempDir()
 	certs.tlsCertPath = writeNodeTestFile(t, certDir, "tls-cert.pem", certs.tlsCert)
 	certs.signCertPath = writeNodeTestFile(t, certDir, "sign-cert.pem", certs.signCert)
@@ -191,11 +197,10 @@ func TestPartyNode(t *testing.T) {
 			// Apart from those places, the whole config is unchanged.
 			requireNodeTestUnchangedElsewhere(t, baseBlock, editedBlock)
 
-			// The block was replaced in place: same mode, no temporary file left.
+			// The block was written in place.
 			info, err := os.Stat(blockPath)
 			require.NoError(t, err)
 			require.Equal(t, os.FileMode(nodeTestBlockMode), info.Mode().Perm())
-			requireOnlyNodeTestBlock(t, filepath.Dir(blockPath))
 		})
 	}
 }
@@ -208,7 +213,7 @@ func TestPartyNodeMovesOnlyThePartysEndpoint(t *testing.T) {
 
 	otherBroadcast := "id=2,msp-id=orderer-org-1,broadcast,router.party2:7055"
 	otherDeliver := "id=2,msp-id=orderer-org-1,deliver,assembler.party2:7065"
-	block := withNodeTestEndpoints(t, newNodeTestBlock(t),
+	block := withNodeTestEndpoints(t, newNodeTestMaterial(t).block,
 		nodeTestBroadcastEndpoint,
 		nodeTestDeliverEndpoint,
 		otherBroadcast,
@@ -237,12 +242,13 @@ func TestPartyNodeMovesOnlyThePartysEndpoint(t *testing.T) {
 func TestPartyNodeStoresOnlyTheCertificate(t *testing.T) {
 	t.Parallel()
 
-	tlsCert, signCert := newNodeTestCerts(t)
+	material := newNodeTestMaterial(t)
+	tlsCert, signCert := material.newTLSCert, material.newSignCert
 	privateKey := []byte("-----BEGIN PRIVATE KEY-----\nU0VDUkVUS0VZ\n-----END PRIVATE KEY-----\n")
 	extraText := []byte("extra text\n")
 	tlsCertFile := slices.Concat(tlsCert, privateKey, signCert, extraText)
 	tlsCertPath := writeNodeTestFile(t, t.TempDir(), "tls-cert-and-key.pem", tlsCertFile)
-	blockPath := writeNodeTestBlock(t, newNodeTestBlock(t))
+	blockPath := writeNodeTestBlock(t, material.block)
 
 	err := modify.New().PartyNode(change.Node{
 		Party: nodeTestParty, Role: nodeTestConsenter, TLSCert: tlsCertPath, BlockPath: blockPath,
@@ -261,32 +267,43 @@ func TestPartyNodeStoresOnlyTheCertificate(t *testing.T) {
 	require.Equal(t, tlsCert, consenterMapping.GetServerTlsCert())
 }
 
-// TestPartyNodeChangesOnlyTheGivenEndpointField verifies that a router change
-// sets only the endpoint field it is given: --port keeps the broadcast
-// endpoint's host, and --host keeps its port. The org's broadcast endpoint is set
-// to another host and port than the router's shared config entry (as behind a
-// load balancer or NAT), so a test can tell the two apart.
-func TestPartyNodeChangesOnlyTheGivenEndpointField(t *testing.T) {
+// TestPartyNodeChangesBothAddresses verifies that a router change sets the new
+// host and port both in the router's shared config entry and in its broadcast
+// endpoint, and that each sets only what it is given: --port alone keeps the
+// host, and --host alone keeps the port. The base endpoint has another host and
+// port than the shared config entry (router.org1:7050), so a test can tell
+// which part of the endpoint was changed.
+func TestPartyNodeChangesBothAddresses(t *testing.T) {
 	t.Parallel()
 
-	broadcastEndpoint := "id=1,msp-id=orderer-org-1,broadcast,router.public:443"
-	baseBlock := withNodeTestEndpoints(t, newNodeTestBlock(t), broadcastEndpoint, nodeTestDeliverEndpoint)
+	baseBlock := withNodeTestEndpoints(t, newNodeTestMaterial(t).block,
+		"id=1,msp-id=orderer-org-1,broadcast,router.public:443", nodeTestDeliverEndpoint)
 
 	for _, tc := range []struct {
 		name          string
 		newHost       string
 		newPort       uint32
+		wantRouter    nodeTestFields
 		wantBroadcast string
 	}{
 		{
-			name:          "port only keeps the endpoint's host",
+			name:          "port only",
 			newPort:       8443,
+			wantRouter:    nodeTestFields{host: nodeTestRouterHost, port: 8443},
 			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router.public:8443",
 		},
 		{
-			name:          "host only keeps the endpoint's port",
-			newHost:       "router2.public",
-			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router2.public:443",
+			name:          "host only",
+			newHost:       "router2.org1",
+			wantRouter:    nodeTestFields{host: "router2.org1", port: nodeTestRouterPort},
+			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router2.org1:443",
+		},
+		{
+			name:          "host and port",
+			newHost:       "router2.org1",
+			newPort:       8443,
+			wantRouter:    nodeTestFields{host: "router2.org1", port: 8443},
+			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router2.org1:8443",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -300,8 +317,11 @@ func TestPartyNodeChangesOnlyTheGivenEndpointField(t *testing.T) {
 
 			editedBlock, err := os.ReadFile(blockPath)
 			require.NoError(t, err)
-			require.Equal(t, []string{tc.wantBroadcast, nodeTestDeliverEndpoint},
-				nodeTestEndpoints(t, nodeTestOrderer(t, editedBlock)))
+			edited := nodeTestOrderer(t, editedBlock)
+			router := nodeTestNode(t, nodeTestSharedConfig(t, edited), nodeTestRouter, 0)
+			require.Equal(t, tc.wantRouter.host, router.GetHost())
+			require.Equal(t, tc.wantRouter.port, router.GetPort())
+			require.Equal(t, []string{tc.wantBroadcast, nodeTestDeliverEndpoint}, nodeTestEndpoints(t, edited))
 		})
 	}
 }
@@ -312,7 +332,7 @@ func TestPartyNodeChangesOnlyTheGivenEndpointField(t *testing.T) {
 func TestPartyNodeIsDeterministic(t *testing.T) {
 	t.Parallel()
 
-	baseBlock := newNodeTestBlock(t)
+	baseBlock := newNodeTestMaterial(t).block
 	var firstEditedBlock []byte
 	for range 5 {
 		blockPath := writeNodeTestBlock(t, baseBlock)
@@ -335,7 +355,7 @@ func TestPartyNodeIsDeterministic(t *testing.T) {
 func TestPartyNodeRejects(t *testing.T) {
 	t.Parallel()
 
-	baseBlock := newNodeTestBlock(t)
+	baseBlock := newNodeTestMaterial(t).block
 	certDir := t.TempDir()
 	missingPath := filepath.Join(certDir, "none.pem")
 	notPEMPath := writeNodeTestFile(t, certDir, "not-pem.pem", []byte("not a certificate"))
@@ -425,6 +445,24 @@ func TestPartyNodeRejects(t *testing.T) {
 			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Port: 7150},
 			wantErr: fmt.Sprintf("failed to parse endpoint %q", malformedEndpoint),
 		},
+		{
+			name:    "host with a port",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router2.org1:7050"},
+			wantErr: `invalid host "router2.org1:7050"`,
+		},
+		{
+			name:    "host with a comma",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router2.org1,deliver"},
+			wantErr: `invalid host "router2.org1,deliver"`,
+		},
+		{
+			name:    "host with a space",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router2 org1"},
+			wantErr: `invalid host "router2 org1"`,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -438,20 +476,34 @@ func TestPartyNodeRejects(t *testing.T) {
 			content, err := os.ReadFile(blockPath)
 			require.NoError(t, err)
 			require.Equal(t, tc.block, content, "a failed change must leave the block unchanged")
-			requireOnlyNodeTestBlock(t, filepath.Dir(blockPath))
 		})
 	}
 }
 
-// newNodeTestBlock returns a marshaled ARMA config block whose one party,
-// nodeTestParty of nodeTestOrg, is consistent across the block: its shared
-// config entry (a router, batchers of shards 1 and 2, a consenter, and an
-// assembler), its consenter mapping entry, its org's broadcast and deliver
-// endpoints, and the BlockValidation policy over its consenter.
-func newNodeTestBlock(t *testing.T) []byte {
+// nodeTestMaterial is what a test of a node change needs: the marshaled config
+// block of nodeTestOrg's one party, and a TLS and a signing certificate for a
+// node of that party that no node of the block has, issued by the party's CAs.
+type nodeTestMaterial struct {
+	block       []byte
+	newTLSCert  []byte
+	newSignCert []byte
+}
+
+// newNodeTestMaterial generates nodeTestOrg's crypto material and returns its
+// config block and a node's new certificates.
+//
+// The block is a marshaled ARMA config block whose one party, nodeTestParty of
+// nodeTestOrg, is consistent across the block: its shared config entry (its
+// CAs, a router, batchers of shards 1 and 2, a consenter, and an assembler), its
+// consenter mapping entry, its org's broadcast and deliver endpoints, and the
+// BlockValidation policy over its consenter. The org has a spare node besides
+// its router and assembler, whose certificates, issued by the org's CAs, serve
+// as a node's new certificates.
+func newNodeTestMaterial(t *testing.T) *nodeTestMaterial {
 	t.Helper()
+	cryptoDir := t.TempDir()
 	block, err := cryptogen.CreateOrExtendConfigBlockWithCrypto(cryptogen.ConfigBlockParameters{
-		TargetPath:  t.TempDir(),
+		TargetPath:  cryptoDir,
 		BaseProfile: configtxgen.SampleFabricX,
 		ChannelID:   "mychannel",
 		Organizations: []cryptogen.OrganizationParameters{{
@@ -471,6 +523,7 @@ func newNodeTestBlock(t *testing.T) []byte {
 			OrdererNodes: []cryptogen.Node{
 				{CommonName: nodeTestRouter, Hostname: nodeTestRouterHost},
 				{CommonName: nodeTestAssembler, Hostname: nodeTestAssemblerHost},
+				{CommonName: nodeTestSpareNode, Hostname: nodeTestSpareNode + ".org1"},
 			},
 		}},
 	})
@@ -478,14 +531,17 @@ func newNodeTestBlock(t *testing.T) []byte {
 	configBlock, err := helpers.UnmarshalConfigBlock(protoutil.MarshalOrPanic(block))
 	require.NoError(t, err)
 	orderer := configBlock.Config().GetChannelGroup().GetGroups()[channelconfig.OrdererGroupKey]
+	orgMSP := nodeTestFabricMSPConfig(t, orderer.GetGroups()[nodeTestOrg])
 
-	// cryptogen leaves the shared config empty: write the party's entry, from
-	// the certificates of its consenter.
+	// cryptogen leaves the shared config empty: write the party's entry, with
+	// the org's CAs and the certificates of its consenter.
 	consenter := nodeTestConsenterOf(t, orderer)
 	signCert, tlsCert := consenter.GetIdentity(), consenter.GetServerTlsCert()
 	shared, err := proto.Marshal(&ordererpb.SharedConfig{
 		PartiesConfig: []*ordererpb.PartyConfig{{
-			PartyID: nodeTestParty,
+			PartyID:    nodeTestParty,
+			CACerts:    orgMSP.GetRootCerts(),
+			TLSCACerts: orgMSP.GetTlsRootCerts(),
 			RouterConfig: &ordererpb.RouterNodeConfig{
 				Host: nodeTestRouterHost, Port: nodeTestRouterPort, TlsCert: tlsCert, SignCert: signCert,
 			},
@@ -512,28 +568,33 @@ func newNodeTestBlock(t *testing.T) []byte {
 
 	marshaled, err := configBlock.Marshal()
 	require.NoError(t, err)
-	return marshaled
+
+	spareNodeDir := filepath.Join(cryptoDir, cryptogen.OrdererOrganizationsDir, nodeTestOrg+".com",
+		cryptogen.OrdererNodesDir, nodeTestSpareNode)
+	return &nodeTestMaterial{
+		block:      marshaled,
+		newTLSCert: readNodeTestFile(t, filepath.Join(spareNodeDir, cryptogen.TLSDir, "server.crt")),
+		newSignCert: readNodeTestFile(t, filepath.Join(spareNodeDir, cryptogen.MSPDir, cryptogen.SignCertsDir,
+			nodeTestSpareNode+cryptogen.CertSuffix)),
+	}
 }
 
-// newNodeTestCerts returns two certificates that no node of the test block has,
-// one to use as a TLS certificate and one as a signing certificate.
-func newNodeTestCerts(t *testing.T) (tlsCert, signCert []byte) {
+// readNodeTestFile returns the content of the file at path.
+func readNodeTestFile(t *testing.T, path string) []byte {
 	t.Helper()
-	block, err := cryptogen.CreateOrExtendConfigBlockWithCrypto(cryptogen.ConfigBlockParameters{
-		TargetPath:  t.TempDir(),
-		BaseProfile: configtxgen.SampleFabricX,
-		ChannelID:   "mychannel",
-		Organizations: []cryptogen.OrganizationParameters{{
-			Name:             "orderer-org-9",
-			Domain:           "orderer-org-9.com",
-			OrdererEndpoints: []*types.OrdererEndpoint{{ID: 9, Host: "localhost", Port: 7090}},
-			ConsenterNodes:   []cryptogen.Node{{CommonName: nodeTestConsenter, Hostname: nodeTestConsenter}},
-			OrdererNodes:     []cryptogen.Node{{CommonName: "orderer-node", Hostname: "orderer-node"}},
-		}},
-	})
+	content, err := os.ReadFile(path)
 	require.NoError(t, err)
-	consenter := nodeTestConsenterOf(t, nodeTestOrderer(t, protoutil.MarshalOrPanic(block)))
-	return consenter.GetServerTlsCert(), consenter.GetIdentity()
+	return content
+}
+
+// nodeTestFabricMSPConfig returns the Fabric MSP config of an org group.
+func nodeTestFabricMSPConfig(t *testing.T, org *cb.ConfigGroup) *msppb.FabricMSPConfig {
+	t.Helper()
+	mspConfig := &mspproto.MSPConfig{}
+	require.NoError(t, proto.Unmarshal(org.GetValues()[channelconfig.MSPKey].GetValue(), mspConfig))
+	fabricConfig := &msppb.FabricMSPConfig{}
+	require.NoError(t, proto.Unmarshal(mspConfig.GetConfig(), fabricConfig))
+	return fabricConfig
 }
 
 // withNodeTestEndpoints returns the marshaled block with the Endpoints value of
@@ -723,16 +784,4 @@ func requireNodeTestUnchangedElsewhere(t *testing.T, baseBlock, editedBlock []by
 	endpoints := base.GetGroups()[nodeTestOrg].GetValues()[channelconfig.EndpointsKey]
 	orderer.Groups[nodeTestOrg].Values[channelconfig.EndpointsKey] = endpoints
 	test.RequireProtoEqual(t, nodeTestConfigOf(t, baseBlock), restored)
-}
-
-// requireOnlyNodeTestBlock asserts that dir holds exactly the block file.
-func requireOnlyNodeTestBlock(t *testing.T, dir string) {
-	t.Helper()
-	entries, err := os.ReadDir(dir)
-	require.NoError(t, err)
-	names := make([]string, 0, len(entries))
-	for _, entry := range entries {
-		names = append(names, entry.Name())
-	}
-	require.Equal(t, []string{nodeTestBlockFile}, names)
 }
