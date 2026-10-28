@@ -713,8 +713,8 @@ func newSubmitInputs(t *testing.T, channelID string, routerEndpoints []string) (
 		host, port := splitHostPort(t, endpoint)
 		shared.PartiesConfig = append(shared.PartiesConfig, &ordererpb.PartyConfig{
 			PartyID:         uint32(i + 1),
-			RouterConfig:    &ordererpb.RouterNodeConfig{Host: host, Port: port},
-			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: host, Port: port},
+			RouterConfig:    &ordererpb.RouterNodeConfig{NodeConfig: &ordererpb.NodeConfig{Host: host, Port: port}},
+			AssemblerConfig: &ordererpb.AssemblerNodeConfig{NodeConfig: &ordererpb.NodeConfig{Host: host, Port: port}},
 		})
 	}
 	return writeSubmitInputs(t, channelID, shared)

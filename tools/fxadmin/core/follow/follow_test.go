@@ -249,9 +249,13 @@ func newFollowInputs(t *testing.T, channelID string, assemblerEndpoints []string
 		port, err := strconv.ParseUint(portStr, 10, 32)
 		require.NoError(t, err)
 		shared.PartiesConfig = append(shared.PartiesConfig, &ordererpb.PartyConfig{
-			PartyID:         uint32(i + 1),
-			RouterConfig:    &ordererpb.RouterNodeConfig{Host: host, Port: uint32(port)},
-			AssemblerConfig: &ordererpb.AssemblerNodeConfig{Host: host, Port: uint32(port)},
+			PartyID: uint32(i + 1),
+			RouterConfig: &ordererpb.RouterNodeConfig{
+				NodeConfig: &ordererpb.NodeConfig{Host: host, Port: uint32(port)},
+			},
+			AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+				NodeConfig: &ordererpb.NodeConfig{Host: host, Port: uint32(port)},
+			},
 		})
 	}
 	meta, err := proto.Marshal(shared)
