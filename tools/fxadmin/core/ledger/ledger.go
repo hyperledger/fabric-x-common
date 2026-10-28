@@ -17,6 +17,7 @@ import (
 
 	"github.com/hyperledger/fabric-x-common/protoutil"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/seek"
 )
 
@@ -67,7 +68,7 @@ func (h *Handler) Block(configPath, currentBlockPath, reference, outputPath stri
 	if err != nil {
 		return err
 	}
-	if err := client.WriteBlock(block, outputPath); err != nil {
+	if err := helpers.WriteBlock(block, outputPath); err != nil {
 		return err
 	}
 	logger.Infof("block %d written to %s\n", block.GetHeader().GetNumber(), outputPath)
@@ -104,7 +105,7 @@ func (h *Handler) Config(configPath, currentBlockPath, reference, outputPath str
 			return err
 		}
 	}
-	if err := client.WriteBlock(configBlock, outputPath); err != nil {
+	if err := helpers.WriteBlock(configBlock, outputPath); err != nil {
 		return err
 	}
 	logger.Infof("block %d written to %s\n", configBlock.GetHeader().GetNumber(), outputPath)

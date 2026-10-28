@@ -39,13 +39,8 @@ func writeConfigBlock(block *helpers.ConfigBlock, path string) error {
 	if _, err := channelconfig.NewBundle(channelID, block.Config(), factory.GetDefault()); err != nil {
 		return fmt.Errorf("the edited config is not a valid channel config: %w", err)
 	}
-	content, err := block.Marshal()
-	if err != nil {
+	if err := block.Encode(); err != nil {
 		return err
 	}
-
-	if err := os.WriteFile(path, content, 0o600); err != nil {
-		return errors.Wrapf(err, "failed to write config block %q", path)
-	}
-	return nil
+	return helpers.WriteBlock(block.Block, path)
 }

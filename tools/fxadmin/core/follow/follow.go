@@ -24,6 +24,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 )
 
 // pollInterval is how often each assembler's ledger is queried while following.
@@ -69,7 +70,7 @@ func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout t
 	logger.Debugf("follow: config=%s current-block=%s output=%s timeout=%s",
 		configPath, currentBlockPath, outputPath, timeout)
 
-	block, err := client.ReadConfigBlock(currentBlockPath)
+	block, err := helpers.ReadConfigBlock(currentBlockPath)
 	if err != nil {
 		return err
 	}
@@ -99,7 +100,7 @@ func (h *Handler) Run(configPath, currentBlockPath, outputPath string, timeout t
 		return errors.Newf("no config block at last config sequence %d was agreed by a quorum of %d assemblers",
 			expected, quorum)
 	}
-	if err := client.WriteBlock(agreed, outputPath); err != nil {
+	if err := helpers.WriteBlock(agreed, outputPath); err != nil {
 		return err
 	}
 	logger.Infof("config block at last config sequence %d agreed by %d assemblers (quorum %d), written to %s",

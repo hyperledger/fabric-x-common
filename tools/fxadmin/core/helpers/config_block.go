@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package helpers
 
 import (
+	"os"
+
 	"github.com/cockroachdb/errors"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
@@ -16,7 +18,7 @@ import (
 
 // ConfigBlock is a config block decoded down to the common.Config it carries.
 // It keeps every layer that wraps the config, so that an edited config can be
-// encoded back into the same block with Marshal.
+// encoded back into the same block with Encode.
 type ConfigBlock struct {
 	Block          *cb.Block
 	Envelope       *cb.Envelope
@@ -74,45 +76,66 @@ func UnmarshalConfigBlock(marshaledBlock []byte) (*ConfigBlock, error) {
 }
 
 // Config returns the common.Config the block carries. Changes made to it are
-// encoded into the block by Marshal.
+// encoded into the block by Encode.
 func (b *ConfigBlock) Config() *cb.Config {
 	return b.ConfigEnvelope.GetConfig()
 }
 
 // DeterministicMarshal marshals with a fixed order of map entries. The config's
 // groups, values, and policies are maps, so a plain marshal can encode the same
-// config to different bytes on every run. Every layer of an edited config block
-// is marshaled with it.
+// config to different bytes on every run. Every layer that wraps an edited
+// config is marshaled with it, up to the block, which has no maps.
 var DeterministicMarshal = proto.MarshalOptions{Deterministic: true}
 
-// Marshal encodes the config back through every enclosing layer, updating each
-// layer in place, and returns the marshaled block. The encoding is
-// deterministic, so the same config always gives the same bytes. Only the
-// block's data changes: its header data hash and the signatures over the
-// envelope and the block are left as they were, so an edited block is fit to be
-// read back for its config but not to be submitted.
-func (b *ConfigBlock) Marshal() ([]byte, error) {
+// Encode encodes the config back through every enclosing layer into Block,
+// updating each layer in place. The encoding is deterministic, so the same
+// config always gives the same block. Only the block's data changes: its header
+// data hash and the signatures over the envelope and the block are left as they
+// were, so an edited block is fit to be read back for its config but not to be
+// submitted.
+func (b *ConfigBlock) Encode() error {
 	configEnvelope, err := DeterministicMarshal.Marshal(b.ConfigEnvelope)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal config envelope")
+		return errors.Wrap(err, "failed to marshal config envelope")
 	}
 	b.Payload.Data = configEnvelope
 
 	payload, err := DeterministicMarshal.Marshal(b.Payload)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal config payload")
+		return errors.Wrap(err, "failed to marshal config payload")
 	}
 	b.Envelope.Payload = payload
 
 	envelope, err := DeterministicMarshal.Marshal(b.Envelope)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal config envelope transaction")
+		return errors.Wrap(err, "failed to marshal config envelope transaction")
 	}
 	b.Block.Data.Data[0] = envelope
+	return nil
+}
 
-	block, err := DeterministicMarshal.Marshal(b.Block)
+// ReadConfigBlock reads and unmarshals a protobuf config block from path. It is
+// shared by the commands that take a --current-block file.
+func ReadConfigBlock(path string) (*cb.Block, error) {
+	content, err := os.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal block")
+		return nil, errors.Wrapf(err, "failed to read config block %q", path)
+	}
+	block, err := protoutil.UnmarshalBlock(content)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal config block %q", path)
 	}
 	return block, nil
+}
+
+// WriteBlock marshals block and writes it to path.
+func WriteBlock(block *cb.Block, path string) error {
+	content, err := proto.Marshal(block)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal block")
+	}
+	if err := os.WriteFile(path, content, 0o600); err != nil {
+		return errors.Wrapf(err, "failed to write block to %q", path)
+	}
+	return nil
 }

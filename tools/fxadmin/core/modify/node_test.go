@@ -566,8 +566,8 @@ func newNodeTestMaterial(t *testing.T) *nodeTestMaterial {
 	value.Value = protoutil.MarshalOrPanic(consensusType)
 	orderer.GetPolicies()[policies.BlockValidationPolicyKey].Version = nodeTestPolicyVersion
 
-	marshaled, err := configBlock.Marshal()
-	require.NoError(t, err)
+	require.NoError(t, configBlock.Encode())
+	marshaled := protoutil.MarshalOrPanic(configBlock.Block)
 
 	spareNodeDir := filepath.Join(cryptoDir, cryptogen.OrdererOrganizationsDir, nodeTestOrg+".com",
 		cryptogen.OrdererNodesDir, nodeTestSpareNode)
@@ -607,9 +607,8 @@ func withNodeTestEndpoints(t *testing.T, marshaledBlock []byte, addresses ...str
 	org.GetValues()[channelconfig.EndpointsKey].Value = protoutil.MarshalOrPanic(&cb.OrdererAddresses{
 		Addresses: addresses,
 	})
-	marshaled, err := configBlock.Marshal()
-	require.NoError(t, err)
-	return marshaled
+	require.NoError(t, configBlock.Encode())
+	return protoutil.MarshalOrPanic(configBlock.Block)
 }
 
 // writeNodeTestBlock writes content as the block file of a fresh directory and

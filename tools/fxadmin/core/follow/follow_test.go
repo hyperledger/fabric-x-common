@@ -28,6 +28,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client"
 	clienttest "github.com/hyperledger/fabric-x-common/tools/fxadmin/core/client/test"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/follow"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/user"
 )
 
@@ -299,7 +300,7 @@ func newFollowInputs(t *testing.T, channelID string, assemblerEndpoints []string
 // its config sequence.
 func sequenceOfWrittenBlock(t *testing.T, path string) uint64 {
 	t.Helper()
-	block, err := client.ReadConfigBlock(path)
+	block, err := helpers.ReadConfigBlock(path)
 	require.NoError(t, err)
 	sequence, err := client.SequenceFromBlock(block)
 	require.NoError(t, err)
