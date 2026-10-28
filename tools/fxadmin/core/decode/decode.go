@@ -73,7 +73,7 @@ func decodeConfig(input io.Reader, output io.Writer) error {
 		return errors.Wrap(err, "failed to read input")
 	}
 
-	block, err := helpers.UnmarshalConfigBlock(in)
+	block, err := helpers.UnmarshalAndDecodeConfigBlock(in)
 	if err != nil {
 		return err
 	}

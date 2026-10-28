@@ -528,7 +528,7 @@ func newNodeTestMaterial(t *testing.T) *nodeTestMaterial {
 		}},
 	})
 	require.NoError(t, err)
-	configBlock, err := helpers.UnmarshalConfigBlock(protoutil.MarshalOrPanic(block))
+	configBlock, err := helpers.DecodeConfigBlock(block)
 	require.NoError(t, err)
 	orderer := configBlock.Config().GetChannelGroup().GetGroups()[channelconfig.OrdererGroupKey]
 	orgMSP := nodeTestFabricMSPConfig(t, orderer.GetGroups()[nodeTestOrg])
@@ -601,7 +601,7 @@ func nodeTestFabricMSPConfig(t *testing.T, org *cb.ConfigGroup) *msppb.FabricMSP
 // nodeTestOrg replaced by the given addresses.
 func withNodeTestEndpoints(t *testing.T, marshaledBlock []byte, addresses ...string) []byte {
 	t.Helper()
-	configBlock, err := helpers.UnmarshalConfigBlock(marshaledBlock)
+	configBlock, err := helpers.UnmarshalAndDecodeConfigBlock(marshaledBlock)
 	require.NoError(t, err)
 	org := configBlock.Config().GetChannelGroup().GetGroups()[channelconfig.OrdererGroupKey].GetGroups()[nodeTestOrg]
 	org.GetValues()[channelconfig.EndpointsKey].Value = protoutil.MarshalOrPanic(&cb.OrdererAddresses{
@@ -631,7 +631,7 @@ func writeNodeTestFile(t *testing.T, dir, name string, content []byte) string {
 // nodeTestConfigOf returns the config of a marshaled config block.
 func nodeTestConfigOf(t *testing.T, marshaledBlock []byte) *cb.Config {
 	t.Helper()
-	configBlock, err := helpers.UnmarshalConfigBlock(marshaledBlock)
+	configBlock, err := helpers.UnmarshalAndDecodeConfigBlock(marshaledBlock)
 	require.NoError(t, err)
 	return configBlock.Config()
 }

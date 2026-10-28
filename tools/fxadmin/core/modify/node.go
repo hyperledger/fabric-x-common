@@ -95,7 +95,7 @@ func (*Handler) PartyNode(ch change.Node) error {
 	if err != nil {
 		return err
 	}
-	block, err := readConfigBlock(ch.BlockPath)
+	block, err := readAndDecodeConfigBlock(ch.BlockPath)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (*Handler) PartyNode(ch change.Node) error {
 		return err
 	}
 
-	if err := writeConfigBlock(block, ch.BlockPath); err != nil {
+	if err := validateEncodeAndWriteConfigBlock(block, ch.BlockPath); err != nil {
 		return err
 	}
 	logger.Infof("changed the %s of party %d in %s", nodeName(nc), nc.party, ch.BlockPath)

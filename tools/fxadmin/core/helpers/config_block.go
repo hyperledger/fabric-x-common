@@ -27,9 +27,9 @@ type ConfigBlock struct {
 	ConfigEnvelope *cb.ConfigEnvelope
 }
 
-// UnmarshalConfigBlock unmarshals a marshaled common.Block and decodes it with
-// DecodeConfigBlock.
-func UnmarshalConfigBlock(marshaledBlock []byte) (*ConfigBlock, error) {
+// UnmarshalAndDecodeConfigBlock unmarshals a marshaled common.Block and decodes
+// it with DecodeConfigBlock.
+func UnmarshalAndDecodeConfigBlock(marshaledBlock []byte) (*ConfigBlock, error) {
 	block := &cb.Block{}
 	if err := proto.Unmarshal(marshaledBlock, block); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal block input")
