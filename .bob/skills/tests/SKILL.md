@@ -13,8 +13,7 @@ edge cases, minimal mocking, and reuse of the repo's fixtures instead of hand-ro
 - **New tests use the standard `testing` package with `testify`** (`require` / `assert`). This is
   the overwhelming majority of the suite.
 - **Do not write new Ginkgo/Gomega suites.** A handful of packages still use Ginkgo
-  (`common/deliver`, `common/deliverclient/blocksprovider`, `common/deliverclient/orderers`,
-  `common/grpcmetrics`, `tools/configtxgen`) — that is legacy ported code. When adding tests to
+  (`common/deliver`, `common/grpcmetrics`, `tools/configtxgen`) — that is legacy ported code. When adding tests to
   those packages, prefer a standard `Test*` function in a new `_test.go` file rather than
   extending the spec suite; the `ginkgolinter` only guards the existing specs.
 - Prefer **`require`** over `assert` for anything that should stop the test on failure
