@@ -391,8 +391,7 @@ var ErrInvalidTxID = errors.New("invalid txid")
 // ComputeTxID computes TxID as the Hash computed
 // over the concatenation of nonce and creator.
 func ComputeTxID(nonce, creator []byte) string {
-	var txID [txIDLength]byte
-	computeTxID(&txID, nonce, creator)
+	txID := computeTxID(nonce, creator)
 	return string(txID[:])
 }
 
@@ -403,8 +402,7 @@ func CheckTxID(txid string, nonce, creator []byte) error {
 		return ErrInvalidTxID
 	}
 
-	var computedTxID [txIDLength]byte
-	computeTxID(&computedTxID, nonce, creator)
+	computedTxID := computeTxID(nonce, creator)
 	if txid != string(computedTxID[:]) {
 		return ErrInvalidTxID
 	}
@@ -412,15 +410,16 @@ func CheckTxID(txid string, nonce, creator []byte) error {
 	return nil
 }
 
-// computeTxID writes the hex-encoded TxID into dst, without heap allocations.
-func computeTxID(dst *[txIDLength]byte, nonce, creator []byte) {
+// computeTxID returns the hex-encoded TxID, without heap allocations.
+func computeTxID(nonce, creator []byte) (txID [txIDLength]byte) {
 	// TODO: Get the Hash function to be used from
 	// channel configuration
 	hasher := sha256.New()
 	hasher.Write(nonce)   //nolint:revive // hash.Write never returns an error
 	hasher.Write(creator) //nolint:revive // hash.Write never returns an error
 	var digest [sha256.Size]byte
-	hex.Encode(dst[:], hasher.Sum(digest[:0]))
+	hex.Encode(txID[:], hasher.Sum(digest[:0]))
+	return txID
 }
 
 // InvokedChaincodeName takes the proposal bytes of a SignedProposal, and unpacks it all the way down,
