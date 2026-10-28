@@ -48,6 +48,8 @@ const (
 	// org's Endpoints value lists them.
 	nodeTestBroadcastEndpoint = "id=1,msp-id=orderer-org-1,broadcast,router.org1:7050"
 	nodeTestDeliverEndpoint   = "id=1,msp-id=orderer-org-1,deliver,assembler.org1:7060"
+	// nodeTestNewRouterHost is the host the tests move the party's router to.
+	nodeTestNewRouterHost = "router2.org1"
 
 	// Node roles, as `--role` names them.
 	nodeTestRouter    = "router"
@@ -126,7 +128,7 @@ func TestPartyNode(t *testing.T) {
 
 	for _, tc := range []nodeTestCase{
 		{
-			name: "router endpoint", role: nodeTestRouter, host: "router2.org1", port: 7150,
+			name: "router endpoint", role: nodeTestRouter, host: nodeTestNewRouterHost, port: 7150,
 			wantEndpoints: []string{
 				"id=1,msp-id=orderer-org-1,broadcast,router2.org1:7150",
 				nodeTestDeliverEndpoint,
@@ -294,15 +296,15 @@ func TestPartyNodeChangesBothAddresses(t *testing.T) {
 		},
 		{
 			name:          "host only",
-			newHost:       "router2.org1",
-			wantRouter:    nodeTestFields{host: "router2.org1", port: nodeTestRouterPort},
+			newHost:       nodeTestNewRouterHost,
+			wantRouter:    nodeTestFields{host: nodeTestNewRouterHost, port: nodeTestRouterPort},
 			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router2.org1:443",
 		},
 		{
 			name:          "host and port",
-			newHost:       "router2.org1",
+			newHost:       nodeTestNewRouterHost,
 			newPort:       8443,
-			wantRouter:    nodeTestFields{host: "router2.org1", port: 8443},
+			wantRouter:    nodeTestFields{host: nodeTestNewRouterHost, port: 8443},
 			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router2.org1:8443",
 		},
 	} {
