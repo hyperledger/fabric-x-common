@@ -23,7 +23,6 @@ import (
 	"github.com/hyperledger/fabric-x-common/api/types"
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/common/policies"
-	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
@@ -382,12 +381,9 @@ func decodeConsensusType(orderer *cb.ConfigGroup) (*decodedConsensusType, error)
 	if err := proto.Unmarshal(configValue.GetValue(), consensusType); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal the ConsensusType value")
 	}
-	if consensusType.GetType() != configtxgen.Arma {
-		return nil, errors.Newf("the orderer type is %q, want %q", consensusType.GetType(), configtxgen.Arma)
-	}
-	sharedConfig := &ordererpb.SharedConfig{}
-	if err := proto.Unmarshal(consensusType.GetMetadata(), sharedConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal the shared config")
+	sharedConfig, err := helpers.UnmarshalArmaSharedConfig(consensusType.GetType(), consensusType.GetMetadata())
+	if err != nil {
+		return nil, err
 	}
 	return &decodedConsensusType{
 		configValue:   configValue,

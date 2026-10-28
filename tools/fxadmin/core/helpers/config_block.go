@@ -13,7 +13,9 @@ import (
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/hyperledger/fabric-x-common/api/ordererpb"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 )
 
 // ConfigBlock is a config block decoded down to the common.Config it carries.
@@ -142,4 +144,18 @@ func WriteBlock(block *cb.Block, path string) error {
 		return errors.Wrapf(err, "failed to write block to %q", path)
 	}
 	return nil
+}
+
+// UnmarshalArmaSharedConfig unmarshals the ARMA shared config that an orderer
+// carries as its consensus metadata. It errors if the orderer's consensus type
+// is not ARMA.
+func UnmarshalArmaSharedConfig(consensusType string, metadata []byte) (*ordererpb.SharedConfig, error) {
+	if consensusType != configtxgen.Arma {
+		return nil, errors.Newf("unsupported consensus type %q: expected %q", consensusType, configtxgen.Arma)
+	}
+	sharedConfig := &ordererpb.SharedConfig{}
+	if err := proto.Unmarshal(metadata, sharedConfig); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal ARMA shared config from consensus metadata")
+	}
+	return sharedConfig, nil
 }
