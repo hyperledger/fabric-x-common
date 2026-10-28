@@ -7,15 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package helpers
 
 import (
-	"os"
-
 	"github.com/cockroachdb/errors"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/hyperledger/fabric-x-common/api/ordererpb"
 	"github.com/hyperledger/fabric-x-common/protoutil"
-	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
 )
 
 // ConfigBlock is a config block decoded down to the common.Config it carries.
@@ -118,44 +114,4 @@ func (b *ConfigBlock) Encode() error {
 	}
 	b.Block.Data.Data[0] = envelope
 	return nil
-}
-
-// ReadConfigBlock reads and unmarshals a protobuf config block from path. It is
-// shared by the commands that take a --current-block file.
-func ReadConfigBlock(path string) (*cb.Block, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read config block %q", path)
-	}
-	block, err := protoutil.UnmarshalBlock(content)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal config block %q", path)
-	}
-	return block, nil
-}
-
-// WriteBlock marshals block and writes it to path.
-func WriteBlock(block *cb.Block, path string) error {
-	content, err := proto.Marshal(block)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal block")
-	}
-	if err := os.WriteFile(path, content, 0o600); err != nil {
-		return errors.Wrapf(err, "failed to write block to %q", path)
-	}
-	return nil
-}
-
-// UnmarshalArmaSharedConfig unmarshals the ARMA shared config that an orderer
-// carries as its consensus metadata. It errors if the orderer's consensus type
-// is not ARMA.
-func UnmarshalArmaSharedConfig(consensusType string, metadata []byte) (*ordererpb.SharedConfig, error) {
-	if consensusType != configtxgen.Arma {
-		return nil, errors.Newf("unsupported consensus type %q: expected %q", consensusType, configtxgen.Arma)
-	}
-	sharedConfig := &ordererpb.SharedConfig{}
-	if err := proto.Unmarshal(metadata, sharedConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal ARMA shared config from consensus metadata")
-	}
-	return sharedConfig, nil
 }
