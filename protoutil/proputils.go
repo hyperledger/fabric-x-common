@@ -411,6 +411,11 @@ func CheckTxID(txid string, nonce, creator []byte) error {
 }
 
 // computeTxID returns the hex-encoded TxID, without heap allocations.
+//
+// It is kept separate from ComputeTxID so that CheckTxID does not allocate: CheckTxID only compares
+// string(computedTxID[:]) against txid, which the compiler optimizes into a byte comparison without
+// building a string. Calling ComputeTxID from CheckTxID instead would allocate a string on every call,
+// since a TxID is longer than the compiler's 32-byte stack buffer for strings that don't escape.
 func computeTxID(nonce, creator []byte) (txID [txIDLength]byte) {
 	// TODO: Get the Hash function to be used from
 	// channel configuration
