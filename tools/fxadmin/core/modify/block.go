@@ -8,9 +8,7 @@ package modify
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
@@ -19,15 +17,15 @@ import (
 
 // readConfigBlock reads and decodes the config block file at path.
 func readConfigBlock(path string) (*helpers.ConfigBlock, error) {
-	content, err := os.ReadFile(path)
+	block, err := helpers.ReadConfigBlock(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read config block %q", path)
+		return nil, err
 	}
-	block, err := helpers.UnmarshalConfigBlock(content)
+	configBlock, err := helpers.DecodeConfigBlock(block)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode config block %q: %w", path, err)
 	}
-	return block, nil
+	return configBlock, nil
 }
 
 // writeConfigBlock checks that the block's edited config still builds a

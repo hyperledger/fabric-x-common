@@ -27,15 +27,19 @@ type ConfigBlock struct {
 	ConfigEnvelope *cb.ConfigEnvelope
 }
 
-// UnmarshalConfigBlock unmarshals a marshaled common.Block and decodes the
-// configuration transaction in its first envelope. It errors if the block is
-// not a config block or carries no config.
+// UnmarshalConfigBlock unmarshals a marshaled common.Block and decodes it with
+// DecodeConfigBlock.
 func UnmarshalConfigBlock(marshaledBlock []byte) (*ConfigBlock, error) {
 	block := &cb.Block{}
 	if err := proto.Unmarshal(marshaledBlock, block); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal block input")
 	}
+	return DecodeConfigBlock(block)
+}
 
+// DecodeConfigBlock decodes the configuration transaction in the block's first
+// envelope. It errors if the block is not a config block or carries no config.
+func DecodeConfigBlock(block *cb.Block) (*ConfigBlock, error) {
 	envelope, err := protoutil.ExtractEnvelope(block, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to extract config envelope from block")
