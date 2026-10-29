@@ -28,6 +28,7 @@ import (
 	"github.com/hyperledger/fabric-x-common/common/util"
 	"github.com/hyperledger/fabric-x-common/msp"
 	"github.com/hyperledger/fabric-x-common/protoutil"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/ordererconn"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/seek"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/signer"
@@ -88,37 +89,11 @@ func LoadFromFiles(configPath, blockPath string, csp bccsp.BCCSP) (*Client, erro
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load user configuration %q", configPath)
 	}
-	block, err := ReadConfigBlock(blockPath)
+	block, err := helpers.ReadConfigBlock(blockPath)
 	if err != nil {
 		return nil, err
 	}
 	return load(config, block, csp)
-}
-
-// ReadConfigBlock reads and unmarshals a protobuf config block from path. It is
-// shared by the commands that take a --current-block file.
-func ReadConfigBlock(path string) (*cb.Block, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read config block %q", path)
-	}
-	block, err := protoutil.UnmarshalBlock(content)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal config block %q", path)
-	}
-	return block, nil
-}
-
-// WriteBlock marshals block and writes it to path.
-func WriteBlock(block *cb.Block, path string) error {
-	content, err := proto.Marshal(block)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal block")
-	}
-	if err := os.WriteFile(path, content, 0o600); err != nil {
-		return errors.Wrapf(err, "failed to write block to %q", path)
-	}
-	return nil
 }
 
 // SequenceFromBlock returns the config sequence recorded in a config block's

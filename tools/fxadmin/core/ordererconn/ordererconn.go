@@ -16,12 +16,11 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/hyperledger/fabric-lib-go/bccsp"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
 	"github.com/hyperledger/fabric-x-common/common/channelconfig"
 	"github.com/hyperledger/fabric-x-common/protoutil"
-	"github.com/hyperledger/fabric-x-common/tools/configtxgen"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 )
 
 // Info holds everything needed to dial the orderer, extracted from a config
@@ -55,25 +54,13 @@ func Load(block *cb.Block, csp bccsp.BCCSP) (*Info, error) {
 		return nil, errors.New("config block has no orderer configuration")
 	}
 
-	if consensusType := ordererConfig.ConsensusType(); consensusType != configtxgen.Arma {
-		return nil, errors.Newf("unsupported consensus type %q: expected %q", consensusType, configtxgen.Arma)
-	}
-
-	sharedConfig, err := unmarshalSharedConfig(ordererConfig.ConsensusMetadata())
+	sharedConfig, err := helpers.UnmarshalArmaSharedConfig(ordererConfig.ConsensusType(),
+		ordererConfig.ConsensusMetadata())
 	if err != nil {
 		return nil, err
 	}
 
 	return infoFromSharedConfig(bundle.ConfigtxValidator().ChannelID(), sharedConfig)
-}
-
-// unmarshalSharedConfig parses the ARMA shared config from consensus metadata.
-func unmarshalSharedConfig(metadata []byte) (*ordererpb.SharedConfig, error) {
-	sharedConfig := &ordererpb.SharedConfig{}
-	if err := proto.Unmarshal(metadata, sharedConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal ARMA shared config from consensus metadata")
-	}
-	return sharedConfig, nil
 }
 
 // infoFromSharedConfig collects each party's router and assembler endpoints and

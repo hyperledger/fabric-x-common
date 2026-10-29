@@ -11,21 +11,26 @@ SPDX-License-Identifier: Apache-2.0
 // modify commands can accumulate onto it; `compute-update --pb` then computes
 // the ConfigUpdate from the original and edited blocks.
 //
-// The command surface is wired and validated by the CLI; the change logic is
-// not implemented yet, so every handler currently returns ErrNotImplemented.
+// The command surface is wired and validated by the CLI. A handler whose change
+// logic is not implemented yet returns ErrNotImplemented.
 package modify
 
 import (
+	"fmt"
+
 	"github.com/cockroachdb/errors"
+	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/common/flogging"
 
+	"github.com/hyperledger/fabric-x-common/common/channelconfig"
+	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/helpers"
 	"github.com/hyperledger/fabric-x-common/tools/fxadmin/core/modify/change"
 )
 
 var logger = flogging.MustGetLogger("fxadmin.modify")
 
-// ErrNotImplemented is returned by every modify command until the change logic
-// is implemented.
+// ErrNotImplemented is returned by every modify command whose change logic is
+// not implemented yet.
 var ErrNotImplemented = errors.New("not implemented")
 
 // Handler executes the modify commands.
@@ -72,14 +77,38 @@ func (*Handler) PartyRemove(partyID uint32, blockPath string) error {
 	return ErrNotImplemented
 }
 
-// PartyNode implements `fxadmin modify party node`.
-func (*Handler) PartyNode(ch change.Node) error {
-	logger.Debugf("modify party node: %+v (not implemented)", ch)
-	return ErrNotImplemented
-}
-
 // PartyCA implements `fxadmin modify party ca add|remove|set`.
 func (*Handler) PartyCA(ch change.CA) error {
 	logger.Debugf("modify party ca: %+v (not implemented)", ch)
 	return ErrNotImplemented
+}
+
+// readAndDecodeConfigBlock reads the config block file at path and decodes it
+// down to its config.
+func readAndDecodeConfigBlock(path string) (*helpers.ConfigBlock, error) {
+	block, err := helpers.ReadConfigBlock(path)
+	if err != nil {
+		return nil, err
+	}
+	configBlock, err := helpers.DecodeConfigBlock(block)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode config block %q: %w", path, err)
+	}
+	return configBlock, nil
+}
+
+// validateEncodeAndWriteConfigBlock checks that the block's edited config still
+// builds a channel config bundle, encodes the config back into the block, and
+// writes the block to the file at path, in place. An invalid edit is rejected
+// here, before the file is written, rather than after the update has collected
+// its endorsements.
+func validateEncodeAndWriteConfigBlock(block *helpers.ConfigBlock, path string) error {
+	channelID := block.ChannelHeader.GetChannelId()
+	if _, err := channelconfig.NewBundle(channelID, block.Config(), factory.GetDefault()); err != nil {
+		return fmt.Errorf("the edited config is not a valid channel config: %w", err)
+	}
+	if err := block.Encode(); err != nil {
+		return err
+	}
+	return helpers.WriteBlock(block.Block, path)
 }
