@@ -91,7 +91,7 @@ For each changed artifact from Step 1, grep the corpus and judge each hit agains
 | ASN.1 / `Tx` change | the `development` skill's `references/proto-asn1-and-config.md`, `docs/configtx.md` if it describes tx encoding, `asn1.go` comments |
 | Config field / policy / orderer param | `sampleconfig/configtx.yaml`, `sampleconfig/core.yaml`, `docs/configtx.md` (policy-path tables + ASCII diagrams + usage examples) |
 | CLI flag / command (`cmd/`) | `README.md`, `docs/configtx.md` usage examples, `AGENTS.md` |
-| Package / file / symbol / helper name | `docs/*.md`, `AGENTS.md` (the canonical agent guide; other agent-instruction files may symlink to it, so edit it once), and **every skill's `SKILL.md` + its `references/`** (their reuse tables, fixture lists, file maps, and linter cheat sheet cite exact paths/symbols), `README.md` |
+| Package / file / symbol / helper name | `docs/*.md`, `AGENTS.md` (the canonical agent guide), and **every skill's `SKILL.md` + its `references/`** (their reuse tables, fixture lists, file maps, and linter cheat sheet cite exact paths/symbols), `README.md` |
 | Make target / script / dev workflow | `AGENTS.md`, `README.md`, any skill that names the command (`development`, `tests`, `pr-review`, `doc-audit` all cite `make` targets) |
 | Linter added/removed/reconfigured (`.golangci.yml`) | the `development` skill's linter cheat sheet, `pr-review`'s compliance checklist |
 
@@ -105,8 +105,7 @@ For each hit ask: does the change make this reference **false, obsolete, or inco
 config key missing from the sample, a moved package still cited in a skill's reuse table, a deleted
 helper named in the `tests` skill, a removed make target in `AGENTS.md`)? If yes, it is a finding.
 
-Note: `AGENTS.md` is the single canonical agent guide — other agent-instruction files may be
-symlinks to it, so a fix there covers all of them. Config `*.yaml` under `*/testdata/` are test
+Note: `AGENTS.md` is the single canonical agent guide. Config `*.yaml` under `*/testdata/` are test
 fixtures, not docs — only flag them if the change specifically renames something they encode.
 
 ## Report

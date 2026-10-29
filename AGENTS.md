@@ -6,8 +6,8 @@ This file provides guidance to agents when working with code in this repository.
 it originates from [Hyperledger Fabric](https://github.com/hyperledger/fabric) v3.0.0-rc1 and
 [fabric-config](https://github.com/hyperledger/fabric-config) v0.3.0, then modified for
 Fabric-X. When editing ported code, preserve upstream structure and idioms — divergence from
-Fabric should be intentional, not incidental. Known Fabric-X divergences from upstream config:
-the `ARMA` orderer type and the `MetaNamespacePolicyKey` config field.
+Fabric should be intentional, not incidental. Known Fabric-X divergence from upstream config:
+the `ARMA` orderer type.
 
 There are no long-running services here: the artifacts are reusable packages plus three CLI
 tools (`configtxgen`, `configtxlator`, `cryptogen`).
@@ -75,6 +75,7 @@ the **`doc-audit`** skill.
 │   ├── channelconfig/   # the Bundle of channel config resources
 │   ├── policies/        # implicit-meta, signature, BFT policies
 │   ├── capabilities/ genesis/ cauthdsl/ policydsl/ ledger/ deliver/
+│   ├── util/ viperutil/ grpcmetrics/ semaphore/ …
 │   ├── crypto/          # crypto helpers incl. tlsgen (test CAs)
 │   └── metadata/        # version/commit vars injected at build time
 ├── core/         # aclmgmt, config, policy
@@ -82,7 +83,7 @@ the **`doc-audit`** skill.
 ├── protolator/   # reflective JSON <-> protobuf translation (engine behind configtxlator)
 ├── protoutil/    # block, tx, proposal, signed-data helpers
 ├── cmd/          # thin CLI main.go entry points -> delegate to tools/
-├── tools/        # CLI implementations (configtxgen, configtxlator, cryptogen)
+├── tools/        # CLI implementations (configtxgen, configtxlator, cryptogen, fxadmin) + shared pkg/, fileutil/
 ├── utils/        # testcrypto, test (proto require helpers), certificate
 ├── sampleconfig/ # sample configtx.yaml, core.yaml, crypto material, embedded config
 ├── docs/         # docs/configtx.md — the config/genesis reference

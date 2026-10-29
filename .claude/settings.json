@@ -1,5 +1,10 @@
 {
   "env": {
     "FABRIC_LOGGING_SPEC": "info:grpc=error"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
   }
 }
