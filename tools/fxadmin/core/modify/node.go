@@ -284,16 +284,12 @@ func setNodeConfig(node *ordererpb.NodeConfig, nc *nodeChange) {
 // BlockValidation policy lists the consenters' identities, so a new signing
 // certificate also recomputes it.
 func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, node *ordererpb.NodeConfig) error {
-	value := orderer.GetValues()[channelconfig.OrderersKey]
-	if value == nil {
-		return errors.Newf("the %s group has no %s value", channelconfig.OrdererGroupKey, channelconfig.OrderersKey)
-	}
-	orderers := &cb.Orderers{}
-	if err := proto.Unmarshal(value.GetValue(), orderers); err != nil {
-		return errors.Wrap(err, "failed to unmarshal the Orderers value")
+	orderers, err := decodeOrderers(orderer)
+	if err != nil {
+		return err
 	}
 	var consenter *cb.Consenter
-	for _, c := range orderers.GetConsenterMapping() {
+	for _, c := range orderers.orderers.GetConsenterMapping() {
 		if c.GetId() == nc.party {
 			consenter = c
 			break
@@ -312,16 +308,48 @@ func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, node *ordererpb.Node
 	if nc.signCert != nil {
 		consenter.Identity = node.GetSignCert()
 	}
-	content, err := helpers.DeterministicMarshal.Marshal(orderers)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal the Orderers value")
+	if err := orderers.encode(); err != nil {
+		return err
 	}
-	value.Value = content
 
 	if nc.signCert == nil {
 		return nil
 	}
-	return recomputeBlockValidation(orderer, orderers.GetConsenterMapping())
+	return recomputeBlockValidation(orderer, orderers.orderers.GetConsenterMapping())
+}
+
+// decodedOrderers is the Orderer group's Orderers config value with the
+// consenter mapping it holds decoded. It keeps the config value, so that encode
+// can write a changed mapping back into it.
+type decodedOrderers struct {
+	configValue *cb.ConfigValue
+	orderers    *cb.Orderers
+}
+
+// decodeOrderers decodes the Orderer group's Orderers config value, which
+// lists the consenters.
+func decodeOrderers(orderer *cb.ConfigGroup) (*decodedOrderers, error) {
+	configValue := orderer.GetValues()[channelconfig.OrderersKey]
+	if configValue == nil {
+		return nil, errors.Newf("the %s group has no %s value", channelconfig.OrdererGroupKey,
+			channelconfig.OrderersKey)
+	}
+	orderers := &cb.Orderers{}
+	if err := proto.Unmarshal(configValue.GetValue(), orderers); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal the Orderers value")
+	}
+	return &decodedOrderers{configValue: configValue, orderers: orderers}, nil
+}
+
+// encode writes the consenter mapping, with any change made to it, back into
+// the config value.
+func (d *decodedOrderers) encode() error {
+	content, err := helpers.DeterministicMarshal.Marshal(d.orderers)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal the Orderers value")
+	}
+	d.configValue.Value = content
+	return nil
 }
 
 // recomputeBlockValidation recomputes the Orderer group's BlockValidation
@@ -371,13 +399,9 @@ func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange) error {
 // and reports whether it moved any. Only the parts the change sets are replaced:
 // --host alone keeps the endpoint's port, and --port alone keeps its host.
 func movePartyEndpoint(org *cb.ConfigGroup, nc *nodeChange, api string) (bool, error) {
-	value := org.GetValues()[channelconfig.EndpointsKey]
-	if value == nil {
-		return false, nil
-	}
-	addresses := &cb.OrdererAddresses{}
-	if err := proto.Unmarshal(value.GetValue(), addresses); err != nil {
-		return false, errors.Wrap(err, "failed to unmarshal the Endpoints value")
+	value, addresses, err := decodeOrgEndpoints(org)
+	if err != nil || value == nil {
+		return false, err
 	}
 	moved := false
 	for i, address := range addresses.GetAddresses() {
@@ -408,6 +432,20 @@ func movePartyEndpoint(org *cb.ConfigGroup, nc *nodeChange, api string) (bool, e
 	}
 	value.Value = content
 	return true, nil
+}
+
+// decodeOrgEndpoints returns the org's Endpoints config value and the
+// addresses it holds. Both are nil if the org has no Endpoints value.
+func decodeOrgEndpoints(org *cb.ConfigGroup) (*cb.ConfigValue, *cb.OrdererAddresses, error) {
+	value := org.GetValues()[channelconfig.EndpointsKey]
+	if value == nil {
+		return nil, nil, nil
+	}
+	addresses := &cb.OrdererAddresses{}
+	if err := proto.Unmarshal(value.GetValue(), addresses); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal the Endpoints value")
+	}
+	return value, addresses, nil
 }
 
 // decodeConsensusType decodes the Orderer group's ConsensusType config value
