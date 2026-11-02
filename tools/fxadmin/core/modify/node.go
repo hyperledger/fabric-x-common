@@ -10,13 +10,14 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"net/netip"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/cockroachdb/errors"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
+	"golang.org/x/net/idna"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
@@ -114,13 +115,15 @@ func (*Handler) PartyNode(ch change.Node) error {
 }
 
 // readNodeChange checks that the request changes at least one field and that
-// its host is a plain host name or address, and reads its certificate files.
+// its host is a host name or an IP address, and reads its certificate files.
 func readNodeChange(ch change.Node) (*nodeChange, error) {
 	if ch.Host == "" && ch.Port == 0 && ch.TLSCert == "" && ch.SignCert == "" {
 		return nil, errors.New("nothing to change: no host, port, TLS certificate or signing certificate is given")
 	}
-	if strings.ContainsAny(ch.Host, ":, \t\n") {
-		return nil, errors.Newf("invalid host %q: give the host only, without a port, commas or spaces", ch.Host)
+	if ch.Host != "" {
+		if err := validateHost(ch.Host); err != nil {
+			return nil, err
+		}
 	}
 	nc := &nodeChange{party: ch.Party, role: ch.Role, shard: ch.Shard, host: ch.Host, port: ch.Port}
 	var err error
@@ -135,6 +138,23 @@ func readNodeChange(ch change.Node) (*nodeChange, error) {
 		}
 	}
 	return nc, nil
+}
+
+// hostNames checks host names as Go checks them before a DNS lookup, and also
+// allows only letters, digits, '-' and '.' in them.
+var hostNames = idna.New(idna.MapForLookup(), idna.StrictDomainName(true), idna.Transitional(false))
+
+// validateHost checks that host is an IP address, IPv4 or IPv6, or a host name,
+// without a port. An IPv6 address is given without brackets; endpoint addresses
+// add them when they join it with a port.
+func validateHost(host string) error {
+	if _, err := netip.ParseAddr(host); err == nil {
+		return nil
+	}
+	if _, err := hostNames.ToASCII(host); err != nil {
+		return errors.Newf("invalid host %q: give a host name or an IP address, without a port", host)
+	}
+	return nil
 }
 
 // readCertificateFile reads the PEM-encoded X.509 certificate at the start of

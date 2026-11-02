@@ -148,6 +148,10 @@ func TestPartyNode(t *testing.T) {
 			wantEndpoints: baseEndpoints,
 		},
 		{
+			name: "consenter IPv6 endpoint", role: nodeTestConsenter, host: "2001:db8::5", port: 7152,
+			wantEndpoints: baseEndpoints,
+		},
+		{
 			name: "consenter TLS certificate", role: nodeTestConsenter, tlsCert: true,
 			wantEndpoints: baseEndpoints,
 		},
@@ -307,6 +311,19 @@ func TestPartyNodeChangesBothAddresses(t *testing.T) {
 			wantRouter:    nodeTestFields{host: nodeTestNewRouterHost, port: 8443},
 			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router2.org1:8443",
 		},
+		{
+			name:          "IPv4 host",
+			newHost:       "10.0.0.5",
+			wantRouter:    nodeTestFields{host: "10.0.0.5", port: nodeTestRouterPort},
+			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,10.0.0.5:443",
+		},
+		{
+			name:          "IPv6 host",
+			newHost:       "2001:db8::7",
+			newPort:       8443,
+			wantRouter:    nodeTestFields{host: "2001:db8::7", port: 8443},
+			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,[2001:db8::7]:8443",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -464,6 +481,24 @@ func TestPartyNodeRejects(t *testing.T) {
 			block:   baseBlock,
 			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router2 org1"},
 			wantErr: `invalid host "router2 org1"`,
+		},
+		{
+			name:    "host with an underscore",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router_2.org1"},
+			wantErr: `invalid host "router_2.org1"`,
+		},
+		{
+			name:    "IPv6 host in brackets",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "[2001:db8::7]"},
+			wantErr: `invalid host "[2001:db8::7]"`,
+		},
+		{
+			name:    "IPv6 host with a port",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "[2001:db8::7]:7050"},
+			wantErr: `invalid host "[2001:db8::7]:7050"`,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
