@@ -91,8 +91,7 @@ example, is added to the encoder, the sample profile, and the policy-path tables
 `docs/configtx.md` (see how `SnapshotEndorsement` / `CheckpointEndorsement` were added). Add a test
 that the policy resolves via `bundle.PolicyManager().GetPolicy(...)`.
 
-Fabric-X divergences from upstream config to preserve: the `ARMA` orderer type and the
-`MetaNamespacePolicyKey` field.
+Fabric-X divergence from upstream config to preserve: the `ARMA` orderer type.
 
 ## 4. JSON ⇄ protobuf
 

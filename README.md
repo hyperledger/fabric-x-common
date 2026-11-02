@@ -14,11 +14,10 @@ This code have been taken from [Hyperledger Fabric](https://github.com/hyperledg
 Uses [Hyperledger Fabric Config](https://github.com/hyperledger/fabric-config) v0.3.0
 
 - common/configtx
-- internaltools/configtxgen
+- tools/configtxgen
 
 This modifies Fabric's config block:
 * Added ARMA field for orderer type
-* Added `MetaNamespacePolicyKey` field
 
 ### MSP
 - hyperledger/fabric/msp
@@ -31,4 +30,4 @@ This modifies Fabric's config block:
 ### Tools
 - hyperledger/fabric/cmd/configtxgen
 - hyperledger/fabric/cmd/configtxlator
-- hyperledger/fabric/cmd/osnadmin
+- hyperledger/fabric/cmd/cryptogen

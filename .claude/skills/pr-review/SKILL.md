@@ -283,7 +283,7 @@ tools/configtxgen/config.go (struct) → encoder.go → sampleconfig/configtx.ya
 ```
 
 - ✅ New config field parsed, encoded, sampled, documented, and tested (policy resolvable via the `Bundle`).
-- ❌ Flag a field added to the struct/encoder but missing from the sample or `docs/configtx.md`; ARMA/`MetaNamespacePolicyKey` divergences.
+- ❌ Flag a field added to the struct/encoder but missing from the sample or `docs/configtx.md`; the ARMA divergence.
 
 ### 6. Error Information & Logging
 

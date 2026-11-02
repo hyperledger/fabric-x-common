@@ -174,7 +174,7 @@ Before you consider the change done (see `AGENTS.md` and the `Makefile`):
   add tests per the `tests` skill. `make test` runs the full suite with `-race` via gotestsum.
 - If you changed a `.proto`, run `make proto`. If you changed the `Tx` message, update
   `api/applicationpb/asn1_tx_schema.asn`.
-- If you changed a `//go:generate counterfeiter` interface, run `make mocks`.
+- If you changed a `//go:generate counterfeiter` interface or one listed in `.mockery.yml`, run `make mocks`.
 - **Audit docs & config for staleness.** Dispatch a subagent to run the `doc-audit` skill (keeps
   this context clean); apply the **Review** suggestions it returns.
 
