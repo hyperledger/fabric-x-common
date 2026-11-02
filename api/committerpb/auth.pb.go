@@ -66,7 +66,7 @@ func (*IssueNonceRequest) Descriptor() ([]byte, []int) {
 type IssueNonceResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// nonce is the server-issued challenge the client places in its envelope's SignatureHeader.Nonce.
-	// It is valid for a single Authenticate call and expires at expires_at.
+	// It is valid for a single AuthenticateIdentity call and expires at expires_at.
 	Nonce []byte `protobuf:"bytes,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	// expires_at is the nonce expiry in unix seconds.
 	ExpiresAt     int64 `protobuf:"varint,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
@@ -118,7 +118,7 @@ func (x *IssueNonceResponse) GetExpiresAt() int64 {
 	return 0
 }
 
-type AuthenticateRequest struct {
+type AuthenticateIdentityRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// signed_envelope carries the client's serialized MSP identity
 	// and a signature over the payload; under mutual TLS its ChannelHeader also carries the TLS
@@ -132,20 +132,20 @@ type AuthenticateRequest struct {
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *AuthenticateRequest) Reset() {
-	*x = AuthenticateRequest{}
+func (x *AuthenticateIdentityRequest) Reset() {
+	*x = AuthenticateIdentityRequest{}
 	mi := &file_api_committerpb_auth_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AuthenticateRequest) String() string {
+func (x *AuthenticateIdentityRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthenticateRequest) ProtoMessage() {}
+func (*AuthenticateIdentityRequest) ProtoMessage() {}
 
-func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
+func (x *AuthenticateIdentityRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_committerpb_auth_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -157,26 +157,26 @@ func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AuthenticateRequest.ProtoReflect.Descriptor instead.
-func (*AuthenticateRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthenticateIdentityRequest.ProtoReflect.Descriptor instead.
+func (*AuthenticateIdentityRequest) Descriptor() ([]byte, []int) {
 	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *AuthenticateRequest) GetSignedEnvelope() *common.Envelope {
+func (x *AuthenticateIdentityRequest) GetSignedEnvelope() *common.Envelope {
 	if x != nil {
 		return x.SignedEnvelope
 	}
 	return nil
 }
 
-func (x *AuthenticateRequest) GetRequestedScope() []string {
+func (x *AuthenticateIdentityRequest) GetRequestedScope() []string {
 	if x != nil {
 		return x.RequestedScope
 	}
 	return nil
 }
 
-type AuthenticateResponse struct {
+type AuthenticateIdentityResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// token is the issued cert-bound opaque token the client attaches to subsequent RPCs.
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
@@ -186,20 +186,20 @@ type AuthenticateResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AuthenticateResponse) Reset() {
-	*x = AuthenticateResponse{}
+func (x *AuthenticateIdentityResponse) Reset() {
+	*x = AuthenticateIdentityResponse{}
 	mi := &file_api_committerpb_auth_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AuthenticateResponse) String() string {
+func (x *AuthenticateIdentityResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthenticateResponse) ProtoMessage() {}
+func (*AuthenticateIdentityResponse) ProtoMessage() {}
 
-func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
+func (x *AuthenticateIdentityResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_api_committerpb_auth_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -211,26 +211,26 @@ func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AuthenticateResponse.ProtoReflect.Descriptor instead.
-func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthenticateIdentityResponse.ProtoReflect.Descriptor instead.
+func (*AuthenticateIdentityResponse) Descriptor() ([]byte, []int) {
 	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *AuthenticateResponse) GetToken() string {
+func (x *AuthenticateIdentityResponse) GetToken() string {
 	if x != nil {
 		return x.Token
 	}
 	return ""
 }
 
-func (x *AuthenticateResponse) GetExpiresAt() int64 {
+func (x *AuthenticateIdentityResponse) GetExpiresAt() int64 {
 	if x != nil {
 		return x.ExpiresAt
 	}
 	return 0
 }
 
-type AuthorizeRequest struct {
+type AuthorizeIdentityRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// token is the client's token, forwarded by the resource server.
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
@@ -243,20 +243,20 @@ type AuthorizeRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AuthorizeRequest) Reset() {
-	*x = AuthorizeRequest{}
+func (x *AuthorizeIdentityRequest) Reset() {
+	*x = AuthorizeIdentityRequest{}
 	mi := &file_api_committerpb_auth_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AuthorizeRequest) String() string {
+func (x *AuthorizeIdentityRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthorizeRequest) ProtoMessage() {}
+func (*AuthorizeIdentityRequest) ProtoMessage() {}
 
-func (x *AuthorizeRequest) ProtoReflect() protoreflect.Message {
+func (x *AuthorizeIdentityRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_committerpb_auth_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -268,36 +268,36 @@ func (x *AuthorizeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AuthorizeRequest.ProtoReflect.Descriptor instead.
-func (*AuthorizeRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthorizeIdentityRequest.ProtoReflect.Descriptor instead.
+func (*AuthorizeIdentityRequest) Descriptor() ([]byte, []int) {
 	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *AuthorizeRequest) GetToken() string {
+func (x *AuthorizeIdentityRequest) GetToken() string {
 	if x != nil {
 		return x.Token
 	}
 	return ""
 }
 
-func (x *AuthorizeRequest) GetResource() string {
+func (x *AuthorizeIdentityRequest) GetResource() string {
 	if x != nil {
 		return x.Resource
 	}
 	return ""
 }
 
-func (x *AuthorizeRequest) GetTlsCertHash() []byte {
+func (x *AuthorizeIdentityRequest) GetTlsCertHash() []byte {
 	if x != nil {
 		return x.TlsCertHash
 	}
 	return nil
 }
 
-// AuthorizeResponse is returned only when the identity satisfies the resource policy: every other outcome is a
+// AuthorizeIdentityResponse is returned only when the identity satisfies the resource policy: every other outcome is a
 // gRPC status error (Unauthenticated for an invalid, expired, or unknown token or a certificate mismatch;
 // PermissionDenied for a scope or policy denial; Unavailable before the configuration is loaded).
-type AuthorizeResponse struct {
+type AuthorizeIdentityResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// token_expires_at is the bound token's expiry in unix seconds. A resource server ends a stream at it,
 	// so an expired token cannot keep an established stream alive.
@@ -306,20 +306,20 @@ type AuthorizeResponse struct {
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *AuthorizeResponse) Reset() {
-	*x = AuthorizeResponse{}
+func (x *AuthorizeIdentityResponse) Reset() {
+	*x = AuthorizeIdentityResponse{}
 	mi := &file_api_committerpb_auth_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AuthorizeResponse) String() string {
+func (x *AuthorizeIdentityResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthorizeResponse) ProtoMessage() {}
+func (*AuthorizeIdentityResponse) ProtoMessage() {}
 
-func (x *AuthorizeResponse) ProtoReflect() protoreflect.Message {
+func (x *AuthorizeIdentityResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_api_committerpb_auth_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -331,12 +331,12 @@ func (x *AuthorizeResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AuthorizeResponse.ProtoReflect.Descriptor instead.
-func (*AuthorizeResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthorizeIdentityResponse.ProtoReflect.Descriptor instead.
+func (*AuthorizeIdentityResponse) Descriptor() ([]byte, []int) {
 	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *AuthorizeResponse) GetTokenExpiresAt() int64 {
+func (x *AuthorizeIdentityResponse) GetTokenExpiresAt() int64 {
 	if x != nil {
 		return x.TokenExpiresAt
 	}
@@ -352,25 +352,25 @@ const file_api_committerpb_auth_proto_rawDesc = "" +
 	"\x12IssueNonceResponse\x12\x14\n" +
 	"\x05nonce\x18\x01 \x01(\fR\x05nonce\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x02 \x01(\x03R\texpiresAt\"y\n" +
-	"\x13AuthenticateRequest\x129\n" +
+	"expires_at\x18\x02 \x01(\x03R\texpiresAt\"\x81\x01\n" +
+	"\x1bAuthenticateIdentityRequest\x129\n" +
 	"\x0fsigned_envelope\x18\x01 \x01(\v2\x10.common.EnvelopeR\x0esignedEnvelope\x12'\n" +
-	"\x0frequested_scope\x18\x02 \x03(\tR\x0erequestedScope\"K\n" +
-	"\x14AuthenticateResponse\x12\x14\n" +
+	"\x0frequested_scope\x18\x02 \x03(\tR\x0erequestedScope\"S\n" +
+	"\x1cAuthenticateIdentityResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x02 \x01(\x03R\texpiresAt\"h\n" +
-	"\x10AuthorizeRequest\x12\x14\n" +
+	"expires_at\x18\x02 \x01(\x03R\texpiresAt\"p\n" +
+	"\x18AuthorizeIdentityRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x1a\n" +
 	"\bresource\x18\x02 \x01(\tR\bresource\x12\"\n" +
-	"\rtls_cert_hash\x18\x03 \x01(\fR\vtlsCertHash\"=\n" +
-	"\x11AuthorizeResponse\x12(\n" +
-	"\x10token_expires_at\x18\x01 \x01(\x03R\x0etokenExpiresAt2\xfd\x01\n" +
+	"\rtls_cert_hash\x18\x03 \x01(\fR\vtlsCertHash\"E\n" +
+	"\x19AuthorizeIdentityResponse\x12(\n" +
+	"\x10token_expires_at\x18\x01 \x01(\x03R\x0etokenExpiresAt2\xad\x02\n" +
 	"\vAuthService\x12M\n" +
 	"\n" +
-	"IssueNonce\x12\x1e.committerpb.IssueNonceRequest\x1a\x1f.committerpb.IssueNonceResponse\x12S\n" +
-	"\fAuthenticate\x12 .committerpb.AuthenticateRequest\x1a!.committerpb.AuthenticateResponse\x12J\n" +
-	"\tAuthorize\x12\x1d.committerpb.AuthorizeRequest\x1a\x1e.committerpb.AuthorizeResponseB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"IssueNonce\x12\x1e.committerpb.IssueNonceRequest\x1a\x1f.committerpb.IssueNonceResponse\x12k\n" +
+	"\x14AuthenticateIdentity\x12(.committerpb.AuthenticateIdentityRequest\x1a).committerpb.AuthenticateIdentityResponse\x12b\n" +
+	"\x11AuthorizeIdentity\x12%.committerpb.AuthorizeIdentityRequest\x1a&.committerpb.AuthorizeIdentityResponseB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_auth_proto_rawDescOnce sync.Once
@@ -386,22 +386,22 @@ func file_api_committerpb_auth_proto_rawDescGZIP() []byte {
 
 var file_api_committerpb_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_api_committerpb_auth_proto_goTypes = []any{
-	(*IssueNonceRequest)(nil),    // 0: committerpb.IssueNonceRequest
-	(*IssueNonceResponse)(nil),   // 1: committerpb.IssueNonceResponse
-	(*AuthenticateRequest)(nil),  // 2: committerpb.AuthenticateRequest
-	(*AuthenticateResponse)(nil), // 3: committerpb.AuthenticateResponse
-	(*AuthorizeRequest)(nil),     // 4: committerpb.AuthorizeRequest
-	(*AuthorizeResponse)(nil),    // 5: committerpb.AuthorizeResponse
-	(*common.Envelope)(nil),      // 6: common.Envelope
+	(*IssueNonceRequest)(nil),            // 0: committerpb.IssueNonceRequest
+	(*IssueNonceResponse)(nil),           // 1: committerpb.IssueNonceResponse
+	(*AuthenticateIdentityRequest)(nil),  // 2: committerpb.AuthenticateIdentityRequest
+	(*AuthenticateIdentityResponse)(nil), // 3: committerpb.AuthenticateIdentityResponse
+	(*AuthorizeIdentityRequest)(nil),     // 4: committerpb.AuthorizeIdentityRequest
+	(*AuthorizeIdentityResponse)(nil),    // 5: committerpb.AuthorizeIdentityResponse
+	(*common.Envelope)(nil),              // 6: common.Envelope
 }
 var file_api_committerpb_auth_proto_depIdxs = []int32{
-	6, // 0: committerpb.AuthenticateRequest.signed_envelope:type_name -> common.Envelope
+	6, // 0: committerpb.AuthenticateIdentityRequest.signed_envelope:type_name -> common.Envelope
 	0, // 1: committerpb.AuthService.IssueNonce:input_type -> committerpb.IssueNonceRequest
-	2, // 2: committerpb.AuthService.Authenticate:input_type -> committerpb.AuthenticateRequest
-	4, // 3: committerpb.AuthService.Authorize:input_type -> committerpb.AuthorizeRequest
+	2, // 2: committerpb.AuthService.AuthenticateIdentity:input_type -> committerpb.AuthenticateIdentityRequest
+	4, // 3: committerpb.AuthService.AuthorizeIdentity:input_type -> committerpb.AuthorizeIdentityRequest
 	1, // 4: committerpb.AuthService.IssueNonce:output_type -> committerpb.IssueNonceResponse
-	3, // 5: committerpb.AuthService.Authenticate:output_type -> committerpb.AuthenticateResponse
-	5, // 6: committerpb.AuthService.Authorize:output_type -> committerpb.AuthorizeResponse
+	3, // 5: committerpb.AuthService.AuthenticateIdentity:output_type -> committerpb.AuthenticateIdentityResponse
+	5, // 6: committerpb.AuthService.AuthorizeIdentity:output_type -> committerpb.AuthorizeIdentityResponse
 	4, // [4:7] is the sub-list for method output_type
 	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

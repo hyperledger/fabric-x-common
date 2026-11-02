@@ -24,9 +24,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_IssueNonce_FullMethodName   = "/committerpb.AuthService/IssueNonce"
-	AuthService_Authenticate_FullMethodName = "/committerpb.AuthService/Authenticate"
-	AuthService_Authorize_FullMethodName    = "/committerpb.AuthService/Authorize"
+	AuthService_IssueNonce_FullMethodName           = "/committerpb.AuthService/IssueNonce"
+	AuthService_AuthenticateIdentity_FullMethodName = "/committerpb.AuthService/AuthenticateIdentity"
+	AuthService_AuthorizeIdentity_FullMethodName    = "/committerpb.AuthService/AuthorizeIdentity"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -35,24 +35,21 @@ const (
 //
 // AuthService is the central authentication and authorization service. It hands out single-use
 // challenges (IssueNonce), authenticates clients from a signed envelope and issues cert-bound opaque
-// tokens (Authenticate), and authorizes a token against a resource policy for a resource server
-// (Authorize). Only the AuthService can resolve a token; resource servers delegate every decision here.
+// tokens (AuthenticateIdentity), and authorizes a token against a resource policy for a resource
+// server (AuthorizeIdentity). Only the AuthService can resolve a token; resource servers delegate every
+// decision here.
 type AuthServiceClient interface {
 	// IssueNonce issues a single-use, short-lived nonce the client must embed in the SignatureHeader of
-	// the envelope it then presents to Authenticate. It is the mandatory first step of authentication:
-	// because the server chooses the nonce and consumes it on use, a captured envelope cannot be
-	// replayed even within the freshness window.
+	// the envelope it then presents to AuthenticateIdentity. It is the mandatory first step of
+	// authentication: because the server chooses the nonce and consumes it on use, a captured envelope
+	// cannot be replayed even within the freshness window.
 	IssueNonce(ctx context.Context, in *IssueNonceRequest, opts ...grpc.CallOption) (*IssueNonceResponse, error)
-	// Authenticate verifies a signed envelope and issues a short-lived, cert-bound opaque token.
-	// (-- api-linter: core::0136::verb-noun=disabled
-	//     aip.dev/not-precedent: Authenticate is the conventional name for this RPC. --)
-	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
-	// Authorize evaluates a token against a resource policy for a resource server. A stream calls it
+	// AuthenticateIdentity verifies a signed envelope and issues a short-lived, cert-bound opaque token.
+	AuthenticateIdentity(ctx context.Context, in *AuthenticateIdentityRequest, opts ...grpc.CallOption) (*AuthenticateIdentityResponse, error)
+	// AuthorizeIdentity evaluates a token against a resource policy for a resource server. A stream calls it
 	// again with the same token whenever its cached decision lapses, so token expiry and configuration
 	// changes both take effect on an established stream.
-	// (-- api-linter: core::0136::verb-noun=disabled
-	//     aip.dev/not-precedent: Authorize is the conventional name for this RPC. --)
-	Authorize(ctx context.Context, in *AuthorizeRequest, opts ...grpc.CallOption) (*AuthorizeResponse, error)
+	AuthorizeIdentity(ctx context.Context, in *AuthorizeIdentityRequest, opts ...grpc.CallOption) (*AuthorizeIdentityResponse, error)
 }
 
 type authServiceClient struct {
@@ -73,20 +70,20 @@ func (c *authServiceClient) IssueNonce(ctx context.Context, in *IssueNonceReques
 	return out, nil
 }
 
-func (c *authServiceClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
+func (c *authServiceClient) AuthenticateIdentity(ctx context.Context, in *AuthenticateIdentityRequest, opts ...grpc.CallOption) (*AuthenticateIdentityResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthenticateResponse)
-	err := c.cc.Invoke(ctx, AuthService_Authenticate_FullMethodName, in, out, cOpts...)
+	out := new(AuthenticateIdentityResponse)
+	err := c.cc.Invoke(ctx, AuthService_AuthenticateIdentity_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authServiceClient) Authorize(ctx context.Context, in *AuthorizeRequest, opts ...grpc.CallOption) (*AuthorizeResponse, error) {
+func (c *authServiceClient) AuthorizeIdentity(ctx context.Context, in *AuthorizeIdentityRequest, opts ...grpc.CallOption) (*AuthorizeIdentityResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthorizeResponse)
-	err := c.cc.Invoke(ctx, AuthService_Authorize_FullMethodName, in, out, cOpts...)
+	out := new(AuthorizeIdentityResponse)
+	err := c.cc.Invoke(ctx, AuthService_AuthorizeIdentity_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -99,24 +96,21 @@ func (c *authServiceClient) Authorize(ctx context.Context, in *AuthorizeRequest,
 //
 // AuthService is the central authentication and authorization service. It hands out single-use
 // challenges (IssueNonce), authenticates clients from a signed envelope and issues cert-bound opaque
-// tokens (Authenticate), and authorizes a token against a resource policy for a resource server
-// (Authorize). Only the AuthService can resolve a token; resource servers delegate every decision here.
+// tokens (AuthenticateIdentity), and authorizes a token against a resource policy for a resource
+// server (AuthorizeIdentity). Only the AuthService can resolve a token; resource servers delegate every
+// decision here.
 type AuthServiceServer interface {
 	// IssueNonce issues a single-use, short-lived nonce the client must embed in the SignatureHeader of
-	// the envelope it then presents to Authenticate. It is the mandatory first step of authentication:
-	// because the server chooses the nonce and consumes it on use, a captured envelope cannot be
-	// replayed even within the freshness window.
+	// the envelope it then presents to AuthenticateIdentity. It is the mandatory first step of
+	// authentication: because the server chooses the nonce and consumes it on use, a captured envelope
+	// cannot be replayed even within the freshness window.
 	IssueNonce(context.Context, *IssueNonceRequest) (*IssueNonceResponse, error)
-	// Authenticate verifies a signed envelope and issues a short-lived, cert-bound opaque token.
-	// (-- api-linter: core::0136::verb-noun=disabled
-	//     aip.dev/not-precedent: Authenticate is the conventional name for this RPC. --)
-	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
-	// Authorize evaluates a token against a resource policy for a resource server. A stream calls it
+	// AuthenticateIdentity verifies a signed envelope and issues a short-lived, cert-bound opaque token.
+	AuthenticateIdentity(context.Context, *AuthenticateIdentityRequest) (*AuthenticateIdentityResponse, error)
+	// AuthorizeIdentity evaluates a token against a resource policy for a resource server. A stream calls it
 	// again with the same token whenever its cached decision lapses, so token expiry and configuration
 	// changes both take effect on an established stream.
-	// (-- api-linter: core::0136::verb-noun=disabled
-	//     aip.dev/not-precedent: Authorize is the conventional name for this RPC. --)
-	Authorize(context.Context, *AuthorizeRequest) (*AuthorizeResponse, error)
+	AuthorizeIdentity(context.Context, *AuthorizeIdentityRequest) (*AuthorizeIdentityResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -130,11 +124,11 @@ type UnimplementedAuthServiceServer struct{}
 func (UnimplementedAuthServiceServer) IssueNonce(context.Context, *IssueNonceRequest) (*IssueNonceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IssueNonce not implemented")
 }
-func (UnimplementedAuthServiceServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Authenticate not implemented")
+func (UnimplementedAuthServiceServer) AuthenticateIdentity(context.Context, *AuthenticateIdentityRequest) (*AuthenticateIdentityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AuthenticateIdentity not implemented")
 }
-func (UnimplementedAuthServiceServer) Authorize(context.Context, *AuthorizeRequest) (*AuthorizeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Authorize not implemented")
+func (UnimplementedAuthServiceServer) AuthorizeIdentity(context.Context, *AuthorizeIdentityRequest) (*AuthorizeIdentityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AuthorizeIdentity not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -175,38 +169,38 @@ func _AuthService_IssueNonce_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthenticateRequest)
+func _AuthService_AuthenticateIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticateIdentityRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).Authenticate(ctx, in)
+		return srv.(AuthServiceServer).AuthenticateIdentity(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_Authenticate_FullMethodName,
+		FullMethod: AuthService_AuthenticateIdentity_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Authenticate(ctx, req.(*AuthenticateRequest))
+		return srv.(AuthServiceServer).AuthenticateIdentity(ctx, req.(*AuthenticateIdentityRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_Authorize_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthorizeRequest)
+func _AuthService_AuthorizeIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeIdentityRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).Authorize(ctx, in)
+		return srv.(AuthServiceServer).AuthorizeIdentity(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_Authorize_FullMethodName,
+		FullMethod: AuthService_AuthorizeIdentity_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Authorize(ctx, req.(*AuthorizeRequest))
+		return srv.(AuthServiceServer).AuthorizeIdentity(ctx, req.(*AuthorizeIdentityRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -223,12 +217,12 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_IssueNonce_Handler,
 		},
 		{
-			MethodName: "Authenticate",
-			Handler:    _AuthService_Authenticate_Handler,
+			MethodName: "AuthenticateIdentity",
+			Handler:    _AuthService_AuthenticateIdentity_Handler,
 		},
 		{
-			MethodName: "Authorize",
-			Handler:    _AuthService_Authorize_Handler,
+			MethodName: "AuthorizeIdentity",
+			Handler:    _AuthService_AuthorizeIdentity_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
