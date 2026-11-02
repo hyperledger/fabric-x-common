@@ -15,6 +15,7 @@ import (
 	common "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -26,42 +27,6 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
-
-type IssueNonceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *IssueNonceRequest) Reset() {
-	*x = IssueNonceRequest{}
-	mi := &file_api_committerpb_auth_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *IssueNonceRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IssueNonceRequest) ProtoMessage() {}
-
-func (x *IssueNonceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_auth_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IssueNonceRequest.ProtoReflect.Descriptor instead.
-func (*IssueNonceRequest) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{0}
-}
 
 type IssueNonceResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -76,7 +41,7 @@ type IssueNonceResponse struct {
 
 func (x *IssueNonceResponse) Reset() {
 	*x = IssueNonceResponse{}
-	mi := &file_api_committerpb_auth_proto_msgTypes[1]
+	mi := &file_api_committerpb_auth_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -88,7 +53,7 @@ func (x *IssueNonceResponse) String() string {
 func (*IssueNonceResponse) ProtoMessage() {}
 
 func (x *IssueNonceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_auth_proto_msgTypes[1]
+	mi := &file_api_committerpb_auth_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -101,7 +66,7 @@ func (x *IssueNonceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueNonceResponse.ProtoReflect.Descriptor instead.
 func (*IssueNonceResponse) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{1}
+	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *IssueNonceResponse) GetNonce() []byte {
@@ -134,7 +99,7 @@ type AuthenticateIdentityRequest struct {
 
 func (x *AuthenticateIdentityRequest) Reset() {
 	*x = AuthenticateIdentityRequest{}
-	mi := &file_api_committerpb_auth_proto_msgTypes[2]
+	mi := &file_api_committerpb_auth_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -146,7 +111,7 @@ func (x *AuthenticateIdentityRequest) String() string {
 func (*AuthenticateIdentityRequest) ProtoMessage() {}
 
 func (x *AuthenticateIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_auth_proto_msgTypes[2]
+	mi := &file_api_committerpb_auth_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -159,7 +124,7 @@ func (x *AuthenticateIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateIdentityRequest.ProtoReflect.Descriptor instead.
 func (*AuthenticateIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{2}
+	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *AuthenticateIdentityRequest) GetSignedEnvelope() *common.Envelope {
@@ -188,7 +153,7 @@ type AuthenticateIdentityResponse struct {
 
 func (x *AuthenticateIdentityResponse) Reset() {
 	*x = AuthenticateIdentityResponse{}
-	mi := &file_api_committerpb_auth_proto_msgTypes[3]
+	mi := &file_api_committerpb_auth_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -200,7 +165,7 @@ func (x *AuthenticateIdentityResponse) String() string {
 func (*AuthenticateIdentityResponse) ProtoMessage() {}
 
 func (x *AuthenticateIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_auth_proto_msgTypes[3]
+	mi := &file_api_committerpb_auth_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -213,7 +178,7 @@ func (x *AuthenticateIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateIdentityResponse.ProtoReflect.Descriptor instead.
 func (*AuthenticateIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{3}
+	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AuthenticateIdentityResponse) GetToken() string {
@@ -245,7 +210,7 @@ type AuthorizeIdentityRequest struct {
 
 func (x *AuthorizeIdentityRequest) Reset() {
 	*x = AuthorizeIdentityRequest{}
-	mi := &file_api_committerpb_auth_proto_msgTypes[4]
+	mi := &file_api_committerpb_auth_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +222,7 @@ func (x *AuthorizeIdentityRequest) String() string {
 func (*AuthorizeIdentityRequest) ProtoMessage() {}
 
 func (x *AuthorizeIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_auth_proto_msgTypes[4]
+	mi := &file_api_committerpb_auth_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +235,7 @@ func (x *AuthorizeIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeIdentityRequest.ProtoReflect.Descriptor instead.
 func (*AuthorizeIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{4}
+	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *AuthorizeIdentityRequest) GetToken() string {
@@ -308,7 +273,7 @@ type AuthorizeIdentityResponse struct {
 
 func (x *AuthorizeIdentityResponse) Reset() {
 	*x = AuthorizeIdentityResponse{}
-	mi := &file_api_committerpb_auth_proto_msgTypes[5]
+	mi := &file_api_committerpb_auth_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -320,7 +285,7 @@ func (x *AuthorizeIdentityResponse) String() string {
 func (*AuthorizeIdentityResponse) ProtoMessage() {}
 
 func (x *AuthorizeIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_committerpb_auth_proto_msgTypes[5]
+	mi := &file_api_committerpb_auth_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -333,7 +298,7 @@ func (x *AuthorizeIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeIdentityResponse.ProtoReflect.Descriptor instead.
 func (*AuthorizeIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{5}
+	return file_api_committerpb_auth_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AuthorizeIdentityResponse) GetTokenExpiresAt() int64 {
@@ -347,8 +312,7 @@ var File_api_committerpb_auth_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x1aapi/committerpb/auth.proto\x12\vcommitterpb\x1a\x13common/common.proto\"\x13\n" +
-	"\x11IssueNonceRequest\"I\n" +
+	"\x1aapi/committerpb/auth.proto\x12\vcommitterpb\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13common/common.proto\"I\n" +
 	"\x12IssueNonceResponse\x12\x14\n" +
 	"\x05nonce\x18\x01 \x01(\fR\x05nonce\x12\x1d\n" +
 	"\n" +
@@ -365,10 +329,10 @@ const file_api_committerpb_auth_proto_rawDesc = "" +
 	"\bresource\x18\x02 \x01(\tR\bresource\x12\"\n" +
 	"\rtls_cert_hash\x18\x03 \x01(\fR\vtlsCertHash\"E\n" +
 	"\x19AuthorizeIdentityResponse\x12(\n" +
-	"\x10token_expires_at\x18\x01 \x01(\x03R\x0etokenExpiresAt2\xad\x02\n" +
-	"\vAuthService\x12M\n" +
+	"\x10token_expires_at\x18\x01 \x01(\x03R\x0etokenExpiresAt2\xa5\x02\n" +
+	"\vAuthService\x12E\n" +
 	"\n" +
-	"IssueNonce\x12\x1e.committerpb.IssueNonceRequest\x1a\x1f.committerpb.IssueNonceResponse\x12k\n" +
+	"IssueNonce\x12\x16.google.protobuf.Empty\x1a\x1f.committerpb.IssueNonceResponse\x12k\n" +
 	"\x14AuthenticateIdentity\x12(.committerpb.AuthenticateIdentityRequest\x1a).committerpb.AuthenticateIdentityResponse\x12b\n" +
 	"\x11AuthorizeIdentity\x12%.committerpb.AuthorizeIdentityRequest\x1a&.committerpb.AuthorizeIdentityResponseB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
@@ -384,24 +348,24 @@ func file_api_committerpb_auth_proto_rawDescGZIP() []byte {
 	return file_api_committerpb_auth_proto_rawDescData
 }
 
-var file_api_committerpb_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_api_committerpb_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_api_committerpb_auth_proto_goTypes = []any{
-	(*IssueNonceRequest)(nil),            // 0: committerpb.IssueNonceRequest
-	(*IssueNonceResponse)(nil),           // 1: committerpb.IssueNonceResponse
-	(*AuthenticateIdentityRequest)(nil),  // 2: committerpb.AuthenticateIdentityRequest
-	(*AuthenticateIdentityResponse)(nil), // 3: committerpb.AuthenticateIdentityResponse
-	(*AuthorizeIdentityRequest)(nil),     // 4: committerpb.AuthorizeIdentityRequest
-	(*AuthorizeIdentityResponse)(nil),    // 5: committerpb.AuthorizeIdentityResponse
-	(*common.Envelope)(nil),              // 6: common.Envelope
+	(*IssueNonceResponse)(nil),           // 0: committerpb.IssueNonceResponse
+	(*AuthenticateIdentityRequest)(nil),  // 1: committerpb.AuthenticateIdentityRequest
+	(*AuthenticateIdentityResponse)(nil), // 2: committerpb.AuthenticateIdentityResponse
+	(*AuthorizeIdentityRequest)(nil),     // 3: committerpb.AuthorizeIdentityRequest
+	(*AuthorizeIdentityResponse)(nil),    // 4: committerpb.AuthorizeIdentityResponse
+	(*common.Envelope)(nil),              // 5: common.Envelope
+	(*emptypb.Empty)(nil),                // 6: google.protobuf.Empty
 }
 var file_api_committerpb_auth_proto_depIdxs = []int32{
-	6, // 0: committerpb.AuthenticateIdentityRequest.signed_envelope:type_name -> common.Envelope
-	0, // 1: committerpb.AuthService.IssueNonce:input_type -> committerpb.IssueNonceRequest
-	2, // 2: committerpb.AuthService.AuthenticateIdentity:input_type -> committerpb.AuthenticateIdentityRequest
-	4, // 3: committerpb.AuthService.AuthorizeIdentity:input_type -> committerpb.AuthorizeIdentityRequest
-	1, // 4: committerpb.AuthService.IssueNonce:output_type -> committerpb.IssueNonceResponse
-	3, // 5: committerpb.AuthService.AuthenticateIdentity:output_type -> committerpb.AuthenticateIdentityResponse
-	5, // 6: committerpb.AuthService.AuthorizeIdentity:output_type -> committerpb.AuthorizeIdentityResponse
+	5, // 0: committerpb.AuthenticateIdentityRequest.signed_envelope:type_name -> common.Envelope
+	6, // 1: committerpb.AuthService.IssueNonce:input_type -> google.protobuf.Empty
+	1, // 2: committerpb.AuthService.AuthenticateIdentity:input_type -> committerpb.AuthenticateIdentityRequest
+	3, // 3: committerpb.AuthService.AuthorizeIdentity:input_type -> committerpb.AuthorizeIdentityRequest
+	0, // 4: committerpb.AuthService.IssueNonce:output_type -> committerpb.IssueNonceResponse
+	2, // 5: committerpb.AuthService.AuthenticateIdentity:output_type -> committerpb.AuthenticateIdentityResponse
+	4, // 6: committerpb.AuthService.AuthorizeIdentity:output_type -> committerpb.AuthorizeIdentityResponse
 	4, // [4:7] is the sub-list for method output_type
 	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -420,7 +384,7 @@ func file_api_committerpb_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_committerpb_auth_proto_rawDesc), len(file_api_committerpb_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -16,6 +16,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -38,17 +39,35 @@ const (
 // tokens (AuthenticateIdentity), and authorizes a token against a resource policy for a resource
 // server (AuthorizeIdentity). Only the AuthService can resolve a token; resource servers delegate every
 // decision here.
+//
+// Flow:
+//
+//	client           AuthService                      resource server
+//	  | IssueNonce()     |                                   |
+//	  |----------------->| nonce                             |
+//	  |<-----------------|                                   |
+//	  | AuthenticateIdentity(envelope signed over nonce)     |
+//	  |----------------->| token                             |
+//	  |<-----------------|                                   |
+//	  | RPC + token -------------------------------------->  |
+//	  |                  |<-- AuthorizeIdentity(token, rpc) -|
+//	  |                  |--- allowed, token_expires_at ---->|
 type AuthServiceClient interface {
 	// IssueNonce issues a single-use, short-lived nonce the client must embed in the SignatureHeader of
 	// the envelope it then presents to AuthenticateIdentity. It is the mandatory first step of
 	// authentication: because the server chooses the nonce and consumes it on use, a captured envelope
 	// cannot be replayed even within the freshness window.
-	IssueNonce(ctx context.Context, in *IssueNonceRequest, opts ...grpc.CallOption) (*IssueNonceResponse, error)
+	IssueNonce(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IssueNonceResponse, error)
 	// AuthenticateIdentity verifies a signed envelope and issues a short-lived, cert-bound opaque token.
 	AuthenticateIdentity(ctx context.Context, in *AuthenticateIdentityRequest, opts ...grpc.CallOption) (*AuthenticateIdentityResponse, error)
 	// AuthorizeIdentity evaluates a token against a resource policy for a resource server. A stream calls it
 	// again with the same token whenever its cached decision lapses, so token expiry and configuration
 	// changes both take effect on an established stream.
+	//
+	// It is part of the client API too: a client can call it on its own token to check that the token is
+	// still accepted for a resource and when it expires (token_expires_at), so it renews the token before
+	// its RPCs start failing rather than after. The client passes its own TLS certificate hash, the one
+	// the token is bound to.
 	AuthorizeIdentity(ctx context.Context, in *AuthorizeIdentityRequest, opts ...grpc.CallOption) (*AuthorizeIdentityResponse, error)
 }
 
@@ -60,7 +79,7 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) IssueNonce(ctx context.Context, in *IssueNonceRequest, opts ...grpc.CallOption) (*IssueNonceResponse, error) {
+func (c *authServiceClient) IssueNonce(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IssueNonceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(IssueNonceResponse)
 	err := c.cc.Invoke(ctx, AuthService_IssueNonce_FullMethodName, in, out, cOpts...)
@@ -99,17 +118,35 @@ func (c *authServiceClient) AuthorizeIdentity(ctx context.Context, in *Authorize
 // tokens (AuthenticateIdentity), and authorizes a token against a resource policy for a resource
 // server (AuthorizeIdentity). Only the AuthService can resolve a token; resource servers delegate every
 // decision here.
+//
+// Flow:
+//
+//	client           AuthService                      resource server
+//	  | IssueNonce()     |                                   |
+//	  |----------------->| nonce                             |
+//	  |<-----------------|                                   |
+//	  | AuthenticateIdentity(envelope signed over nonce)     |
+//	  |----------------->| token                             |
+//	  |<-----------------|                                   |
+//	  | RPC + token -------------------------------------->  |
+//	  |                  |<-- AuthorizeIdentity(token, rpc) -|
+//	  |                  |--- allowed, token_expires_at ---->|
 type AuthServiceServer interface {
 	// IssueNonce issues a single-use, short-lived nonce the client must embed in the SignatureHeader of
 	// the envelope it then presents to AuthenticateIdentity. It is the mandatory first step of
 	// authentication: because the server chooses the nonce and consumes it on use, a captured envelope
 	// cannot be replayed even within the freshness window.
-	IssueNonce(context.Context, *IssueNonceRequest) (*IssueNonceResponse, error)
+	IssueNonce(context.Context, *emptypb.Empty) (*IssueNonceResponse, error)
 	// AuthenticateIdentity verifies a signed envelope and issues a short-lived, cert-bound opaque token.
 	AuthenticateIdentity(context.Context, *AuthenticateIdentityRequest) (*AuthenticateIdentityResponse, error)
 	// AuthorizeIdentity evaluates a token against a resource policy for a resource server. A stream calls it
 	// again with the same token whenever its cached decision lapses, so token expiry and configuration
 	// changes both take effect on an established stream.
+	//
+	// It is part of the client API too: a client can call it on its own token to check that the token is
+	// still accepted for a resource and when it expires (token_expires_at), so it renews the token before
+	// its RPCs start failing rather than after. The client passes its own TLS certificate hash, the one
+	// the token is bound to.
 	AuthorizeIdentity(context.Context, *AuthorizeIdentityRequest) (*AuthorizeIdentityResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -121,7 +158,7 @@ type AuthServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAuthServiceServer struct{}
 
-func (UnimplementedAuthServiceServer) IssueNonce(context.Context, *IssueNonceRequest) (*IssueNonceResponse, error) {
+func (UnimplementedAuthServiceServer) IssueNonce(context.Context, *emptypb.Empty) (*IssueNonceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IssueNonce not implemented")
 }
 func (UnimplementedAuthServiceServer) AuthenticateIdentity(context.Context, *AuthenticateIdentityRequest) (*AuthenticateIdentityResponse, error) {
@@ -152,7 +189,7 @@ func RegisterAuthServiceServer(s grpc.ServiceRegistrar, srv AuthServiceServer) {
 }
 
 func _AuthService_IssueNonce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IssueNonceRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -164,7 +201,7 @@ func _AuthService_IssueNonce_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: AuthService_IssueNonce_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).IssueNonce(ctx, req.(*IssueNonceRequest))
+		return srv.(AuthServiceServer).IssueNonce(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
