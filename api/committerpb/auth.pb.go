@@ -90,8 +90,10 @@ type AuthenticateIdentityRequest struct {
 	// certificate hash the token is bound to. Its SignatureHeader.Nonce must be an unconsumed nonce
 	// previously issued by IssueNonce.
 	SignedEnvelope *common.Envelope `protobuf:"bytes,1,opt,name=signed_envelope,json=signedEnvelope,proto3" json:"signed_envelope,omitempty"`
-	// requested_scope optionally narrows the token's authority to these gRPC full-method names
-	// (least privilege). A requested scope may only narrow, never broaden, the identity's authority.
+	// requested_scope specifies the gRPC full-method names the token is authorized
+	// to invoke (deny-by-default). Callers must explicitly list all required methods;
+	// if empty, the token grants no access. Requested scopes are intersected with the
+	// identity's ACL and can never grant permissions beyond the identity's authority.
 	RequestedScope []string `protobuf:"bytes,2,rep,name=requested_scope,json=requestedScope,proto3" json:"requested_scope,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
