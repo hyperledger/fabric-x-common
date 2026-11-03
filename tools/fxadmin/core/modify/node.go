@@ -181,7 +181,9 @@ func validateHost(host string) error {
 	}
 	// RFC 1123 hostname validation.
 	if !hostNameRegex.MatchString(host) {
-		return errors.Newf("invalid host %q: give a host name or an IP address, without a port", host)
+		return errors.Newf("invalid host %q: give an IP address, or a host name of labels joined by '.', "+
+			"each of up to 63 ASCII letters, digits and '-', not starting or ending with '-'; "+
+			"give no port, and no brackets around an IPv6 address", host)
 	}
 	return nil
 }

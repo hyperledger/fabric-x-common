@@ -51,6 +51,9 @@ const (
 	nodeTestDeliverEndpoint   = "id=1,msp-id=orderer-org-1,deliver,assembler.org1:7060"
 	// nodeTestNewRouterHost is the host the tests move the party's router to.
 	nodeTestNewRouterHost = "router2.org1"
+	// IP hosts that the tests move the party's router to.
+	nodeTestIPv4Host = "10.0.0.5"
+	nodeTestIPv6Host = "2001:db8::7"
 
 	// Node roles, as `--role` names them.
 	nodeTestRouter    = "router"
@@ -314,15 +317,15 @@ func TestPartyNodeChangesBothAddresses(t *testing.T) {
 		},
 		{
 			name:          "IPv4 host",
-			newHost:       "10.0.0.5",
-			wantRouter:    nodeTestFields{host: "10.0.0.5", port: nodeTestRouterPort},
+			newHost:       nodeTestIPv4Host,
+			wantRouter:    nodeTestFields{host: nodeTestIPv4Host, port: nodeTestRouterPort},
 			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,10.0.0.5:443",
 		},
 		{
 			name:          "IPv6 host",
-			newHost:       "2001:db8::7",
+			newHost:       nodeTestIPv6Host,
 			newPort:       8443,
-			wantRouter:    nodeTestFields{host: "2001:db8::7", port: 8443},
+			wantRouter:    nodeTestFields{host: nodeTestIPv6Host, port: 8443},
 			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,[2001:db8::7]:8443",
 		},
 	} {
@@ -342,6 +345,45 @@ func TestPartyNodeChangesBothAddresses(t *testing.T) {
 			require.Equal(t, tc.wantRouter.host, router.GetHost())
 			require.Equal(t, tc.wantRouter.port, router.GetPort())
 			require.Equal(t, []string{tc.wantBroadcast, nodeTestDeliverEndpoint}, nodeTestEndpoints(t, edited))
+		})
+	}
+}
+
+// TestPartyNodeEndpointRoundTrip verifies that the broadcast endpoint written
+// for a new router host parses back to the same party, host and port, so that
+// an accepted host cannot add or change an endpoint field.
+func TestPartyNodeEndpointRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	baseBlock := newNodeTestMaterial(t).block
+	for _, tc := range []struct {
+		name string
+		host string
+	}{
+		{name: "host name", host: nodeTestNewRouterHost},
+		{name: "IPv4 host", host: nodeTestIPv4Host},
+		{name: "IPv6 host", host: nodeTestIPv6Host},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			blockPath := writeNodeTestBlock(t, baseBlock)
+			err := modify.New().PartyNode(change.Node{
+				Party: nodeTestParty, Role: nodeTestRouter, Host: tc.host, BlockPath: blockPath,
+			})
+			require.NoError(t, err)
+
+			editedBlock, err := os.ReadFile(blockPath)
+			require.NoError(t, err)
+			addresses := nodeTestEndpoints(t, nodeTestOrderer(t, editedBlock))
+			require.Len(t, addresses, 2)
+			endpoint, err := types.ParseOrdererEndpoint(addresses[0])
+			require.NoError(t, err)
+			require.Equal(t, uint32(nodeTestParty), endpoint.ID)
+			require.Equal(t, nodeTestOrg, endpoint.MspID)
+			require.Equal(t, []string{types.Broadcast}, endpoint.API)
+			require.Equal(t, tc.host, endpoint.Host)
+			require.Equal(t, nodeTestRouterPort, endpoint.Port)
 		})
 	}
 }

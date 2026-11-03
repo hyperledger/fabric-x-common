@@ -379,7 +379,9 @@ func (c *CLI) addModifyPartyNodeCommand(party *kingpin.CmdClause) {
 	var shardSet bool
 	shard := node.Flag(flagShard, "Batcher shard ID (required for, and only valid with, --role batcher).").
 		IsSetByUser(&shardSet).Uint32()
-	host := node.Flag(flagHost, "New host (unchanged if omitted).").String()
+	host := node.Flag(flagHost,
+		"New host: a host name or an IP address, without a port; IPv6 without brackets (unchanged if omitted).").
+		String()
 	var portSet bool
 	port := node.Flag(flagPort, "New port, 1-65535 (unchanged if omitted).").IsSetByUser(&portSet).Uint32()
 	tlsCert := node.Flag(flagTLSCert, "Path to new TLS certificate (unchanged if omitted).").ExistingFile()
