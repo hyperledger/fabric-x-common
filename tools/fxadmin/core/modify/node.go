@@ -162,7 +162,9 @@ var (
 // validateHost checks that host is an IP address, IPv4 or IPv6, or a host name,
 // without a port. An IPv6 address is given without brackets; endpoint addresses
 // add them when they join it with a port.
-// TODO: it follows the committer's check of host names, but also rejects malformed IPv4 addresses and non-ASCII letters. Move it to a shared file, to be used by orderer, committer and fxadmin.
+// TODO: it follows the committer's check of host names, but also rejects
+// malformed IPv4 addresses and non-ASCII letters. Move it to a shared file, to
+// be used by orderer, committer and fxadmin.
 func validateHost(host string) error {
 	// Check if it's an IP address, IPv4 or IPv6.
 	if net.ParseIP(host) != nil {
