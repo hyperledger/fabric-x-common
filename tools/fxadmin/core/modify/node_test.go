@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -499,6 +500,92 @@ func TestPartyNodeRejects(t *testing.T) {
 			block:   baseBlock,
 			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "[2001:db8::7]:7050"},
 			wantErr: `invalid host "[2001:db8::7]:7050"`,
+		},
+		{
+			name:    "IPv6 host with a zone",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "fe80::1%eth0"},
+			wantErr: `invalid host "fe80::1%eth0"`,
+		},
+		{
+			name:    "IPv6 zone that injects an endpoint",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "fe80::1%x]:1,id=2,[evil.example"},
+			wantErr: `invalid host "fe80::1%x]:1,id=2,[evil.example"`,
+		},
+		{
+			name:    "IPv4 host with a part over 255",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "300.1.1.1"},
+			wantErr: `invalid host "300.1.1.1": not a valid IPv4 address`,
+		},
+		{
+			name:    "IPv4 host with five parts",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "1.2.3.4.5"},
+			wantErr: `invalid host "1.2.3.4.5": not a valid IPv4 address`,
+		},
+		{
+			name:    "IPv4 host with three parts",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "1.2.3"},
+			wantErr: `invalid host "1.2.3": not a valid IPv4 address`,
+		},
+		{
+			// U+212A KELVIN SIGN, which case-insensitive matching takes for 'k'.
+			name:    "host with a Kelvin sign that looks like K",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "K8s.org1"},
+			wantErr: `invalid host "K8s.org1"`,
+		},
+		{
+			// U+017F LATIN SMALL LETTER LONG S, which case-insensitive matching takes for 's'.
+			name:    "host with a long s that looks like s",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "ſerver.org1"},
+			wantErr: `invalid host "ſerver.org1"`,
+		},
+		{
+			name:    "host with an empty label",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router..org1"},
+			wantErr: `invalid host "router..org1"`,
+		},
+		{
+			name:    "host that starts with a dot",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: ".router.org1"},
+			wantErr: `invalid host ".router.org1"`,
+		},
+		{
+			name:    "host that ends with a dot",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router.org1."},
+			wantErr: `invalid host "router.org1."`,
+		},
+		{
+			name:    "host label that starts with a hyphen",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "-router.org1"},
+			wantErr: `invalid host "-router.org1"`,
+		},
+		{
+			name:    "host label that ends with a hyphen",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router-.org1"},
+			wantErr: `invalid host "router-.org1"`,
+		},
+		{
+			name:    "host label over 63 characters",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: strings.Repeat("a", 64) + ".org1"},
+			wantErr: "invalid host",
+		},
+		{
+			name:    "host over 253 characters",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: strings.Repeat("ab.", 84) + "abc"},
+			wantErr: "hostname exceeds maximum length of 253 characters",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

@@ -10,14 +10,14 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"net/netip"
+	"net"
 	"os"
+	"regexp"
 	"slices"
 
 	"github.com/cockroachdb/errors"
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
 	ab "github.com/hyperledger/fabric-protos-go-apiv2/orderer"
-	"golang.org/x/net/idna"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/hyperledger/fabric-x-common/api/ordererpb"
@@ -140,18 +140,45 @@ func readNodeChange(ch change.Node) (*nodeChange, error) {
 	return nc, nil
 }
 
-// hostNames checks host names as Go checks them before a DNS lookup, and also
-// allows only letters, digits, '-' and '.' in them.
-var hostNames = idna.New(idna.MapForLookup(), idna.StrictDomainName(true), idna.Transitional(false))
+// Total hostname can be up to 253 characters (RFC 1123).
+const hostNameMaxLength = 253
+
+var (
+	// RFC 1123 hostname validation regex:
+	// - Labels (hostname components) can contain letters, digits, and hyphens.
+	// - Labels must start and end with alphanumeric.
+	// - Labels can be up to 63 characters.
+	// Letters are ASCII only (a-z, A-Z), so non-English letters are rejected,
+	// including look-alikes such as the Kelvin sign (U+212A) for 'K' and the
+	// long s (U+017F) for 's'.
+	hostNameRegex = regexp.MustCompile(
+		`^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`,
+	)
+	// ipv4LikeRegex matches a host made only of digits and dots, which the
+	// hostname regex accepts but can only be meant as an IPv4 address.
+	ipv4LikeRegex = regexp.MustCompile(`^[0-9]+(\.[0-9]+)*$`)
+)
 
 // validateHost checks that host is an IP address, IPv4 or IPv6, or a host name,
 // without a port. An IPv6 address is given without brackets; endpoint addresses
 // add them when they join it with a port.
+// TODO: it follows the committer's check of host names, but also rejects malformed IPv4 addresses and non-ASCII letters. Move it to a shared file, to be used by orderer, committer and fxadmin.
 func validateHost(host string) error {
-	if _, err := netip.ParseAddr(host); err == nil {
+	// Check if it's an IP address, IPv4 or IPv6.
+	if net.ParseIP(host) != nil {
 		return nil
 	}
-	if _, err := hostNames.ToASCII(host); err != nil {
+	// Not an IP. Digits and dots alone are a malformed IPv4 address, such as
+	// 300.1.1.1 or 1.2.3.4.5, not a host name.
+	if ipv4LikeRegex.MatchString(host) {
+		return errors.Newf("invalid host %q: not a valid IPv4 address", host)
+	}
+	// Not an IP, validate as hostname.
+	if len(host) > hostNameMaxLength {
+		return errors.Newf("invalid host %q: hostname exceeds maximum length of 253 characters", host)
+	}
+	// RFC 1123 hostname validation.
+	if !hostNameRegex.MatchString(host) {
 		return errors.Newf("invalid host %q: give a host name or an IP address, without a port", host)
 	}
 	return nil
