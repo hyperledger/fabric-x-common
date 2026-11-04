@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	cb "github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -50,6 +51,9 @@ const (
 	nodeTestDeliverEndpoint   = "id=1,msp-id=orderer-org-1,deliver,assembler.org1:7060"
 	// nodeTestNewRouterHost is the host the tests move the party's router to.
 	nodeTestNewRouterHost = "router2.org1"
+	// IP hosts that the tests move the party's router to.
+	nodeTestIPv4Host = "10.0.0.5"
+	nodeTestIPv6Host = "2001:db8::7"
 
 	// Node roles, as `--role` names them.
 	nodeTestRouter    = "router"
@@ -145,6 +149,10 @@ func TestPartyNode(t *testing.T) {
 		},
 		{
 			name: "consenter endpoint", role: nodeTestConsenter, host: "consenter2.org1", port: 7152,
+			wantEndpoints: baseEndpoints,
+		},
+		{
+			name: "consenter IPv6 endpoint", role: nodeTestConsenter, host: "2001:db8::5", port: 7152,
 			wantEndpoints: baseEndpoints,
 		},
 		{
@@ -307,6 +315,19 @@ func TestPartyNodeChangesBothAddresses(t *testing.T) {
 			wantRouter:    nodeTestFields{host: nodeTestNewRouterHost, port: 8443},
 			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,router2.org1:8443",
 		},
+		{
+			name:          "IPv4 host",
+			newHost:       nodeTestIPv4Host,
+			wantRouter:    nodeTestFields{host: nodeTestIPv4Host, port: nodeTestRouterPort},
+			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,10.0.0.5:443",
+		},
+		{
+			name:          "IPv6 host",
+			newHost:       nodeTestIPv6Host,
+			newPort:       8443,
+			wantRouter:    nodeTestFields{host: nodeTestIPv6Host, port: 8443},
+			wantBroadcast: "id=1,msp-id=orderer-org-1,broadcast,[2001:db8::7]:8443",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -324,6 +345,45 @@ func TestPartyNodeChangesBothAddresses(t *testing.T) {
 			require.Equal(t, tc.wantRouter.host, router.GetHost())
 			require.Equal(t, tc.wantRouter.port, router.GetPort())
 			require.Equal(t, []string{tc.wantBroadcast, nodeTestDeliverEndpoint}, nodeTestEndpoints(t, edited))
+		})
+	}
+}
+
+// TestPartyNodeEndpointRoundTrip verifies that the broadcast endpoint written
+// for a new router host parses back to the same party, host and port, so that
+// an accepted host cannot add or change an endpoint field.
+func TestPartyNodeEndpointRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	baseBlock := newNodeTestMaterial(t).block
+	for _, tc := range []struct {
+		name string
+		host string
+	}{
+		{name: "host name", host: nodeTestNewRouterHost},
+		{name: "IPv4 host", host: nodeTestIPv4Host},
+		{name: "IPv6 host", host: nodeTestIPv6Host},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			blockPath := writeNodeTestBlock(t, baseBlock)
+			err := modify.New().PartyNode(change.Node{
+				Party: nodeTestParty, Role: nodeTestRouter, Host: tc.host, BlockPath: blockPath,
+			})
+			require.NoError(t, err)
+
+			editedBlock, err := os.ReadFile(blockPath)
+			require.NoError(t, err)
+			addresses := nodeTestEndpoints(t, nodeTestOrderer(t, editedBlock))
+			require.Len(t, addresses, 2)
+			endpoint, err := types.ParseOrdererEndpoint(addresses[0])
+			require.NoError(t, err)
+			require.Equal(t, uint32(nodeTestParty), endpoint.ID)
+			require.Equal(t, nodeTestOrg, endpoint.MspID)
+			require.Equal(t, []string{types.Broadcast}, endpoint.API)
+			require.Equal(t, tc.host, endpoint.Host)
+			require.Equal(t, nodeTestRouterPort, endpoint.Port)
 		})
 	}
 }
@@ -464,6 +524,110 @@ func TestPartyNodeRejects(t *testing.T) {
 			block:   baseBlock,
 			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router2 org1"},
 			wantErr: `invalid host "router2 org1"`,
+		},
+		{
+			name:    "host with an underscore",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router_2.org1"},
+			wantErr: `invalid host "router_2.org1"`,
+		},
+		{
+			name:    "IPv6 host in brackets",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "[2001:db8::7]"},
+			wantErr: `invalid host "[2001:db8::7]"`,
+		},
+		{
+			name:    "IPv6 host with a port",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "[2001:db8::7]:7050"},
+			wantErr: `invalid host "[2001:db8::7]:7050"`,
+		},
+		{
+			name:    "IPv6 host with a zone",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "fe80::1%eth0"},
+			wantErr: `invalid host "fe80::1%eth0"`,
+		},
+		{
+			name:    "IPv6 zone that injects an endpoint",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "fe80::1%x]:1,id=2,[evil.example"},
+			wantErr: `invalid host "fe80::1%x]:1,id=2,[evil.example"`,
+		},
+		{
+			name:    "IPv4 host with a part over 255",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "300.1.1.1"},
+			wantErr: `invalid host "300.1.1.1": not a valid IPv4 address`,
+		},
+		{
+			name:    "IPv4 host with five parts",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "1.2.3.4.5"},
+			wantErr: `invalid host "1.2.3.4.5": not a valid IPv4 address`,
+		},
+		{
+			name:    "IPv4 host with three parts",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "1.2.3"},
+			wantErr: `invalid host "1.2.3": not a valid IPv4 address`,
+		},
+		{
+			// U+212A KELVIN SIGN, which case-insensitive matching takes for 'k'.
+			name:    "host with a Kelvin sign that looks like K",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "K8s.org1"},
+			wantErr: `invalid host "K8s.org1"`,
+		},
+		{
+			// U+017F LATIN SMALL LETTER LONG S, which case-insensitive matching takes for 's'.
+			name:    "host with a long s that looks like s",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "ſerver.org1"},
+			wantErr: `invalid host "ſerver.org1"`,
+		},
+		{
+			name:    "host with an empty label",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router..org1"},
+			wantErr: `invalid host "router..org1"`,
+		},
+		{
+			name:    "host that starts with a dot",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: ".router.org1"},
+			wantErr: `invalid host ".router.org1"`,
+		},
+		{
+			name:    "host that ends with a dot",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router.org1."},
+			wantErr: `invalid host "router.org1."`,
+		},
+		{
+			name:    "host label that starts with a hyphen",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "-router.org1"},
+			wantErr: `invalid host "-router.org1"`,
+		},
+		{
+			name:    "host label that ends with a hyphen",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: "router-.org1"},
+			wantErr: `invalid host "router-.org1"`,
+		},
+		{
+			name:    "host label over 63 characters",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: strings.Repeat("a", 64) + ".org1"},
+			wantErr: "invalid host",
+		},
+		{
+			name:    "host over 253 characters",
+			block:   baseBlock,
+			request: change.Node{Party: nodeTestParty, Role: nodeTestRouter, Host: strings.Repeat("ab.", 84) + "abc"},
+			wantErr: "hostname exceeds maximum length of 253 characters",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
