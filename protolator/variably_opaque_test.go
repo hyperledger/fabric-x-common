@@ -171,9 +171,44 @@ func TestArmaSharedConfigVariablyOpaqueMsg(t *testing.T) {
 					PartiesConfig: []*ordererpb.PartyConfig{
 						{
 							PartyID: 1,
+							RouterConfig: &ordererpb.RouterNodeConfig{
+								NodeConfig: &ordererpb.NodeConfig{
+									Host:          "localhost",
+									Port:          7051,
+									ClientTlsCert: []byte("router-client-tls-cert"),
+									ServerTlsCert: []byte("router-server-tls-cert"),
+									SignCert:      []byte("router-sign-cert"),
+								},
+							},
+							BatchersConfig: []*ordererpb.BatcherNodeConfig{
+								{
+									NodeConfig: &ordererpb.NodeConfig{
+										Host:          "localhost",
+										Port:          7052,
+										ClientTlsCert: []byte("batcher-client-tls-cert"),
+										ServerTlsCert: []byte("batcher-server-tls-cert"),
+										SignCert:      []byte("batcher-sign-cert"),
+									},
+									ShardId: 1,
+								},
+							},
 							ConsenterConfig: &ordererpb.ConsenterNodeConfig{
-								Host: "localhost",
-								Port: 7050,
+								NodeConfig: &ordererpb.NodeConfig{
+									Host:          "localhost",
+									Port:          7050,
+									ClientTlsCert: []byte("consenter-client-tls-cert"),
+									ServerTlsCert: []byte("consenter-server-tls-cert"),
+									SignCert:      []byte("consenter-sign-cert"),
+								},
+							},
+							AssemblerConfig: &ordererpb.AssemblerNodeConfig{
+								NodeConfig: &ordererpb.NodeConfig{
+									Host:          "localhost",
+									Port:          7053,
+									ClientTlsCert: []byte("assembler-client-tls-cert"),
+									ServerTlsCert: []byte("assembler-server-tls-cert"),
+									SignCert:      []byte("assembler-sign-cert"),
+								},
 							},
 						},
 					},
