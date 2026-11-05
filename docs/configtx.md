@@ -837,7 +837,8 @@ Every node configuration embeds the same `NodeConfig` message:
 NodeConfig
 +-- host                         Node hostname or IP
 +-- port                         Node port
-+-- tls_cert                     Node TLS certificate
++-- client_tls_cert              TLS certificate the node presents as a client
++-- server_tls_cert              TLS certificate the node's server presents
 +-- sign_cert                    Node signing certificate
 ```
 

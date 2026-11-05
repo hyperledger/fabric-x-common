@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -245,19 +244,7 @@ func newFollowInputs(t *testing.T, channelID string, assemblerEndpoints []string
 
 	shared := &ordererpb.SharedConfig{}
 	for i, endpoint := range assemblerEndpoints {
-		host, portStr, err := net.SplitHostPort(endpoint)
-		require.NoError(t, err)
-		port, err := strconv.ParseUint(portStr, 10, 32)
-		require.NoError(t, err)
-		shared.PartiesConfig = append(shared.PartiesConfig, &ordererpb.PartyConfig{
-			PartyID: uint32(i + 1),
-			RouterConfig: &ordererpb.RouterNodeConfig{
-				NodeConfig: &ordererpb.NodeConfig{Host: host, Port: uint32(port)},
-			},
-			AssemblerConfig: &ordererpb.AssemblerNodeConfig{
-				NodeConfig: &ordererpb.NodeConfig{Host: host, Port: uint32(port)},
-			},
-		})
+		shared.PartiesConfig = append(shared.PartiesConfig, clienttest.ArmaParty(t, uint32(i+1), endpoint, endpoint))
 	}
 	meta, err := proto.Marshal(shared)
 	require.NoError(t, err)

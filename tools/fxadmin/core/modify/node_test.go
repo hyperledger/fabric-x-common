@@ -69,22 +69,13 @@ const (
 	nodeTestPolicyVersion = 3
 )
 
-// nodeTestConfig is the endpoint and certificate getters that the shared config
-// entries of all four node roles have.
-type nodeTestConfig interface {
-	proto.Message
-	GetHost() string
-	GetPort() uint32
-	GetTlsCert() []byte
-	GetSignCert() []byte
-}
-
 // nodeTestFields is a node's endpoint and certificates.
 type nodeTestFields struct {
-	host     string
-	port     uint32
-	tlsCert  []byte
-	signCert []byte
+	host          string
+	port          uint32
+	clientTLSCert []byte
+	serverTLSCert []byte
+	signCert      []byte
 }
 
 // nodeTestCase is a TestPartyNode case: the node to change, the values to set,
@@ -263,7 +254,8 @@ func TestPartyNodeStoresOnlyTheCertificate(t *testing.T) {
 	require.NotContains(t, string(editedBlock), "extra text")
 	orderer := nodeTestOrderer(t, editedBlock)
 	consenterNode := nodeTestNode(t, nodeTestSharedConfig(t, orderer), nodeTestConsenter, 0)
-	require.Equal(t, tlsCert, consenterNode.GetTlsCert())
+	require.Equal(t, tlsCert, consenterNode.GetClientTlsCert())
+	require.Equal(t, tlsCert, consenterNode.GetServerTlsCert())
 	consenterMapping := nodeTestConsenterOf(t, orderer)
 	require.Equal(t, tlsCert, consenterMapping.GetClientTlsCert())
 	require.Equal(t, tlsCert, consenterMapping.GetServerTlsCert())
@@ -538,24 +530,28 @@ func newNodeTestMaterial(t *testing.T) *nodeTestMaterial {
 	// cryptogen leaves the shared config empty: write the party's entry, with
 	// the org's CAs and the certificates of its consenter.
 	consenter := nodeTestConsenterOf(t, orderer)
-	signCert, tlsCert := consenter.GetIdentity(), consenter.GetServerTlsCert()
+	certs := &nodeTestFields{
+		clientTLSCert: consenter.GetClientTlsCert(),
+		serverTLSCert: consenter.GetServerTlsCert(),
+		signCert:      consenter.GetIdentity(),
+	}
 	shared, err := proto.Marshal(&ordererpb.SharedConfig{
 		PartiesConfig: []*ordererpb.PartyConfig{{
 			PartyID:    nodeTestParty,
 			CACerts:    orgMSP.GetRootCerts(),
 			TLSCACerts: orgMSP.GetTlsRootCerts(),
 			RouterConfig: &ordererpb.RouterNodeConfig{
-				Host: nodeTestRouterHost, Port: nodeTestRouterPort, TlsCert: tlsCert, SignCert: signCert,
+				NodeConfig: nodeTestNodeConfig(nodeTestRouterHost, nodeTestRouterPort, certs),
 			},
 			BatchersConfig: []*ordererpb.BatcherNodeConfig{
-				{ShardID: 1, Host: "batcher1.org1", Port: 7071, SignCert: signCert, TlsCert: tlsCert},
-				{ShardID: 2, Host: "batcher2.org1", Port: 7072, SignCert: signCert, TlsCert: tlsCert},
+				{NodeConfig: nodeTestNodeConfig("batcher1.org1", 7071, certs), ShardId: 1},
+				{NodeConfig: nodeTestNodeConfig("batcher2.org1", 7072, certs), ShardId: 2},
 			},
 			ConsenterConfig: &ordererpb.ConsenterNodeConfig{
-				Host: consenter.GetHost(), Port: consenter.GetPort(), SignCert: signCert, TlsCert: tlsCert,
+				NodeConfig: nodeTestNodeConfig(consenter.GetHost(), consenter.GetPort(), certs),
 			},
 			AssemblerConfig: &ordererpb.AssemblerNodeConfig{
-				Host: nodeTestAssemblerHost, Port: nodeTestAssemblerPort, TlsCert: tlsCert, SignCert: signCert,
+				NodeConfig: nodeTestNodeConfig(nodeTestAssemblerHost, nodeTestAssemblerPort, certs),
 			},
 		}},
 		MaxPartyID: nodeTestParty,
@@ -578,6 +574,18 @@ func newNodeTestMaterial(t *testing.T) *nodeTestMaterial {
 		newTLSCert: readNodeTestFile(t, filepath.Join(spareNodeDir, cryptogen.TLSDir, "server.crt")),
 		newSignCert: readNodeTestFile(t, filepath.Join(spareNodeDir, cryptogen.MSPDir, cryptogen.SignCertsDir,
 			nodeTestSpareNode+cryptogen.CertSuffix)),
+	}
+}
+
+// nodeTestNodeConfig returns a node config with the given endpoint and the
+// certificates of certs.
+func nodeTestNodeConfig(host string, port uint32, certs *nodeTestFields) *ordererpb.NodeConfig {
+	return &ordererpb.NodeConfig{
+		Host:          host,
+		Port:          port,
+		ClientTlsCert: certs.clientTLSCert,
+		ServerTlsCert: certs.serverTLSCert,
+		SignCert:      certs.signCert,
 	}
 }
 
@@ -656,35 +664,40 @@ func nodeTestSharedConfig(t *testing.T, orderer *cb.ConfigGroup) *ordererpb.Shar
 	return shared
 }
 
-// nodeTestNode returns the shared config entry of nodeTestParty's node of the
-// given role (and shard, for a batcher).
-func nodeTestNode(t *testing.T, shared *ordererpb.SharedConfig, role string, shard uint32) nodeTestConfig {
+// nodeTestNode returns the endpoint and certificates of nodeTestParty's node of
+// the given role (and shard, for a batcher).
+func nodeTestNode(t *testing.T, shared *ordererpb.SharedConfig, role string, shard uint32) *ordererpb.NodeConfig {
 	t.Helper()
 	parties := shared.GetPartiesConfig()
 	require.Len(t, parties, 1)
 	party := parties[0]
+	var node *ordererpb.NodeConfig
 	switch role {
 	case nodeTestRouter:
-		return party.GetRouterConfig()
+		node = party.GetRouterConfig().GetNodeConfig()
 	case nodeTestConsenter:
-		return party.GetConsenterConfig()
+		node = party.GetConsenterConfig().GetNodeConfig()
 	case nodeTestAssembler:
-		return party.GetAssemblerConfig()
+		node = party.GetAssemblerConfig().GetNodeConfig()
 	default:
 		for _, batcher := range party.GetBatchersConfig() {
-			if batcher.GetShardID() == shard {
-				return batcher
+			if batcher.GetShardId() == shard {
+				node = batcher.GetNodeConfig()
 			}
 		}
-		require.FailNow(t, "no such node", "role %s, shard %d", role, shard)
-		return nil
 	}
+	require.NotNil(t, node, "no node of role %s, shard %d", role, shard)
+	return node
 }
 
 // nodeTestFieldsOf returns a node config's endpoint and certificates.
-func nodeTestFieldsOf(node nodeTestConfig) nodeTestFields {
+func nodeTestFieldsOf(node *ordererpb.NodeConfig) nodeTestFields {
 	return nodeTestFields{
-		host: node.GetHost(), port: node.GetPort(), tlsCert: node.GetTlsCert(), signCert: node.GetSignCert(),
+		host:          node.GetHost(),
+		port:          node.GetPort(),
+		clientTLSCert: node.GetClientTlsCert(),
+		serverTLSCert: node.GetServerTlsCert(),
+		signCert:      node.GetSignCert(),
 	}
 }
 
@@ -746,7 +759,8 @@ func nodeTestRequestOf(
 		want.port = tc.port
 	}
 	if tc.tlsCert {
-		request.TLSCert, want.tlsCert = certs.tlsCertPath, certs.tlsCert
+		// The one TLS certificate is set as both the client and the server certificate.
+		request.TLSCert, want.clientTLSCert, want.serverTLSCert = certs.tlsCertPath, certs.tlsCert, certs.tlsCert
 	}
 	if tc.signCert {
 		request.SignCert, want.signCert = certs.signCertPath, certs.signCert
@@ -762,7 +776,7 @@ func wantNodeTestConsenter(t *testing.T, base *cb.ConfigGroup, role string, want
 	consenter := nodeTestConsenterOf(t, base)
 	if role == nodeTestConsenter {
 		consenter.Host, consenter.Port = want.host, want.port
-		consenter.ClientTlsCert, consenter.ServerTlsCert = want.tlsCert, want.tlsCert
+		consenter.ClientTlsCert, consenter.ServerTlsCert = want.clientTLSCert, want.serverTLSCert
 		consenter.Identity = want.signCert
 	}
 	return consenter

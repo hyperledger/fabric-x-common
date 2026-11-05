@@ -33,8 +33,8 @@ import (
 )
 
 const (
-	routerHost    = "router1.example.com"
-	assemblerHost = "assembler1.example.com"
+	routerEndpoint    = "router1.example.com:8013"
+	assemblerEndpoint = "assembler1.example.com:8011"
 )
 
 func enabled() *bool { b := true; return &b }
@@ -45,16 +45,9 @@ func TestLoad(t *testing.T) {
 	t.Run("builds a client from a config block and a loadable MSP", func(t *testing.T) {
 		t.Parallel()
 		sharedConfig := &ordererpb.SharedConfig{
-			PartiesConfig: []*ordererpb.PartyConfig{{
-				PartyID:    1,
-				TLSCACerts: [][]byte{[]byte("ca-1")},
-				RouterConfig: &ordererpb.RouterNodeConfig{
-					NodeConfig: &ordererpb.NodeConfig{Host: routerHost, Port: 8013},
-				},
-				AssemblerConfig: &ordererpb.AssemblerNodeConfig{
-					NodeConfig: &ordererpb.NodeConfig{Host: assemblerHost, Port: 8011},
-				},
-			}},
+			PartiesConfig: []*ordererpb.PartyConfig{
+				clientTestParty(t),
+			},
 		}
 		block, mspDir, mspID := newConfigBlockWithMSP(t, "arma", sharedConfig)
 
@@ -62,8 +55,8 @@ func TestLoad(t *testing.T) {
 		client, err := load(config, block, factory.GetDefault())
 		require.NoError(t, err)
 		require.Equal(t, "arma", client.ChannelID())
-		require.Equal(t, []string{"router1.example.com:8013"}, client.ordererConnInfo.RouterEndpoints)
-		require.Equal(t, []string{"assembler1.example.com:8011"}, client.ordererConnInfo.AssemblerEndpoints)
+		require.Equal(t, []string{routerEndpoint}, client.ordererConnInfo.RouterEndpoints)
+		require.Equal(t, []string{assemblerEndpoint}, client.ordererConnInfo.AssemblerEndpoints)
 		require.Equal(t, [][]byte{[]byte("ca-1")}, client.ordererConnInfo.TLSCACerts)
 		require.NotNil(t, client.signer)
 		require.False(t, client.clientConfig.SecOpts.UseTLS)
@@ -81,16 +74,9 @@ func TestLoad(t *testing.T) {
 	t.Run("errors when the MSP directory cannot be loaded", func(t *testing.T) {
 		t.Parallel()
 		sharedConfig := &ordererpb.SharedConfig{
-			PartiesConfig: []*ordererpb.PartyConfig{{
-				PartyID:    1,
-				TLSCACerts: [][]byte{[]byte("ca-1")},
-				RouterConfig: &ordererpb.RouterNodeConfig{
-					NodeConfig: &ordererpb.NodeConfig{Host: routerHost, Port: 8013},
-				},
-				AssemblerConfig: &ordererpb.AssemblerNodeConfig{
-					NodeConfig: &ordererpb.NodeConfig{Host: assemblerHost, Port: 8011},
-				},
-			}},
+			PartiesConfig: []*ordererpb.PartyConfig{
+				clientTestParty(t),
+			},
 		}
 		block, _, _ := newConfigBlockWithMSP(t, "arma", sharedConfig)
 
@@ -107,16 +93,9 @@ func TestLoadFromFiles(t *testing.T) {
 	t.Parallel()
 
 	sharedConfig := &ordererpb.SharedConfig{
-		PartiesConfig: []*ordererpb.PartyConfig{{
-			PartyID:    1,
-			TLSCACerts: [][]byte{[]byte("ca-1")},
-			RouterConfig: &ordererpb.RouterNodeConfig{
-				NodeConfig: &ordererpb.NodeConfig{Host: routerHost, Port: 8013},
-			},
-			AssemblerConfig: &ordererpb.AssemblerNodeConfig{
-				NodeConfig: &ordererpb.NodeConfig{Host: assemblerHost, Port: 8011},
-			},
-		}},
+		PartiesConfig: []*ordererpb.PartyConfig{
+			clientTestParty(t),
+		},
 	}
 	block, mspDir, mspID := newConfigBlockWithMSP(t, "arma", sharedConfig)
 	blockPath := filepath.Join(t.TempDir(), "current.pb")
@@ -130,7 +109,7 @@ func TestLoadFromFiles(t *testing.T) {
 	c, err := LoadFromFiles(configPath, blockPath, factory.GetDefault())
 	require.NoError(t, err)
 	require.Equal(t, "arma", c.ChannelID())
-	require.Equal(t, []string{"router1.example.com:8013"}, c.ordererConnInfo.RouterEndpoints)
+	require.Equal(t, []string{routerEndpoint}, c.ordererConnInfo.RouterEndpoints)
 }
 
 // TestLoadFromFilesErrors asserts the loader reports readable errors for a
@@ -211,16 +190,9 @@ func TestSequenceFromBlock(t *testing.T) {
 	t.Parallel()
 
 	sharedConfig := &ordererpb.SharedConfig{
-		PartiesConfig: []*ordererpb.PartyConfig{{
-			PartyID:    1,
-			TLSCACerts: [][]byte{[]byte("ca-1")},
-			RouterConfig: &ordererpb.RouterNodeConfig{
-				NodeConfig: &ordererpb.NodeConfig{Host: routerHost, Port: 8013},
-			},
-			AssemblerConfig: &ordererpb.AssemblerNodeConfig{
-				NodeConfig: &ordererpb.NodeConfig{Host: assemblerHost, Port: 8011},
-			},
-		}},
+		PartiesConfig: []*ordererpb.PartyConfig{
+			clientTestParty(t),
+		},
 	}
 	block, _, _ := newConfigBlockWithMSP(t, "arma", sharedConfig)
 
@@ -467,4 +439,14 @@ func writeClientCertKeyPair(t *testing.T) clientCertKeyPair {
 	require.NoError(t, os.WriteFile(kp.certPath, pair.Cert, 0o600))
 	require.NoError(t, os.WriteFile(kp.keyPath, pair.Key, 0o600))
 	return kp
+}
+
+// clientTestParty returns the one party of the tests' shared configs: its router
+// and assembler listen on routerEndpoint and assemblerEndpoint, and its TLS CA
+// certificate is "ca-1".
+func clientTestParty(t *testing.T) *ordererpb.PartyConfig {
+	t.Helper()
+	party := test.ArmaParty(t, 1, routerEndpoint, assemblerEndpoint)
+	party.TLSCACerts = [][]byte{[]byte("ca-1")}
+	return party
 }
