@@ -8,10 +8,8 @@ package tx_test
 
 import (
 	"bytes"
-	"net"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -60,10 +58,10 @@ func TestSendWritesPreparedTx(t *testing.T) {
 	endorsedPath := endorse(t, client, rawConfigUpdate)
 	outputPath := filepath.Join(t.TempDir(), "config_tx.pb")
 
-	// The broadcast fails because the generated block has no router endpoints,
-	// but the prepared transaction must still have been written for the record.
+	// The broadcast fails because the generated block's shared config has no
+	// parties, but the prepared transaction must still have been written for the record.
 	err := tx.New().Send(endorsedPath, client.configPath, client.blockPath, outputPath)
-	require.ErrorContains(t, err, "no router endpoints")
+	require.ErrorContains(t, err, "the ARMA shared config has no parties")
 
 	out, err := os.ReadFile(outputPath)
 	require.NoError(t, err)
@@ -238,7 +236,7 @@ func TestSubmitBelowQuorum(t *testing.T) {
 }
 
 // TestSubmitNoRouters asserts that `tx submit` fails when the config block
-// carries no router endpoints to broadcast to. The failure surfaces while
+// carries no parties, so no router to broadcast to. The failure surfaces while
 // loading the client from the block, before any broadcast is attempted.
 func TestSubmitNoRouters(t *testing.T) {
 	t.Parallel()
@@ -247,7 +245,7 @@ func TestSubmitNoRouters(t *testing.T) {
 	txPath := writeFile(t, marshalConfigTx(t, "test-channel"))
 
 	err := tx.New().Submit(txPath, configPath, blockPath)
-	require.ErrorContains(t, err, "no router endpoints")
+	require.ErrorContains(t, err, "the ARMA shared config has no parties")
 }
 
 // TestEndorse asserts that `tx endorse` wraps the input ConfigUpdate in a
@@ -710,12 +708,7 @@ func newSubmitInputs(t *testing.T, channelID string, routerEndpoints []string) (
 
 	shared := &ordererpb.SharedConfig{}
 	for i, endpoint := range routerEndpoints {
-		host, port := splitHostPort(t, endpoint)
-		shared.PartiesConfig = append(shared.PartiesConfig, &ordererpb.PartyConfig{
-			PartyID:         uint32(i + 1),
-			RouterConfig:    &ordererpb.RouterNodeConfig{NodeConfig: &ordererpb.NodeConfig{Host: host, Port: port}},
-			AssemblerConfig: &ordererpb.AssemblerNodeConfig{NodeConfig: &ordererpb.NodeConfig{Host: host, Port: port}},
-		})
+		shared.PartiesConfig = append(shared.PartiesConfig, test.ArmaParty(t, uint32(i+1), endpoint, endpoint))
 	}
 	return writeSubmitInputs(t, channelID, shared)
 }
@@ -767,14 +760,4 @@ func writeSubmitInputs(t *testing.T, channelID string, shared *ordererpb.SharedC
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(configPath, content, 0o600))
 	return blockPath, configPath
-}
-
-// splitHostPort splits a "host:port" address into its host and numeric port.
-func splitHostPort(t *testing.T, address string) (host string, port uint32) {
-	t.Helper()
-	host, portStr, err := net.SplitHostPort(address)
-	require.NoError(t, err)
-	p, err := strconv.ParseUint(portStr, 10, 32)
-	require.NoError(t, err)
-	return host, uint32(p)
 }

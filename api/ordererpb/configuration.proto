@@ -48,11 +48,13 @@ message NodeConfig {
     string host = 1;
     // the port on which the gRPC server will listen
     uint32 port = 2;
-    // the certificate used to authenticate with clients
-    bytes tls_cert = 3;
-    // the signing certificate (that includes the public key) of the node,
-    // used to authenticate signatures it produces (e.g., BAS's by a batcher, blocks by a consenter)
-    bytes sign_cert = 4;
+    // the TLS certificate the node presents when it connects, as a client, to other nodes
+    bytes client_tls_cert = 3;
+    // the TLS certificate the node's gRPC server presents to its clients
+    bytes server_tls_cert = 4;
+    // the signing certificate (that includes the public key) of the node, used to authenticate signatures
+    // it produces: BAFs by a batcher, decisions and blocks by a consenter, and Delivery API SeekInfo requests by all
+    bytes sign_cert = 5;
 }
 
 message RouterNodeConfig {
