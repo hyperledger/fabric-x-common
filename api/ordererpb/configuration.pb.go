@@ -207,11 +207,13 @@ type NodeConfig struct {
 	Host string `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
 	// the port on which the gRPC server will listen
 	Port uint32 `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
-	// the certificate used to authenticate with clients
-	TlsCert []byte `protobuf:"bytes,3,opt,name=tls_cert,json=tlsCert,proto3" json:"tls_cert,omitempty"`
-	// the signing certificate (that includes the public key) of the node,
-	// used to authenticate signatures it produces (e.g., BAS's by a batcher, blocks by a consenter)
-	SignCert      []byte `protobuf:"bytes,4,opt,name=sign_cert,json=signCert,proto3" json:"sign_cert,omitempty"`
+	// the TLS certificate the node presents when it connects, as a client, to other nodes
+	ClientTlsCert []byte `protobuf:"bytes,3,opt,name=client_tls_cert,json=clientTlsCert,proto3" json:"client_tls_cert,omitempty"`
+	// the TLS certificate the node's gRPC server presents to its clients
+	ServerTlsCert []byte `protobuf:"bytes,4,opt,name=server_tls_cert,json=serverTlsCert,proto3" json:"server_tls_cert,omitempty"`
+	// the signing certificate (that includes the public key) of the node, used to authenticate signatures
+	// it produces: BAFs by a batcher, decisions and blocks by a consenter, and Delivery API SeekInfo requests by all
+	SignCert      []byte `protobuf:"bytes,5,opt,name=sign_cert,json=signCert,proto3" json:"sign_cert,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -260,9 +262,16 @@ func (x *NodeConfig) GetPort() uint32 {
 	return 0
 }
 
-func (x *NodeConfig) GetTlsCert() []byte {
+func (x *NodeConfig) GetClientTlsCert() []byte {
 	if x != nil {
-		return x.TlsCert
+		return x.ClientTlsCert
+	}
+	return nil
+}
+
+func (x *NodeConfig) GetServerTlsCert() []byte {
+	if x != nil {
+		return x.ServerTlsCert
 	}
 	return nil
 }
@@ -975,13 +984,14 @@ const file_api_ordererpb_configuration_proto_rawDesc = "" +
 	"\fRouterConfig\x18\x04 \x01(\v2\x1b.ordererpb.RouterNodeConfigR\fRouterConfig\x12D\n" +
 	"\x0eBatchersConfig\x18\x05 \x03(\v2\x1c.ordererpb.BatcherNodeConfigR\x0eBatchersConfig\x12H\n" +
 	"\x0fConsenterConfig\x18\x06 \x01(\v2\x1e.ordererpb.ConsenterNodeConfigR\x0fConsenterConfig\x12H\n" +
-	"\x0fAssemblerConfig\x18\a \x01(\v2\x1e.ordererpb.AssemblerNodeConfigR\x0fAssemblerConfig\"l\n" +
+	"\x0fAssemblerConfig\x18\a \x01(\v2\x1e.ordererpb.AssemblerNodeConfigR\x0fAssemblerConfig\"\xa1\x01\n" +
 	"\n" +
 	"NodeConfig\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
-	"\x04port\x18\x02 \x01(\rR\x04port\x12\x19\n" +
-	"\btls_cert\x18\x03 \x01(\fR\atlsCert\x12\x1b\n" +
-	"\tsign_cert\x18\x04 \x01(\fR\bsignCert\"J\n" +
+	"\x04port\x18\x02 \x01(\rR\x04port\x12&\n" +
+	"\x0fclient_tls_cert\x18\x03 \x01(\fR\rclientTlsCert\x12&\n" +
+	"\x0fserver_tls_cert\x18\x04 \x01(\fR\rserverTlsCert\x12\x1b\n" +
+	"\tsign_cert\x18\x05 \x01(\fR\bsignCert\"J\n" +
 	"\x10RouterNodeConfig\x126\n" +
 	"\vnode_config\x18\x01 \x01(\v2\x15.ordererpb.NodeConfigR\n" +
 	"nodeConfig\"f\n" +

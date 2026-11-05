@@ -49,15 +49,6 @@ type nodeChange struct {
 	signCert []byte
 }
 
-// nodeFields points at the endpoint and certificate fields of one node's entry
-// in the shared config, fields that every node config has.
-type nodeFields struct {
-	host     *string
-	port     *uint32
-	tlsCert  *[]byte
-	signCert *[]byte
-}
-
 // decodedConsensusType is the Orderer group's ConsensusType config value with
 // its two encoded layers decoded: the ConsensusType it holds, and the ARMA
 // shared config that is the ConsensusType's metadata. It keeps every layer, so
@@ -223,18 +214,18 @@ func changeNode(orderer *cb.ConfigGroup, nc *nodeChange) error {
 	if party == nil {
 		return errors.Newf("the shared config has no party %d", nc.party)
 	}
-	fields, err := nodeFieldsOf(party, nc)
+	node, err := nodeConfigOf(party, nc)
 	if err != nil {
 		return err
 	}
-	setNodeFields(fields, nc)
+	setNodeConfig(node, nc)
 	if err = consensusType.encode(); err != nil {
 		return err
 	}
 
 	switch nc.role {
 	case nodeRoleConsenter:
-		return syncConsenter(orderer, nc, fields)
+		return syncConsenter(orderer, nc, node)
 	case nodeRoleRouter, nodeRoleAssembler:
 		return syncPartyEndpoint(orderer, nc)
 	default:
@@ -242,58 +233,57 @@ func changeNode(orderer *cb.ConfigGroup, nc *nodeChange) error {
 	}
 }
 
-// nodeFieldsOf returns the fields of the node the change selects in the
-// party's shared config entry.
-func nodeFieldsOf(party *ordererpb.PartyConfig, nc *nodeChange) (*nodeFields, error) {
-	missing := errors.Newf("party %d has no %s", nc.party, nodeName(nc))
+// nodeConfigOf returns the endpoint and certificates of the node the change
+// selects in the party's shared config entry.
+func nodeConfigOf(party *ordererpb.PartyConfig, nc *nodeChange) (*ordererpb.NodeConfig, error) {
+	var node *ordererpb.NodeConfig
 	switch nc.role {
 	case nodeRoleRouter:
-		if c := party.GetRouterConfig(); c != nil {
-			return &nodeFields{host: &c.Host, port: &c.Port, tlsCert: &c.TlsCert, signCert: &c.SignCert}, nil
-		}
+		node = party.GetRouterConfig().GetNodeConfig()
 	case nodeRoleConsenter:
-		if c := party.GetConsenterConfig(); c != nil {
-			return &nodeFields{host: &c.Host, port: &c.Port, tlsCert: &c.TlsCert, signCert: &c.SignCert}, nil
-		}
+		node = party.GetConsenterConfig().GetNodeConfig()
 	case nodeRoleAssembler:
-		if c := party.GetAssemblerConfig(); c != nil {
-			return &nodeFields{host: &c.Host, port: &c.Port, tlsCert: &c.TlsCert, signCert: &c.SignCert}, nil
-		}
+		node = party.GetAssemblerConfig().GetNodeConfig()
 	case nodeRoleBatcher:
 		for _, c := range party.GetBatchersConfig() {
-			if c.GetShardID() == nc.shard {
-				return &nodeFields{host: &c.Host, port: &c.Port, tlsCert: &c.TlsCert, signCert: &c.SignCert}, nil
+			if c.GetShardId() == nc.shard {
+				node = c.GetNodeConfig()
+				break
 			}
 		}
 	default:
 		return nil, errors.Newf("unknown node role %q", nc.role)
 	}
-	return nil, missing
+	if node == nil {
+		return nil, errors.Newf("party %d has no %s", nc.party, nodeName(nc))
+	}
+	return node, nil
 }
 
-// setNodeFields sets each field the change gives a value for.
-func setNodeFields(fields *nodeFields, nc *nodeChange) {
+// setNodeConfig sets each field the change gives a value for. The TLS
+// certificate is set as both the node's client and its server TLS certificate.
+func setNodeConfig(node *ordererpb.NodeConfig, nc *nodeChange) {
 	if nc.host != "" {
-		*fields.host = nc.host
+		node.Host = nc.host
 	}
 	if nc.port != 0 {
-		*fields.port = nc.port
+		node.Port = nc.port
 	}
 	if nc.tlsCert != nil {
-		*fields.tlsCert = nc.tlsCert
+		node.ClientTlsCert, node.ServerTlsCert = nc.tlsCert, nc.tlsCert
 	}
 	if nc.signCert != nil {
-		*fields.signCert = nc.signCert
+		node.SignCert = nc.signCert
 	}
 }
 
 // syncConsenter applies the consenter's changed fields to its entry in the
 // Orderers consenter mapping, which the orderer requires to match the
-// consenter's shared config entry: its endpoint, its TLS certificate as both
-// the client and the server certificate, and its signing certificate as its
-// identity. The BlockValidation policy lists the consenters' identities, so a
-// new signing certificate also recomputes it.
-func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFields) error {
+// consenter's shared config entry: its endpoint, its client and server TLS
+// certificates, and its signing certificate as its identity. The
+// BlockValidation policy lists the consenters' identities, so a new signing
+// certificate also recomputes it.
+func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, node *ordererpb.NodeConfig) error {
 	value := orderer.GetValues()[channelconfig.OrderersKey]
 	if value == nil {
 		return errors.Newf("the %s group has no %s value", channelconfig.OrdererGroupKey, channelconfig.OrderersKey)
@@ -314,13 +304,13 @@ func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFields) 
 	}
 
 	if nc.host != "" || nc.port != 0 {
-		consenter.Host, consenter.Port = *fields.host, *fields.port
+		consenter.Host, consenter.Port = node.GetHost(), node.GetPort()
 	}
 	if nc.tlsCert != nil {
-		consenter.ClientTlsCert, consenter.ServerTlsCert = *fields.tlsCert, *fields.tlsCert
+		consenter.ClientTlsCert, consenter.ServerTlsCert = node.GetClientTlsCert(), node.GetServerTlsCert()
 	}
 	if nc.signCert != nil {
-		consenter.Identity = *fields.signCert
+		consenter.Identity = node.GetSignCert()
 	}
 	content, err := helpers.DeterministicMarshal.Marshal(orderers)
 	if err != nil {
