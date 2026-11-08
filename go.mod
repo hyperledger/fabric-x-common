@@ -9,6 +9,7 @@ go 1.27.3
 require (
 	github.com/IBM/idemix v0.3.1
 	github.com/alecthomas/kingpin/v2 v2.4.0
+	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/cockroachdb/errors v1.14.0
 	github.com/expr-lang/expr v1.17.8
 	github.com/go-viper/mapstructure/v2 v2.5.0
