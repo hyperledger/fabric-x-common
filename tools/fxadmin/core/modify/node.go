@@ -49,15 +49,6 @@ type nodeChange struct {
 	signCert []byte
 }
 
-// nodeFields points at the endpoint and certificate fields of one node's entry
-// in the shared config, fields that every node config has.
-type nodeFields struct {
-	host     *string
-	port     *uint32
-	tlsCert  *[]byte
-	signCert *[]byte
-}
-
 // decodedConsensusType is the Orderer group's ConsensusType config value with
 // its two encoded layers decoded: the ConsensusType it holds, and the ARMA
 // shared config that is the ConsensusType's metadata. It keeps every layer, so
@@ -223,18 +214,18 @@ func changeNode(orderer *cb.ConfigGroup, nc *nodeChange) error {
 	if party == nil {
 		return errors.Newf("the shared config has no party %d", nc.party)
 	}
-	fields, err := nodeFieldsOf(party, nc)
+	node, err := nodeConfigOf(party, nc)
 	if err != nil {
 		return err
 	}
-	setNodeFields(fields, nc)
+	setNodeConfig(node, nc)
 	if err = consensusType.encode(); err != nil {
 		return err
 	}
 
 	switch nc.role {
 	case nodeRoleConsenter:
-		return syncConsenter(orderer, nc, fields)
+		return syncConsenter(orderer, nc, node)
 	case nodeRoleRouter, nodeRoleAssembler:
 		return syncPartyEndpoint(orderer, nc)
 	default:
@@ -242,68 +233,63 @@ func changeNode(orderer *cb.ConfigGroup, nc *nodeChange) error {
 	}
 }
 
-// nodeFieldsOf returns the fields of the node the change selects in the
-// party's shared config entry.
-func nodeFieldsOf(party *ordererpb.PartyConfig, nc *nodeChange) (*nodeFields, error) {
-	missing := errors.Newf("party %d has no %s", nc.party, nodeName(nc))
+// nodeConfigOf returns the endpoint and certificates of the node the change
+// selects in the party's shared config entry.
+func nodeConfigOf(party *ordererpb.PartyConfig, nc *nodeChange) (*ordererpb.NodeConfig, error) {
+	var node *ordererpb.NodeConfig
 	switch nc.role {
 	case nodeRoleRouter:
-		if c := party.GetRouterConfig(); c != nil {
-			return &nodeFields{host: &c.Host, port: &c.Port, tlsCert: &c.TlsCert, signCert: &c.SignCert}, nil
-		}
+		node = party.GetRouterConfig().GetNodeConfig()
 	case nodeRoleConsenter:
-		if c := party.GetConsenterConfig(); c != nil {
-			return &nodeFields{host: &c.Host, port: &c.Port, tlsCert: &c.TlsCert, signCert: &c.SignCert}, nil
-		}
+		node = party.GetConsenterConfig().GetNodeConfig()
 	case nodeRoleAssembler:
-		if c := party.GetAssemblerConfig(); c != nil {
-			return &nodeFields{host: &c.Host, port: &c.Port, tlsCert: &c.TlsCert, signCert: &c.SignCert}, nil
-		}
+		node = party.GetAssemblerConfig().GetNodeConfig()
 	case nodeRoleBatcher:
 		for _, c := range party.GetBatchersConfig() {
-			if c.GetShardID() == nc.shard {
-				return &nodeFields{host: &c.Host, port: &c.Port, tlsCert: &c.TlsCert, signCert: &c.SignCert}, nil
+			if c.GetShardId() == nc.shard {
+				node = c.GetNodeConfig()
+				break
 			}
 		}
 	default:
 		return nil, errors.Newf("unknown node role %q", nc.role)
 	}
-	return nil, missing
+	if node == nil {
+		return nil, errors.Newf("party %d has no %s", nc.party, nodeName(nc))
+	}
+	return node, nil
 }
 
-// setNodeFields sets each field the change gives a value for.
-func setNodeFields(fields *nodeFields, nc *nodeChange) {
+// setNodeConfig sets each field the change gives a value for. The TLS
+// certificate is set as both the node's client and its server TLS certificate.
+func setNodeConfig(node *ordererpb.NodeConfig, nc *nodeChange) {
 	if nc.host != "" {
-		*fields.host = nc.host
+		node.Host = nc.host
 	}
 	if nc.port != 0 {
-		*fields.port = nc.port
+		node.Port = nc.port
 	}
 	if nc.tlsCert != nil {
-		*fields.tlsCert = nc.tlsCert
+		node.ClientTlsCert, node.ServerTlsCert = nc.tlsCert, nc.tlsCert
 	}
 	if nc.signCert != nil {
-		*fields.signCert = nc.signCert
+		node.SignCert = nc.signCert
 	}
 }
 
 // syncConsenter applies the consenter's changed fields to its entry in the
 // Orderers consenter mapping, which the orderer requires to match the
-// consenter's shared config entry: its endpoint, its TLS certificate as both
-// the client and the server certificate, and its signing certificate as its
-// identity. The BlockValidation policy lists the consenters' identities, so a
-// new signing certificate also recomputes it.
-func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFields) error {
-	value := orderer.GetValues()[channelconfig.OrderersKey]
-	if value == nil {
-		return errors.Newf("the %s group has no %s value", channelconfig.OrdererGroupKey, channelconfig.OrderersKey)
-	}
-	orderers := &cb.Orderers{}
-	if err := proto.Unmarshal(value.GetValue(), orderers); err != nil {
-		return errors.Wrap(err, "failed to unmarshal the Orderers value")
+// consenter's shared config entry: its endpoint, its client and server TLS
+// certificates, and its signing certificate as its identity. The
+// BlockValidation policy lists the consenters' identities, so a new signing
+// certificate also recomputes it.
+func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, node *ordererpb.NodeConfig) error {
+	orderers, err := decodeOrderers(orderer)
+	if err != nil {
+		return err
 	}
 	var consenter *cb.Consenter
-	for _, c := range orderers.GetConsenterMapping() {
+	for _, c := range orderers.orderers.GetConsenterMapping() {
 		if c.GetId() == nc.party {
 			consenter = c
 			break
@@ -314,24 +300,56 @@ func syncConsenter(orderer *cb.ConfigGroup, nc *nodeChange, fields *nodeFields) 
 	}
 
 	if nc.host != "" || nc.port != 0 {
-		consenter.Host, consenter.Port = *fields.host, *fields.port
+		consenter.Host, consenter.Port = node.GetHost(), node.GetPort()
 	}
 	if nc.tlsCert != nil {
-		consenter.ClientTlsCert, consenter.ServerTlsCert = *fields.tlsCert, *fields.tlsCert
+		consenter.ClientTlsCert, consenter.ServerTlsCert = node.GetClientTlsCert(), node.GetServerTlsCert()
 	}
 	if nc.signCert != nil {
-		consenter.Identity = *fields.signCert
+		consenter.Identity = node.GetSignCert()
 	}
-	content, err := helpers.DeterministicMarshal.Marshal(orderers)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal the Orderers value")
+	if err := orderers.encode(); err != nil {
+		return err
 	}
-	value.Value = content
 
 	if nc.signCert == nil {
 		return nil
 	}
-	return recomputeBlockValidation(orderer, orderers.GetConsenterMapping())
+	return recomputeBlockValidation(orderer, orderers.orderers.GetConsenterMapping())
+}
+
+// decodedOrderers is the Orderer group's Orderers config value with the
+// consenter mapping it holds decoded. It keeps the config value, so that encode
+// can write a changed mapping back into it.
+type decodedOrderers struct {
+	configValue *cb.ConfigValue
+	orderers    *cb.Orderers
+}
+
+// decodeOrderers decodes the Orderer group's Orderers config value, which
+// lists the consenters.
+func decodeOrderers(orderer *cb.ConfigGroup) (*decodedOrderers, error) {
+	configValue := orderer.GetValues()[channelconfig.OrderersKey]
+	if configValue == nil {
+		return nil, errors.Newf("the %s group has no %s value", channelconfig.OrdererGroupKey,
+			channelconfig.OrderersKey)
+	}
+	orderers := &cb.Orderers{}
+	if err := proto.Unmarshal(configValue.GetValue(), orderers); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal the Orderers value")
+	}
+	return &decodedOrderers{configValue: configValue, orderers: orderers}, nil
+}
+
+// encode writes the consenter mapping, with any change made to it, back into
+// the config value.
+func (d *decodedOrderers) encode() error {
+	content, err := helpers.DeterministicMarshal.Marshal(d.orderers)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal the Orderers value")
+	}
+	d.configValue.Value = content
+	return nil
 }
 
 // recomputeBlockValidation recomputes the Orderer group's BlockValidation
@@ -381,13 +399,9 @@ func syncPartyEndpoint(orderer *cb.ConfigGroup, nc *nodeChange) error {
 // and reports whether it moved any. Only the parts the change sets are replaced:
 // --host alone keeps the endpoint's port, and --port alone keeps its host.
 func movePartyEndpoint(org *cb.ConfigGroup, nc *nodeChange, api string) (bool, error) {
-	value := org.GetValues()[channelconfig.EndpointsKey]
-	if value == nil {
-		return false, nil
-	}
-	addresses := &cb.OrdererAddresses{}
-	if err := proto.Unmarshal(value.GetValue(), addresses); err != nil {
-		return false, errors.Wrap(err, "failed to unmarshal the Endpoints value")
+	value, addresses, err := decodeOrgEndpoints(org)
+	if err != nil || value == nil {
+		return false, err
 	}
 	moved := false
 	for i, address := range addresses.GetAddresses() {
@@ -418,6 +432,20 @@ func movePartyEndpoint(org *cb.ConfigGroup, nc *nodeChange, api string) (bool, e
 	}
 	value.Value = content
 	return true, nil
+}
+
+// decodeOrgEndpoints returns the org's Endpoints config value and the
+// addresses it holds. Both are nil if the org has no Endpoints value.
+func decodeOrgEndpoints(org *cb.ConfigGroup) (*cb.ConfigValue, *cb.OrdererAddresses, error) {
+	value := org.GetValues()[channelconfig.EndpointsKey]
+	if value == nil {
+		return nil, nil, nil
+	}
+	addresses := &cb.OrdererAddresses{}
+	if err := proto.Unmarshal(value.GetValue(), addresses); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal the Endpoints value")
+	}
+	return value, addresses, nil
 }
 
 // decodeConsensusType decodes the Orderer group's ConsensusType config value
