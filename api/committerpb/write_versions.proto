@@ -1,0 +1,29 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+option go_package = "github.com/hyperledger/fabric-x-common/api/committerpb";
+
+package committerpb;
+
+// CommittedWriteVersion reports the state version of a committed write.
+message CommittedWriteVersion {
+    // The key from the original read-write or blind-write set.
+    bytes key = 1;
+
+    // The state version assigned by the committer. Zero is a valid version.
+    uint64 version = 2;
+}
+
+// NamespaceWriteVersions groups committed write versions by namespace.
+message NamespaceWriteVersions {
+    // The namespace ID from the original transaction.
+    string ns_id = 1;
+
+    // Committed versions, associated with the original writes by key.
+    repeated CommittedWriteVersion writes = 2;
+}

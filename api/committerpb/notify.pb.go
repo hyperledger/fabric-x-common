@@ -212,6 +212,7 @@ type StreamBlocksRequest struct {
 	// Empty list means no status filtering (all statuses included).
 	FilterStatus []Status `protobuf:"varint,2,rep,packed,name=filter_status,json=filterStatus,proto3,enum=committerpb.Status" json:"filter_status,omitempty"`
 	// Include transaction content (read/write sets) in the response.
+	// Also includes available committed write versions for COMMITTED events.
 	// Default: false (only transaction reference and status).
 	IncludeReadWriteSets bool `protobuf:"varint,3,opt,name=include_read_write_sets,json=includeReadWriteSets,proto3" json:"include_read_write_sets,omitempty"`
 	// Include endorsements in the response.
@@ -362,9 +363,14 @@ type TxEvent struct {
 	Endorsements []*applicationpb.Endorsements `protobuf:"bytes,4,rep,name=endorsements,proto3" json:"endorsements,omitempty"`
 	// Transaction metadata (included only if include_metadata is true).
 	// Empty if not requested or if transaction has no metadata.
-	Metadata      [][]byte `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Metadata [][]byte `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty"`
+	// Committed versions for the original read-write and blind-write keys.
+	// Included only if include_read_write_sets is true and status is COMMITTED.
+	// Namespace filtering follows namespaces. Pair each version with its original
+	// write value by namespace ID and key, not by list position.
+	CommittedWriteVersions []*NamespaceWriteVersions `protobuf:"bytes,6,rep,name=committed_write_versions,json=committedWriteVersions,proto3" json:"committed_write_versions,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *TxEvent) Reset() {
@@ -432,11 +438,18 @@ func (x *TxEvent) GetMetadata() [][]byte {
 	return nil
 }
 
+func (x *TxEvent) GetCommittedWriteVersions() []*NamespaceWriteVersions {
+	if x != nil {
+		return x.CommittedWriteVersions
+	}
+	return nil
+}
+
 var File_api_committerpb_notify_proto protoreflect.FileDescriptor
 
 const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\n" +
-	"\x1capi/committerpb/notify.proto\x12\vcommitterpb\x1a\x1egoogle/protobuf/duration.proto\x1a\x13common/common.proto\x1a\x19api/committerpb/ref.proto\x1a\x1capi/committerpb/status.proto\x1a api/applicationpb/block_tx.proto\"\xaa\x01\n" +
+	"\x1capi/committerpb/notify.proto\x12\vcommitterpb\x1a\x1egoogle/protobuf/duration.proto\x1a\x13common/common.proto\x1a\x19api/committerpb/ref.proto\x1a\x1capi/committerpb/status.proto\x1a$api/committerpb/write_versions.proto\x1a api/applicationpb/block_tx.proto\"\xaa\x01\n" +
 	"\x13NotificationRequest\x12H\n" +
 	"\x11tx_status_request\x18\x01 \x01(\v2\x17.committerpb.TxIDsBatchH\x00R\x0ftxStatusRequest\x88\x01\x01\x123\n" +
 	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\atimeoutB\x14\n" +
@@ -457,7 +470,7 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"\n" +
 	"BlockEvent\x12+\n" +
 	"\x06header\x18\x01 \x01(\v2\x13.common.BlockHeaderR\x06header\x12,\n" +
-	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\"\xf5\x01\n" +
+	"\x06events\x18\x02 \x03(\v2\x14.committerpb.TxEventR\x06events\"\xd4\x02\n" +
 	"\aTxEvent\x12$\n" +
 	"\x03ref\x18\x01 \x01(\v2\x12.committerpb.TxRefR\x03ref\x12+\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x13.committerpb.StatusR\x06status\x12:\n" +
@@ -465,7 +478,8 @@ const file_api_committerpb_notify_proto_rawDesc = "" +
 	"namespaces\x18\x03 \x03(\v2\x1a.applicationpb.TxNamespaceR\n" +
 	"namespaces\x12?\n" +
 	"\fendorsements\x18\x04 \x03(\v2\x1b.applicationpb.EndorsementsR\fendorsements\x12\x1a\n" +
-	"\bmetadata\x18\x05 \x03(\fR\bmetadataB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
+	"\bmetadata\x18\x05 \x03(\fR\bmetadata\x12]\n" +
+	"\x18committed_write_versions\x18\x06 \x03(\v2#.committerpb.NamespaceWriteVersionsR\x16committedWriteVersionsB8Z6github.com/hyperledger/fabric-x-common/api/committerpbb\x06proto3"
 
 var (
 	file_api_committerpb_notify_proto_rawDescOnce sync.Once
@@ -495,6 +509,7 @@ var file_api_committerpb_notify_proto_goTypes = []any{
 	(*TxRef)(nil),                      // 11: committerpb.TxRef
 	(*applicationpb.TxNamespace)(nil),  // 12: applicationpb.TxNamespace
 	(*applicationpb.Endorsements)(nil), // 13: applicationpb.Endorsements
+	(*NamespaceWriteVersions)(nil),     // 14: committerpb.NamespaceWriteVersions
 }
 var file_api_committerpb_notify_proto_depIdxs = []int32{
 	6,  // 0: committerpb.NotificationRequest.tx_status_request:type_name -> committerpb.TxIDsBatch
@@ -508,11 +523,12 @@ var file_api_committerpb_notify_proto_depIdxs = []int32{
 	9,  // 8: committerpb.TxEvent.status:type_name -> committerpb.Status
 	12, // 9: committerpb.TxEvent.namespaces:type_name -> applicationpb.TxNamespace
 	13, // 10: committerpb.TxEvent.endorsements:type_name -> applicationpb.Endorsements
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	14, // 11: committerpb.TxEvent.committed_write_versions:type_name -> committerpb.NamespaceWriteVersions
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_api_committerpb_notify_proto_init() }
@@ -522,6 +538,7 @@ func file_api_committerpb_notify_proto_init() {
 	}
 	file_api_committerpb_ref_proto_init()
 	file_api_committerpb_status_proto_init()
+	file_api_committerpb_write_versions_proto_init()
 	file_api_committerpb_notify_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
