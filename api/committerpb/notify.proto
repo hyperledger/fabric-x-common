@@ -15,6 +15,7 @@ import "google/protobuf/duration.proto";
 import "common/common.proto";
 import "api/committerpb/ref.proto";
 import "api/committerpb/status.proto";
+import "api/committerpb/write_versions.proto";
 import "api/applicationpb/block_tx.proto";
 
 // NotificationRequest is sent by the clients to subscribe to events.
@@ -54,6 +55,7 @@ message StreamBlocksRequest {
     repeated Status filter_status = 2;
 
     // Include transaction content (read/write sets) in the response.
+    // Also includes available committed write versions for COMMITTED events.
     // Default: false (only transaction reference and status).
     bool include_read_write_sets = 3;
 
@@ -97,4 +99,10 @@ message TxEvent {
     // Transaction metadata (included only if include_metadata is true).
     // Empty if not requested or if transaction has no metadata.
     repeated bytes metadata = 5;
+
+    // Committed versions for the original read-write and blind-write keys.
+    // Included only if include_read_write_sets is true and status is COMMITTED.
+    // Namespace filtering follows namespaces. Pair each version with its original
+    // write value by namespace ID and key, not by list position.
+    repeated NamespaceWriteVersions committed_write_versions = 6;
 }
