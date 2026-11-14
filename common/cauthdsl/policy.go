@@ -90,7 +90,7 @@ func (p *policy) EvaluateSignedData(signatureSet []*protoutil.SignedData) error 
 		return errors.New("no such policy")
 	}
 
-	ids := policies.SignatureSetToValidIdentities(signatureSet, p.deserializer)
+	ids := policies.SignatureSetToDeferredVerificationIdentities(signatureSet, p.deserializer)
 
 	return p.EvaluateIdentities(ids)
 }
